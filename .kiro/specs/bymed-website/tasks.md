@@ -15,7 +15,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
   - _Requirements: 11.1, 11.2, 12.1_
 
 - [ ] 2. Implement domain entities and value objects
-  - [ ] 2.1 Create base entity classes and domain event infrastructure
+  - [x] 2.1 Create base entity classes and domain event infrastructure
     - Implement BaseEntity with Id, CreatedAt, UpdatedAt
     - Create domain event base class and event dispatcher
     - _Requirements: All requirements (foundational)_
