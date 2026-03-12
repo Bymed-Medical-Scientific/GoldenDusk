@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Bymed.API/Bymed.API.csproj" />
+  <Project Path="Bymed.Application/Bymed.Application.csproj" />
+  <Project Path="Bymed.Domain/Bymed.Domain.csproj" />
+  <Project Path="Bymed.Infrastructure/Bymed.Infrastructure.csproj" />
+</Solution>
