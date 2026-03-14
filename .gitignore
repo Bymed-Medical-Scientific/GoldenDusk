@@ -66,6 +66,9 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+# Local/dev settings (may contain connection strings, secrets)
+appsettings.Development.json
+
 # StyleCop
 StyleCopReport.xml
 

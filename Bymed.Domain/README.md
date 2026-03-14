@@ -7,23 +7,34 @@ This is the Domain Layer of the Bymed Medical & Scientific website, following Cl
 ### Primitives
 Core building blocks for the domain model:
 
+- **Account**: Represents the actor (user) performing an action. Used for audit fields. Infrastructure maps from Identity user to this type.
+
 - **BaseEntity**: Abstract base class for all domain entities
-  - Provides `Id` (Guid), `CreatedAt`, and `UpdatedAt` properties
-  - Supports domain events with `AddDomainEvent()` and `ClearDomainEvents()` methods
+  - Provides `Id` (Guid)
+  - Supports domain events with `AddDomainEvent()` and `GetAndClearDomainEvents()`
   - All entities should inherit from this class
 
-- **IDomainEvent**: Marker interface for domain events
-  - Defines `EventId` and `OccurredAt` properties
+- **AuditedEntity**: Extends BaseEntity with creation and soft-delete audit
+  - `CreationTime`, `CreatorId`, `Creator`
+  - `IsDeleted`, `DeletionTime`, `DeleterId`, `Deleter`
+  - `PrepareEntityForCreate(Account)`, `PrepareEntityForDelete(Account)`
 
-- **DomainEvent**: Abstract base class for domain events
-  - Implements `IDomainEvent` with automatic ID and timestamp generation
+- **FullAuditedEntity**: Extends AuditedEntity with last-modification audit
+  - `LastModificationTime`, `LastModifierUserId`, `LastModifier`
+  - `PrepareEntityForUpdate(Account)`, `PrepareForCreateAndUpdate(Account)`
+
+- **IDomainEvent**: Marker interface for domain events
+  - Defines `EventId` and `OccurredAtUtc`
+
+- **DomainEvent**: Abstract base record for domain events
+  - Implements `IDomainEvent` with automatic ID and timestamp
 
 - **IDomainEventHandler<TDomainEvent>**: Interface for event handlers
-  - Implement this to handle specific domain events
+  - Implement in Application layer to handle specific domain events
 
 - **IDomainEventDispatcher**: Interface for dispatching domain events
-  - Used to publish events to registered handlers
-  - Implementation will be in the Infrastructure layer
+  - Used to publish events to registered handlers after persistence
+  - Implementation resides in the Infrastructure layer
 
 ### Events
 Domain events that represent significant business occurrences:
@@ -67,31 +78,20 @@ public class Product : BaseEntity
 ### Creating a Domain Event
 
 ```csharp
-public sealed class MyCustomEvent : DomainEvent
-{
-    public MyCustomEvent(Guid entityId, string data)
-    {
-        EntityId = entityId;
-        Data = data;
-    }
-    
-    public Guid EntityId { get; }
-    public string Data { get; }
-}
+public sealed record MyCustomEvent(Guid EntityId, string Data) : DomainEvent;
 ```
 
 ### Handling Domain Events
 
-Event handlers will be implemented in the Application layer:
+Event handlers are implemented in the Application layer and registered with the dispatcher (Infrastructure):
 
 ```csharp
 public class OrderCreatedEventHandler : IDomainEventHandler<OrderCreatedEvent>
 {
     private readonly IEmailService _emailService;
-    
-    public async Task Handle(OrderCreatedEvent domainEvent, CancellationToken cancellationToken)
+
+    public async Task HandleAsync(OrderCreatedEvent domainEvent, CancellationToken cancellationToken)
     {
-        // Send order confirmation email
         await _emailService.SendOrderConfirmationAsync(domainEvent.OrderId);
     }
 }
