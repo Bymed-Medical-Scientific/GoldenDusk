@@ -3,14 +3,39 @@ using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, cancellationToken) =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Title = "Bymed API",
+            Version = "v1",
+            Description = "REST API for Bymed: authentication, admin, and customer operations. Use Bearer JWT from /api/auth/login for protected endpoints."
+        };
+        document.Components ??= new OpenApiComponents();
+        var components = document.Components;
+        components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "JWT access token. Obtain from POST /api/auth/login."
+        };
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddControllers();
 
 // Database and repositories (Clean Architecture Infrastructure)
@@ -69,6 +94,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options => options.WithTitle("Bymed API"));
 }
 
 app.UseHttpsRedirection();
@@ -77,28 +103,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
