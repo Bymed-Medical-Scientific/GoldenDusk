@@ -1,8 +1,106 @@
+using Bymed.API.Authorization;
+using Bymed.Application.Auth;
+using Bymed.Infrastructure;
+using Bymed.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Asp.Versioning;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer((document, _, cancellationToken) =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Title = "Bymed API",
+            Version = "v1",
+            Description = "REST API for Bymed: authentication, admin, and customer operations. Use Bearer JWT from /api/v1/auth/login for protected endpoints."
+        };
+        document.Components ??= new OpenApiComponents();
+        var components = document.Components;
+        components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "JWT access token. Obtain from POST /api/v1/auth/login."
+        };
+        return Task.CompletedTask;
+    });
+});
+
+// Database and repositories (Clean Architecture Infrastructure)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// ASP.NET Core Identity with domain User entity (custom store)
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.User.RequireUniqueEmail = true;
+})
+.AddUserStore<BymedUserStore>()
+.AddDefaultTokenProviders();
+
+builder.Services.AddBymedAuth();
+
+// JWT authentication
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+
+var jwtSection = builder.Configuration.GetSection(JwtSettings.SectionName);
+var secretKey = jwtSection["SecretKey"];
+if (string.IsNullOrWhiteSpace(secretKey))
+    throw new InvalidOperationException("JWT SecretKey must be set (e.g. appsettings Jwt:SecretKey or environment variable Jwt__SecretKey).");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    var issuer = jwtSection["Issuer"] ?? "BymedApi";
+    var audience = jwtSection["Audience"] ?? "BymedApi";
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateAudience = true,
+        ValidAudience = audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization(options => options.AddBymedRolePolicies());
 
 var app = builder.Build();
 
@@ -10,32 +108,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options => options.WithTitle("Bymed API"));
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

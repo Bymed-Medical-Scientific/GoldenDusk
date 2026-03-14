@@ -1,6 +1,3 @@
 @Bymed.API_HostAddress = http://localhost:5084
 
-GET {{Bymed.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
 ###

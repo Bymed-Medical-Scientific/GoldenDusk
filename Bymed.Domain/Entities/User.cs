@@ -21,9 +21,19 @@ public class User : FullAuditedEntity
     }
 
     /// <summary>
-    /// Creates a new user. Call SetPasswordHash with the hashed password (from Identity) and PrepareForCreateAndUpdate(account) when persisting.
+    /// Creates a new user. Call SetPasswordHash with the hashed password (from Identity) and PrepareEntityForCreate(account) when persisting.
     /// </summary>
-    public User(string email, string name, UserRole role)
+    public User(string email, string name, UserRole role) : base()
+    {
+        SetEmail(email);
+        SetName(name);
+        Role = role;
+    }
+
+    /// <summary>
+    /// Creates a new user with a specific Id (e.g. for Identity store so ApplicationUser.Id matches). Call SetPasswordHash and PrepareEntityForCreate when persisting.
+    /// </summary>
+    public User(Guid id, string email, string name, UserRole role) : base(id)
     {
         SetEmail(email);
         SetName(name);
