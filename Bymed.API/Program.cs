@@ -1,3 +1,4 @@
+using Bymed.API.Authorization;
 using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
@@ -60,7 +61,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddBymedRolePolicies());
 
 var app = builder.Build();
 

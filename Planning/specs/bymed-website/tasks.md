@@ -101,7 +101,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 12: Authentication Round Trip**
     - **Validates: Requirements 4.3**
   
-  - [ ] 4.6 Create AuthController with endpoints
+  - [x] 4.6 Create AuthController with endpoints
     - POST /api/auth/register
     - POST /api/auth/login
     - POST /api/auth/refresh
@@ -111,13 +111,13 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - POST /api/auth/change-password
     - _Requirements: 4.1, 4.2, 4.3, 4.6_
   
-  - [ ] 4.7 Configure role-based authorization
+  - [x] 4.7 Configure role-based authorization
     - Create Customer and Admin roles
     - Configure authorization policies
     - Add [Authorize] attributes to admin endpoints
     - _Requirements: 12.4_
   
-  - [ ]* 4.8 Write property test for admin access control
+  - [x]* 4.8 Write property test for admin access control
     - **Property 34: Admin Access Control**
     - **Validates: Requirements 12.4**
 
