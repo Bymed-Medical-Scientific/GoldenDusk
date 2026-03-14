@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+
+Payments use PayNow.
+
+Rules:
+
+1. Never trust frontend payment status.
+
+2. Always verify payments via PayNow webhook.
+
+3. Store transaction logs.
+
+4. Prevent duplicate transactions.
+
+5. Use idempotent payment processing.
+
+6. Log all payment attempts.
+
+7. Handle webhook retries.

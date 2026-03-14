@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+---
+
+Security is critical.
+
+Rules:
+
+1. Use HTTPS everywhere.
+
+2. Never store plaintext passwords.
+
+Use ASP.NET Identity hashing.
+
+3. Use JWT authentication.
+
+4. Implement role-based authorization.
+
+Roles:
+
+- Customer
+- Admin
+
+5. Validate all inputs.
+
+6. Prevent SQL injection.
+
+7. Prevent XSS.
+
+8. Prevent CSRF.
+
+9. Rate limit login attempts.
+
+10. Sanitize uploaded files.
+
+11. Restrict file types.
+
+12. Store secrets in environment variables.
+
+Never hardcode:
+
+- API keys
+- database credentials
+- payment gateway keys
+
+13. Verify PayNow webhook signatures.
+
+14. Log suspicious activity.

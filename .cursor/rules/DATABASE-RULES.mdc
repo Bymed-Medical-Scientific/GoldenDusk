@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+---
+
+Database: PostgreSQL with Entity Framework Core.
+
+Rules:
+
+1. Use migrations for all schema changes.
+
+2. Use proper indexing.
+
+Index:
+
+- product name
+- category id
+- order date
+- user id
+
+3. Avoid N+1 queries.
+
+4. Use eager loading when needed.
+
+5. Use pagination for large queries.
+
+6. Never load full product catalog into memory.
+
+7. Use transactions for critical operations.
+
+Example:
+
+- order creation
+- payment processing
+
+8. Normalize database tables.
+
+9. Use foreign key constraints.
+
+10. Use connection pooling.
+
+11. Log slow queries.
+
+12. Use caching for frequently accessed data.

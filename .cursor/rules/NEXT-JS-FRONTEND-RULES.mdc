@@ -1,0 +1,35 @@
+---
+alwaysApply: true
+---
+
+Frontend uses Next.js 14 with App Router.
+
+Rules:
+
+1. Use server components where possible.
+
+2. Use client components only when necessary.
+
+3. Use SSR for product pages for SEO.
+
+4. Use SSG for static content pages.
+
+5. Implement loading states.
+
+6. Optimize images.
+
+Use next/image.
+
+7. Avoid large client bundles.
+
+8. Use caching strategies.
+
+9. Use API routes only when necessary.
+
+10. Do not store sensitive data in frontend.
+
+11. Always handle API errors.
+
+12. Use responsive design.
+
+13. Optimize for low bandwidth networks.

@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+Admin panel uses Angular 17.
+
+Rules:
+
+1. Use standalone components.
+
+2. Use services for API communication.
+
+3. Never call APIs directly from components.
+
+4. Use RxJS observables.
+
+5. Use strong typing.
+
+6. Implement route guards for admin access.
+
+7. Use lazy loaded modules.
+
+8. Separate UI logic from data logic.
+
+9. Always handle loading states.
+
+10. Always handle API errors.

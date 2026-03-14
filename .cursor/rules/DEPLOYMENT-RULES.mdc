@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+Deployment target: VPS (Linux)
+
+Stack:
+
+- Ubuntu
+- Nginx
+- ASP.NET Core
+- PostgreSQL
+- Redis
+
+Rules:
+
+1. Use Nginx as reverse proxy.
+
+2. Enable gzip compression.
+
+3. Use SSL via Let's Encrypt.
+
+4. Enable HTTP/2.
+
+5. Run API via systemd service.
+
+6. Use environment variables for configuration.
+
+7. Enable logging.
+
+8. Monitor CPU, memory, and disk usage.
+
+9. Configure automated backups.
+
+10. Implement health check endpoints.
+
+Example:
+
+/health

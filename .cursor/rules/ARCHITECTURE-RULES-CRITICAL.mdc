@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+---
+
+This project follows Clean Architecture.
+
+Layers:
+
+1. Presentation Layer
+   - API Controllers
+   - DTOs
+   - Request/Response models
+
+2. Application Layer
+   - Use Cases
+   - Application Services
+   - Interfaces
+
+3. Domain Layer
+   - Entities
+   - Value Objects
+   - Domain Services
+   - Domain Events
+
+4. Infrastructure Layer
+   - Database access
+   - External APIs
+   - File storage
+   - Email services
+
+Rules:
+
+1. Domain layer must not depend on any other layer.
+
+2. Application layer may depend only on domain.
+
+3. Infrastructure depends on all layers.
+
+4. Controllers must never access repositories directly.
+
+5. Controllers must call use cases.
+
+6. Use cases contain business logic.
+
+7. Repositories must be interfaces in Application layer.
+
+8. Repository implementations must exist in Infrastructure.
+
+9. DTOs must not leak domain entities.
+
+10. Never expose database models to the API.

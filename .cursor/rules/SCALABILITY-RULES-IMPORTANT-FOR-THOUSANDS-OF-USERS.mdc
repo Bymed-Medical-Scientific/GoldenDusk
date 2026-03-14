@@ -1,0 +1,54 @@
+---
+alwaysApply: true
+---
+
+This system must support thousands of concurrent users.
+
+Performance rules:
+
+1. Use Redis caching for:
+
+- product catalog
+- categories
+- popular products
+
+2. Avoid repeated database queries.
+
+3. Implement pagination for all list endpoints.
+
+4. Use background jobs for heavy operations.
+
+Example:
+
+- sending emails
+- generating reports
+
+5. Avoid synchronous blocking operations.
+
+6. All IO must be asynchronous.
+
+7. Optimize database queries.
+
+8. Cache product pages.
+
+9. Use CDN for images.
+
+10. Avoid large payloads in APIs.
+
+11. Use rate limiting.
+
+12. Use database indexes.
+
+13. Implement health checks.
+
+14. Avoid loading unnecessary data.
+
+Example:
+
+Bad:
+
+SELECT * FROM Products
+
+Good:
+
+SELECT Id, Name, Price FROM Products LIMIT 20

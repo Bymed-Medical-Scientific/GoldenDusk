@@ -1,0 +1,52 @@
+---
+alwaysApply: true
+---
+
+Backend: ASP.NET Core Web API using Clean Architecture.
+
+General API Rules:
+
+1. Use RESTful conventions.
+
+2. Controllers should only:
+   - validate request
+   - call use cases
+   - return response
+
+3. No business logic in controllers.
+
+4. Use DTOs for all API communication.
+
+5. Use async/await for all database and IO calls.
+
+6. Use dependency injection everywhere.
+
+7. Use structured logging.
+
+8. Always validate inputs.
+
+9. Return proper HTTP status codes.
+
+Examples:
+
+200 OK
+201 Created
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+500 Internal Server Error
+
+10. Use pagination for large datasets.
+
+Example:
+
+GET /products?page=1&pageSize=20
+
+11. Never return thousands of records in one request.
+
+12. Always include:
+
+- request validation
+- error handling
+- logging
