@@ -3,6 +3,7 @@ using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Asp.Versioning;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +14,21 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddOpenApi(options =>
+builder.Services.AddControllers();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddOpenApi("v1", options =>
 {
     options.AddDocumentTransformer((document, _, cancellationToken) =>
     {
@@ -21,7 +36,7 @@ builder.Services.AddOpenApi(options =>
         {
             Title = "Bymed API",
             Version = "v1",
-            Description = "REST API for Bymed: authentication, admin, and customer operations. Use Bearer JWT from /api/auth/login for protected endpoints."
+            Description = "REST API for Bymed: authentication, admin, and customer operations. Use Bearer JWT from /api/v1/auth/login for protected endpoints."
         };
         document.Components ??= new OpenApiComponents();
         var components = document.Components;
@@ -31,12 +46,11 @@ builder.Services.AddOpenApi(options =>
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",
             BearerFormat = "JWT",
-            Description = "JWT access token. Obtain from POST /api/auth/login."
+            Description = "JWT access token. Obtain from POST /api/v1/auth/login."
         };
         return Task.CompletedTask;
     });
 });
-builder.Services.AddControllers();
 
 // Database and repositories (Clean Architecture Infrastructure)
 builder.Services.AddInfrastructure(builder.Configuration);

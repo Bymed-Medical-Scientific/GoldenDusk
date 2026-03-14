@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Asp.Versioning;
 using Bymed.Application.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,8 @@ namespace Bymed.API.Controllers;
 /// Authentication endpoints: register, login, refresh, logout, password reset, change password.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public sealed class AuthController : ControllerBase
 {
