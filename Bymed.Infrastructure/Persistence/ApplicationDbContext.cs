@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<PageContent> PageContents => Set<PageContent>();
     public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
     public DbSet<InventoryLog> InventoryLogs => Set<InventoryLog>();
+    public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +51,7 @@ public class ApplicationDbContext : DbContext
         ApplyPageContentConfiguration(modelBuilder);
         ApplyContentVersionConfiguration(modelBuilder);
         ApplyInventoryLogConfiguration(modelBuilder);
+        ApplyRefreshTokenConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -305,6 +307,20 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ApplyRefreshTokenConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RefreshTokenEntity>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TokenHash);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ExpiresAt);
+
+            entity.Property(e => e.TokenHash).IsRequired().HasMaxLength(256);
         });
     }
 }

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Bymed.Application\Bymed.Application.csproj" />
     <ProjectReference Include="..\Bymed.Infrastructure\Bymed.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -80,7 +80,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Configure JWT authentication
     - _Requirements: 4.1, 4.2, 12.2_
   
-  - [ ] 4.2 Create authentication services and DTOs
+  - [x] 4.2 Create authentication services and DTOs
     - Implement IAuthService interface
     - Create RegisterRequest, LoginRequest, AuthResponse DTOs
     - Implement registration with email validation

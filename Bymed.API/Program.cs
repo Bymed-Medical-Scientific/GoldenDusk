@@ -1,4 +1,4 @@
-using Bymed.API.Configuration;
+using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +26,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 })
 .AddUserStore<BymedUserStore>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddBymedAuth();
 
 // JWT authentication
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
