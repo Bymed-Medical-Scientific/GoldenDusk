@@ -75,6 +75,7 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
         user.Id = id.ToString();
 
         var domainUser = new User(
+            id,
             user.UserName.Trim(),
             user.Name ?? user.UserName.Trim(),
             user.Role);

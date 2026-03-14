@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Bymed.Application.Auth;
 using Bymed.Application.Common;
+using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
@@ -21,6 +22,7 @@ public sealed class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IRefreshTokenStore _refreshTokenStore;
     private readonly IEmailSender _emailSender;
     private readonly JwtSettings _jwtSettings;
@@ -28,12 +30,14 @@ public sealed class AuthService : IAuthService
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
         IRefreshTokenStore refreshTokenStore,
         IEmailSender emailSender,
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _refreshTokenStore = refreshTokenStore ?? throw new ArgumentNullException(nameof(refreshTokenStore));
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
         _jwtSettings = jwtSettings?.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
@@ -70,7 +74,10 @@ public sealed class AuthService : IAuthService
         if (!createResult.Succeeded)
             return Result<AuthResponse>.Failure(createResult.Errors.FirstOrDefault()?.Description ?? "Registration failed.");
 
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken).ConfigureAwait(false);
+        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var userId = Guid.Parse(appUser.Id);
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
         if (user == null)
             return Result<AuthResponse>.Failure("User was created but could not be retrieved.");
 

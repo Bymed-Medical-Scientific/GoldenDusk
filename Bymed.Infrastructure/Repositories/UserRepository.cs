@@ -30,8 +30,9 @@ public class UserRepository : IUserRepository
         if (string.IsNullOrWhiteSpace(email))
             return null;
 
+        var normalized = email.Trim().ToUpperInvariant();
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email.Trim(), cancellationToken)
+            .FirstOrDefaultAsync(u => u.Email.ToUpper() == normalized, cancellationToken)
             .ConfigureAwait(false);
     }
 
