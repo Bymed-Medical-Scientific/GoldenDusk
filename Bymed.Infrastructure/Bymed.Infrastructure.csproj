@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\Bymed.Application\Bymed.Application.csproj" />
+    <ProjectReference Include="..\Bymed.Domain\Bymed.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
