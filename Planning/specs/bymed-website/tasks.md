@@ -4,7 +4,7 @@
 
 This implementation plan breaks down the Bymed e-commerce platform into discrete coding tasks following Clean Architecture principles. The system consists of three main components: a C# ASP.NET Core backend API, a Next.js customer-facing frontend, and an Angular admin panel. Tasks are organized to build incrementally, starting with core infrastructure and domain models, then adding application logic, and finally implementing the user interfaces.
 
-## Tasks
+# Tasks
 
 - [ ] 1. Set up backend project structure and core infrastructure
   - Create ASP.NET Core Web API project with Clean Architecture layers (Domain, Application, Infrastructure, Presentation)
