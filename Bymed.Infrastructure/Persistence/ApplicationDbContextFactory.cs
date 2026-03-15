@@ -6,14 +6,12 @@ namespace Bymed.Infrastructure.Persistence;
 
 /// <summary>
 /// Design-time factory for creating ApplicationDbContext when running EF Core tools (e.g. migrations).
-/// Reads connection string from (in order): environment variable ConnectionStrings__DefaultConnection,
-/// then startup project appsettings.Development.json and appsettings.json (when run with --startup-project Bymed.API).
+/// Reads connection string from: environment variable ConnectionStrings__DefaultConnection,
+/// or appsettings.Development.json / appsettings.json when run with --startup-project Bymed.API.
+/// Do not hardcode credentials; use environment variables or (gitignored) appsettings.Development.json.
 /// </summary>
 public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
-    private const string DefaultConnectionString =
-        "Host=localhost;Port=5432;Database=bymed;Username=postgres;Password=postgres";
-
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         var basePath = Directory.GetCurrentDirectory();
@@ -28,11 +26,12 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
             .Build();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-            ?? DefaultConnectionString;
+            ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))
-            connectionString = DefaultConnectionString;
+            throw new InvalidOperationException(
+                "Design-time connection string not found. Set ConnectionStrings__DefaultConnection environment variable, " +
+                "or add DefaultConnection in appsettings.Development.json (see appsettings.Development.json.example).");
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString, npgsql =>
