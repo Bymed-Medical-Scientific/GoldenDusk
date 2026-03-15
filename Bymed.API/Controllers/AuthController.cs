@@ -6,9 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Bymed.API.Controllers;
 
-/// <summary>
-/// Authentication endpoints: register, login, refresh, logout, password reset, change password.
-/// </summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
@@ -22,9 +19,6 @@ public sealed class AuthController : ControllerBase
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
     }
 
-    /// <summary>
-    /// Register a new user. Returns user info and tokens on success.
-    /// </summary>
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -40,9 +34,6 @@ public sealed class AuthController : ControllerBase
         return CreatedAtAction(nameof(Login), result.Value);
     }
 
-    /// <summary>
-    /// Authenticate and receive access and refresh tokens.
-    /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -59,9 +50,6 @@ public sealed class AuthController : ControllerBase
         return Ok(result.Value);
     }
 
-    /// <summary>
-    /// Exchange refresh token for new access and refresh tokens (rotation).
-    /// </summary>
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -78,9 +66,6 @@ public sealed class AuthController : ControllerBase
         return Ok(result.Value);
     }
 
-    /// <summary>
-    /// Revoke the given refresh token (logout).
-    /// </summary>
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -93,9 +78,6 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Request a password reset. Sends email with token; always returns success to avoid email enumeration.
-    /// </summary>
     [HttpPost("reset-password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -108,9 +90,6 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Confirm password reset using the token sent by email.
-    /// </summary>
     [HttpPost("reset-password/confirm")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -126,9 +105,6 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Change password for the authenticated user.
-    /// </summary>
     [HttpPost("change-password")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

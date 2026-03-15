@@ -1,8 +1,5 @@
 namespace Bymed.Application.Auth;
 
-/// <summary>
-/// Request DTO for changing password (authenticated user).
-/// </summary>
 public sealed record ChangePasswordRequest
 {
     public required string CurrentPassword { get; init; }

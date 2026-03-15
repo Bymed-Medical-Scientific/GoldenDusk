@@ -3,9 +3,6 @@ using Bymed.Domain.Entities;
 
 namespace Bymed.Application.Repositories;
 
-/// <summary>
-/// Category persistence. Implemented in Infrastructure with EF Core.
-/// </summary>
 public interface ICategoryRepository
 {
     Task<Category?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

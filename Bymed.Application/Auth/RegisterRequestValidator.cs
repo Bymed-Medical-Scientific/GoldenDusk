@@ -2,10 +2,6 @@ using FluentValidation;
 
 namespace Bymed.Application.Auth;
 
-/// <summary>
-/// Validates registration request: email format, password strength (min 8 characters), name required.
-/// Used for registration validation (Requirements 4.2) and property tests.
-/// </summary>
 public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
     public const int MinimumPasswordLength = 8;
