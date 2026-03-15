@@ -126,7 +126,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
 
 
 - [ ] 6. Implement Category management
-  - [ ] 6.1 Create Category use cases and DTOs
+  - [x] 6.1 Create Category use cases and DTOs
     - Create CategoryDto, CreateCategoryRequest, UpdateCategoryRequest
     - Implement GetCategoriesQuery and handler
     - Implement GetCategoryByIdQuery and handler
