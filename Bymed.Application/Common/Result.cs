@@ -1,8 +1,5 @@
 namespace Bymed.Application.Common;
 
-/// <summary>
-/// Result type for operations that can succeed or fail with an error message.
-/// </summary>
 public sealed class Result
 {
     public bool IsSuccess { get; }
@@ -18,9 +15,6 @@ public sealed class Result
     public static Result Failure(string error) => new(false, error ?? "An error occurred.");
 }
 
-/// <summary>
-/// Result type for operations that return a value on success.
-/// </summary>
 public sealed class Result<T>
 {
     public bool IsSuccess { get; }

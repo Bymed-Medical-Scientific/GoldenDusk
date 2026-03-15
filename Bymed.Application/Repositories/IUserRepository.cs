@@ -3,9 +3,6 @@ using Bymed.Domain.Entities;
 
 namespace Bymed.Application.Repositories;
 
-/// <summary>
-/// User persistence. Implemented in Infrastructure with EF Core.
-/// </summary>
 public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

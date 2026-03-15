@@ -98,9 +98,6 @@ public class Product : FullAuditedEntity
         AddDomainEvent(new InventoryChangedEvent(Id, previousCount, newCount, reason.Trim(), changedBy.Trim()));
     }
 
-    /// <summary>
-    /// Marks the product as unavailable (e.g. when inventory reaches zero or manually discontinued).
-    /// </summary>
     public void MarkAsUnavailable()
     {
         IsAvailable = false;

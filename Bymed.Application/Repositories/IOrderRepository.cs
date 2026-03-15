@@ -4,9 +4,6 @@ using Bymed.Domain.Enums;
 
 namespace Bymed.Application.Repositories;
 
-/// <summary>
-/// Order persistence. Implemented in Infrastructure with EF Core.
-/// </summary>
 public interface IOrderRepository
 {
     Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

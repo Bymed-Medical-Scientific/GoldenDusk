@@ -1,10 +1,5 @@
 namespace Bymed.Domain.Primitives;
 
-/// <summary>
-/// Represents the actor (user) performing an action in the domain.
-/// Used for audit fields (creator, deleter, last modifier).
-/// Infrastructure maps from Identity user to this domain type.
-/// </summary>
 public sealed class Account
 {
     public Guid Id { get; }

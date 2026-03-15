@@ -4,12 +4,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace Bymed.Infrastructure.Persistence;
 
-/// <summary>
-/// Design-time factory for creating ApplicationDbContext when running EF Core tools (e.g. migrations).
-/// Reads connection string from: environment variable ConnectionStrings__DefaultConnection,
-/// or appsettings.Development.json / appsettings.json when run with --startup-project Bymed.API.
-/// Do not hardcode credentials; use environment variables or (gitignored) appsettings.Development.json.
-/// </summary>
 public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
     public ApplicationDbContext CreateDbContext(string[] args)

@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// A line item in a cart: product reference, quantity, and price snapshot at add time.
-/// </summary>
 public class CartItem : BaseEntity
 {
     public Guid CartId { get; private set; }
@@ -42,8 +39,5 @@ public class CartItem : BaseEntity
         Quantity = quantity;
     }
 
-    /// <summary>
-    /// Line total (Quantity * PriceAtAdd).
-    /// </summary>
     public decimal GetLineTotal() => Quantity * PriceAtAdd;
 }

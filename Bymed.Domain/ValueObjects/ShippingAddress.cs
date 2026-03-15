@@ -1,8 +1,5 @@
 namespace Bymed.Domain.ValueObjects;
 
-/// <summary>
-/// Value object for order shipping address. No identity; embedded in Order.
-/// </summary>
 public sealed record ShippingAddress
 {
     public const int NameMaxLength = 200;

@@ -3,9 +3,6 @@ using Bymed.Domain.Entities;
 
 namespace Bymed.Application.Repositories;
 
-/// <summary>
-/// Product persistence. Implemented in Infrastructure with EF Core.
-/// </summary>
 public interface IProductRepository
 {
     Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

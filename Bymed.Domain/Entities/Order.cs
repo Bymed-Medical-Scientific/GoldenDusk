@@ -4,9 +4,6 @@ using Bymed.Domain.ValueObjects;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// A placed order with customer info, shipping address, line items, and payment tracking.
-/// </summary>
 public class Order : FullAuditedEntity
 {
     public const int OrderNumberMaxLength = 50;
@@ -45,9 +42,6 @@ public class Order : FullAuditedEntity
     {
     }
 
-    /// <summary>
-    /// Creates a new order. Add items with AddItem, then call SetTaxAndShipping and RecalculateTotals before persisting.
-    /// </summary>
     public Order(
         string orderNumber,
         Guid? userId,
@@ -75,18 +69,12 @@ public class Order : FullAuditedEntity
         PaymentStatus = paymentStatus;
     }
 
-    /// <summary>
-    /// Adds a line item (product snapshot). Call RecalculateTotals after all items are added.
-    /// </summary>
     public void AddItem(Guid productId, string productName, string productImageUrl, int quantity, decimal pricePerUnit)
     {
         var item = new OrderItem(Id, productId, productName, productImageUrl ?? string.Empty, quantity, pricePerUnit);
         _items.Add(item);
     }
 
-    /// <summary>
-    /// Sets tax and shipping amounts, then recalculates total. Subtotal is computed from items.
-    /// </summary>
     public void SetTaxAndShipping(decimal tax, decimal shippingCost)
     {
         if (tax < 0)
@@ -97,27 +85,17 @@ public class Order : FullAuditedEntity
         ShippingCost = shippingCost;
     }
 
-    /// <summary>
-    /// Recalculates Subtotal from line items and Total = Subtotal + Tax + ShippingCost.
-    /// Call after adding all items and setting tax/shipping.
-    /// </summary>
     public void RecalculateTotals()
     {
         Subtotal = _items.Sum(i => i.Subtotal);
         Total = Subtotal + Tax + ShippingCost;
     }
 
-    /// <summary>
-    /// Updates order status. Call PrepareEntityForUpdate(account) when persisting.
-    /// </summary>
     public void SetStatus(OrderStatus status)
     {
         Status = status;
     }
 
-    /// <summary>
-    /// Updates payment status (e.g. after webhook). Call PrepareEntityForUpdate(account) when persisting.
-    /// </summary>
     public void SetPaymentStatus(PaymentStatus status)
     {
         PaymentStatus = status;

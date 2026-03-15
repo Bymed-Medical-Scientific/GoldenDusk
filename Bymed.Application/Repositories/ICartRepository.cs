@@ -2,9 +2,6 @@ using Bymed.Domain.Entities;
 
 namespace Bymed.Application.Repositories;
 
-/// <summary>
-/// Cart persistence. Implemented in Infrastructure with EF Core.
-/// </summary>
 public interface ICartRepository
 {
     Task<Cart?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

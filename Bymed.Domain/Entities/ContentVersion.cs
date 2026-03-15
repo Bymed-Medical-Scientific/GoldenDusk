@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// A versioned snapshot of page content for history/audit.
-/// </summary>
 public class ContentVersion : BaseEntity
 {
     public const int CreatedByMaxLength = 256;

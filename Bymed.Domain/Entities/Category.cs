@@ -3,9 +3,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// Product category for organizing the catalog (e.g. medical equipment, consumables, laboratory tools).
-/// </summary>
 public class Category : FullAuditedEntity
 {
     private static readonly Regex SlugFormat = new(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.Compiled);
@@ -23,11 +20,6 @@ public class Category : FullAuditedEntity
     {
     }
 
-    /// <summary>
-    /// Creates a new category. Call PrepareForCreateAndUpdate(account) after construction when persisting.
-    /// </summary>
-    /// <exception cref="ArgumentNullException">Name or Slug is null.</exception>
-    /// <exception cref="ArgumentException">Validation failed for Name, Slug, or DisplayOrder.</exception>
     public Category(string name, string slug, string? description, int displayOrder)
     {
         SetName(name);
@@ -36,9 +28,6 @@ public class Category : FullAuditedEntity
         SetDisplayOrder(displayOrder);
     }
 
-    /// <summary>
-    /// Updates category properties. Call PrepareEntityForUpdate(account) after when persisting.
-    /// </summary>
     public void Update(string name, string slug, string? description, int displayOrder)
     {
         SetName(name);

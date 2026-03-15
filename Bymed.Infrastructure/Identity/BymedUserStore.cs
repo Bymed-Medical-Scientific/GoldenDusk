@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Bymed.Infrastructure.Identity;
 
-/// <summary>
-/// ASP.NET Core Identity user store that persists to the domain User entity via IUserRepository.
-/// Maps between ApplicationUser (Identity) and User (domain). UserName is used as email.
-/// </summary>
 public sealed class BymedUserStore : IUserStore<ApplicationUser>,
     IUserPasswordStore<ApplicationUser>,
     IUserEmailStore<ApplicationUser>

@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// Image associated with a product (URL, alt text, display order).
-/// </summary>
 public class ProductImage : BaseEntity
 {
     public const int UrlMaxLength = 2000;

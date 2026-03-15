@@ -13,11 +13,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Bymed.Infrastructure.Auth;
-
-/// <summary>
-/// Implements authentication: register, login, refresh, logout, password reset, change password.
-/// Uses ASP.NET Core Identity for password hashing and UserManager; JWT for access tokens.
-/// </summary>
 public sealed class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;

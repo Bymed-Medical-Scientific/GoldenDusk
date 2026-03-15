@@ -1,9 +1,5 @@
 namespace Bymed.Application.Common;
 
-/// <summary>
-/// Result of a paginated list query. Used by repositories and use cases.
-/// </summary>
-/// <typeparam name="T">Item type.</typeparam>
 public sealed class PagedResult<T>
 {
     public IReadOnlyList<T> Items { get; }

@@ -6,9 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace Bymed.Infrastructure.Auth;
 
-/// <summary>
-/// Stores refresh tokens in the database (hashed). Supports rotation and revocation.
-/// </summary>
 public sealed class RefreshTokenStore : IRefreshTokenStore
 {
     private readonly ApplicationDbContext _context;

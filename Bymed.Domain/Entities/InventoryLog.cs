@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// Append-only log entry for a product inventory change (audit trail for requirement 9.5).
-/// </summary>
 public class InventoryLog : BaseEntity
 {
     public const int ReasonMaxLength = 500;
@@ -24,9 +21,6 @@ public class InventoryLog : BaseEntity
     {
     }
 
-    /// <summary>
-    /// Creates a new inventory log entry. Typically created when handling InventoryChangedEvent or on direct adjustment.
-    /// </summary>
     public InventoryLog(Guid productId, int previousCount, int newCount, string reason, string changedBy)
     {
         if (productId == Guid.Empty)

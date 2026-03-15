@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of product persistence with pagination support.
-/// </summary>
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _context;

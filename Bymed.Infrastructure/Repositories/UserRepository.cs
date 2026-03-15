@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of user persistence with pagination support.
-/// </summary>
 public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;

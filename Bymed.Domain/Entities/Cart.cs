@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// Shopping cart for a user or guest (SessionId). Items are CartItems.
-/// </summary>
 public class Cart : BaseEntity
 {
     public const int SessionIdMaxLength = 64;
@@ -19,9 +16,6 @@ public class Cart : BaseEntity
     {
     }
 
-    /// <summary>
-    /// Creates a cart for a registered user.
-    /// </summary>
     public static Cart ForUser(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -29,9 +23,6 @@ public class Cart : BaseEntity
         return new Cart { UserId = userId };
     }
 
-    /// <summary>
-    /// Creates a cart for a guest (no user). SessionId should be set by the application.
-    /// </summary>
     public static Cart ForGuest(string sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -43,9 +34,6 @@ public class Cart : BaseEntity
         return new Cart { SessionId = trimmed };
     }
 
-    /// <summary>
-    /// Adds or updates quantity for a product. PriceAtAdd is the product price at time of add.
-    /// </summary>
     public void AddOrUpdateItem(Guid productId, int quantity, decimal pricePerUnit)
     {
         if (productId == Guid.Empty)
@@ -62,9 +50,6 @@ public class Cart : BaseEntity
             _items.Add(new CartItem(Id, productId, quantity, pricePerUnit));
     }
 
-    /// <summary>
-    /// Removes an item by product id.
-    /// </summary>
     public void RemoveItem(Guid productId)
     {
         var index = _items.FindIndex(i => i.ProductId == productId);
@@ -72,14 +57,8 @@ public class Cart : BaseEntity
             _items.RemoveAt(index);
     }
 
-    /// <summary>
-    /// Total price of all items (sum of Quantity * PriceAtAdd).
-    /// </summary>
     public decimal GetTotal() => _items.Sum(i => i.Quantity * i.PriceAtAdd);
 
-    /// <summary>
-    /// Total number of line items (count of distinct products).
-    /// </summary>
     public int GetItemCount() => _items.Sum(i => i.Quantity);
 
     internal void AddItem(CartItem item) => _items.Add(item);

@@ -2,9 +2,6 @@ using Bymed.Domain.Enums;
 
 namespace Bymed.Application.Auth;
 
-/// <summary>
-/// User information returned in auth responses (register, login, refresh).
-/// </summary>
 public sealed record AuthUserDto
 {
     public required Guid Id { get; init; }

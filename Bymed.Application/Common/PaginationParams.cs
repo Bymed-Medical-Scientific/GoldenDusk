@@ -1,8 +1,5 @@
 namespace Bymed.Application.Common;
 
-/// <summary>
-/// Standard parameters for paginated list queries. Use to constrain page size and avoid large payloads.
-/// </summary>
 public sealed record PaginationParams(int PageNumber = 1, int PageSize = 20)
 {
     public const int MaxPageSize = 100;
