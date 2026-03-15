@@ -125,7 +125,6 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 6. Implement Category management
   - [x] 6.1 Create Category use cases and DTOs
     - Create CategoryDto, CreateCategoryRequest, UpdateCategoryRequest
     - Implement GetCategoriesQuery and handler
@@ -135,7 +134,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement DeleteCategoryCommand and handler (with validation for products)
     - _Requirements: 1.1, 6.2_
   
-  - [ ] 6.2 Create CategoriesController
+  - [x] 6.2 Create CategoriesController
     - GET /api/categories (list all)
     - GET /api/categories/{id}
     - POST /api/categories (admin only)
@@ -143,7 +142,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - DELETE /api/categories/{id} (admin only)
     - _Requirements: 1.1, 6.2_
   
-  - [ ]* 6.3 Write unit tests for category CRUD operations
+  - [x]* 6.3 Write unit tests for category CRUD operations
     - Test create, read, update, delete operations
     - Test delete validation when products exist
     - _Requirements: 6.2_
