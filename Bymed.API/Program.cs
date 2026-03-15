@@ -1,4 +1,5 @@
 using Bymed.API.Authorization;
+using Bymed.Application;
 using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
@@ -50,6 +51,9 @@ builder.Services.AddOpenApi("v1", options =>
         return Task.CompletedTask;
     });
 });
+
+// Application use cases (MediatR, FluentValidation)
+builder.Services.AddApplication();
 
 // Database and repositories (Clean Architecture Infrastructure)
 builder.Services.AddInfrastructure(builder.Configuration);
