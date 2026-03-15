@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of category persistence with pagination support.
-/// </summary>
 public class CategoryRepository : ICategoryRepository
 {
     private readonly ApplicationDbContext _context;

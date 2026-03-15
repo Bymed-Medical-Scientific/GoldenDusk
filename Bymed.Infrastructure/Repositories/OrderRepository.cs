@@ -7,9 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of order persistence with pagination support.
-/// </summary>
 public class OrderRepository : IOrderRepository
 {
     private readonly ApplicationDbContext _context;

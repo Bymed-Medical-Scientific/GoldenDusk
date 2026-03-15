@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// A line item on an order: snapshot of product name, image, quantity, and price at order time.
-/// </summary>
 public class OrderItem : BaseEntity
 {
     public const int ProductNameMaxLength = 500;

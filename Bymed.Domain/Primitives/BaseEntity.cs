@@ -2,18 +2,12 @@ using Bymed.Domain.Events;
 
 namespace Bymed.Domain.Primitives;
 
-/// <summary>
-/// Base class for all domain entities. Provides a unique identifier and domain event collection.
-/// </summary>
 public abstract class BaseEntity
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 
     public Guid Id { get; protected set; }
 
-    /// <summary>
-    /// Returns the current domain events and clears the collection. Call after persisting so the dispatcher can publish them.
-    /// </summary>
     public IReadOnlyCollection<IDomainEvent> GetAndClearDomainEvents()
     {
         var events = _domainEvents.ToList();

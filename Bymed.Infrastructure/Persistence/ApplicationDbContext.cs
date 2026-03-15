@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Persistence;
 
-/// <summary>
-/// Entity Framework Core database context for the Bymed application.
-/// Configured for PostgreSQL with entity configurations, relationships, indexes, and owned types.
-/// </summary>
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

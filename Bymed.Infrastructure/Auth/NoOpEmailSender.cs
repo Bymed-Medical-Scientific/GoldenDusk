@@ -3,10 +3,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Bymed.Infrastructure.Auth;
 
-/// <summary>
-/// No-op email sender for development. Replace with a real implementation (e.g. SMTP) for production.
-/// Logs the intent to send so password reset flow can be tested.
-/// </summary>
+// No-op email sender for development. Replace with a real implementation (e.g. SMTP) for production.
+// Logs the intent to send so password reset flow can be tested.
 public sealed class NoOpEmailSender : IEmailSender
 {
     private readonly ILogger<NoOpEmailSender> _logger;

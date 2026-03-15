@@ -1,8 +1,5 @@
 namespace Bymed.Domain.Primitives;
 
-/// <summary>
-/// Entity with creation and soft-delete audit fields.
-/// </summary>
 public abstract class AuditedEntity : BaseEntity
 {
     public DateTime CreationTime { get; protected set; }
@@ -22,9 +19,6 @@ public abstract class AuditedEntity : BaseEntity
     {
     }
 
-    /// <summary>
-    /// Marks the entity as deleted and sets deleter and deletion time.
-    /// </summary>
     public void PrepareEntityForDelete(Account account)
     {
         ArgumentNullException.ThrowIfNull(account);
@@ -33,9 +27,6 @@ public abstract class AuditedEntity : BaseEntity
         DeletionTime = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Sets creator and creation time for a new entity.
-    /// </summary>
     public void PrepareEntityForCreate(Account account)
     {
         ArgumentNullException.ThrowIfNull(account);

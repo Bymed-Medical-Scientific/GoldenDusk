@@ -2,9 +2,6 @@ using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// Saved address for a user (address book). For order shipping, use ShippingAddress value object.
-/// </summary>
 public class Address : BaseEntity
 {
     public const int NameMaxLength = 200;

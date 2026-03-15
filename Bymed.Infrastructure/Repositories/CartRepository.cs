@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of cart persistence.
-/// </summary>
 public class CartRepository : ICartRepository
 {
     private readonly ApplicationDbContext _context;

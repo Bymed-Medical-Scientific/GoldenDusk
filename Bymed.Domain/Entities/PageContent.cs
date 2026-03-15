@@ -4,9 +4,6 @@ using Bymed.Domain.ValueObjects;
 
 namespace Bymed.Domain.Entities;
 
-/// <summary>
-/// CMS page content (e.g. About, Terms). Slug, title, body content, and optional metadata.
-/// </summary>
 public class PageContent : FullAuditedEntity
 {
     private static readonly Regex SlugFormat = new(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.Compiled);
@@ -44,17 +41,11 @@ public class PageContent : FullAuditedEntity
             Metadata = metadata;
     }
 
-    /// <summary>
-    /// Marks the page as published at the current time.
-    /// </summary>
     public void Publish()
     {
         PublishedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Clears published date (unpublish).
-    /// </summary>
     public void Unpublish()
     {
         PublishedAt = null;

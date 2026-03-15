@@ -1,8 +1,6 @@
 namespace Bymed.Domain.ValueObjects;
 
-/// <summary>
-/// SEO and social metadata for a page. Owned by PageContent.
-/// </summary>
+// SEO and social metadata for a page. Owned by PageContent.
 public sealed record PageMetadata
 {
     public const int MetaTitleMaxLength = 100;
