@@ -1,7 +1,9 @@
 using Bymed.Application.Auth;
+using Bymed.Application.Files;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Infrastructure.Auth;
+using Bymed.Infrastructure.Files;
 using Bymed.Infrastructure.Persistence;
 using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,9 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         return services.AddInfrastructureRepositories();
     }
