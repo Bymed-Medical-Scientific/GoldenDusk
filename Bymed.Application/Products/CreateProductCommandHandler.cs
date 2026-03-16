@@ -51,7 +51,8 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
             Slug = product.Slug,
             Description = product.Description,
             CategoryId = product.CategoryId,
-            CategoryName = product.Category.Name,
+            // Category navigation is not loaded on creation; caller can resolve name if needed.
+            CategoryName = string.Empty,
             Price = product.Price,
             Currency = product.Currency,
             InventoryCount = product.InventoryCount,
