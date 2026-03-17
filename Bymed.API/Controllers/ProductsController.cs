@@ -6,6 +6,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Bymed.API.Controllers;
 
@@ -128,6 +129,63 @@ public sealed class ProductsController : ControllerBase
         if (!result.IsSuccess)
         {
             return result.Error is "Product not found."
+                ? NotFound(new { error = result.Error })
+                : BadRequest(new { error = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>Upload an image for a product (admin only).</summary>
+    [HttpPost("{id:guid}/images")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(ProductImageDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UploadImage(
+        Guid id,
+        IFormFile? file,
+        [FromForm] string? altText,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "Image file is required." });
+
+        await using var memory = new MemoryStream();
+        await file.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+
+        var command = new UploadProductImageCommand(
+            id,
+            memory.ToArray(),
+            file.FileName,
+            file.ContentType,
+            altText);
+
+        var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.Error });
+
+        return CreatedAtAction(nameof(GetById), new { id }, result.Value);
+    }
+
+    /// <summary>Delete an image from a product (admin only).</summary>
+    [HttpDelete("{id:guid}/images/{imageId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken cancellationToken)
+    {
+        var result = await _mediator
+            .Send(new DeleteProductImageCommand(id, imageId), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            return result.Error is "Product image not found."
                 ? NotFound(new { error = result.Error })
                 : BadRequest(new { error = result.Error });
         }

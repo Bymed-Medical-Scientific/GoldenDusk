@@ -185,19 +185,19 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 17: Product Changes Propagation**
     - **Validates: Requirements 6.5**
 
-- [ ] 8. Implement file storage service for product images
-  - [ ] 8.1 Create IFileStorageService interface and implementation
+- [x] 8. Implement file storage service for product images
+  - [x] 8.1 Create IFileStorageService interface and implementation
     - Implement local file storage service
     - Add image upload validation (file type, size)
     - Generate optimized image sizes
     - Return public URLs for uploaded images
     - _Requirements: 1.3, 8.2_
   
-  - [ ]* 8.2 Write property test for image upload round trip
+  - [x]* 8.2 Write property test for image upload round trip
     - **Property 22: Image Upload Round Trip**
     - **Validates: Requirements 8.2**
   
-  - [ ] 8.3 Add image upload endpoint to ProductsController
+  - [x] 8.3 Add image upload endpoint to ProductsController
     - POST /api/products/{id}/images
     - DELETE /api/products/{id}/images/{imageId}
     - _Requirements: 1.3, 8.2_
