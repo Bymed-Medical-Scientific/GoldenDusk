@@ -32,6 +32,33 @@ public sealed class ProductImageRepository : IProductImageRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyDictionary<Guid, string>> GetPrimaryImageUrlsByProductIdsAsync(
+        IReadOnlyCollection<Guid> productIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (productIds is null || productIds.Count == 0)
+            return new Dictionary<Guid, string>();
+
+        // Fetch the first (lowest DisplayOrder) image per product in a single query.
+        var rows = await _context.ProductImages
+            .AsNoTracking()
+            .Where(i => productIds.Contains(i.ProductId))
+            .OrderBy(i => i.ProductId)
+            .ThenBy(i => i.DisplayOrder)
+            .Select(i => new { i.ProductId, i.Url })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var result = new Dictionary<Guid, string>();
+        foreach (var row in rows)
+        {
+            if (!result.ContainsKey(row.ProductId))
+                result[row.ProductId] = row.Url;
+        }
+
+        return result;
+    }
+
     public void Add(ProductImage image)
     {
         ArgumentNullException.ThrowIfNull(image);

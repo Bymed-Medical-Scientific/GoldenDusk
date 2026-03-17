@@ -6,6 +6,9 @@ public interface IProductImageRepository
 {
     Task<ProductImage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ProductImage>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<Guid, string>> GetPrimaryImageUrlsByProductIdsAsync(
+        IReadOnlyCollection<Guid> productIds,
+        CancellationToken cancellationToken = default);
     void Add(ProductImage image);
     void Remove(ProductImage image);
 }

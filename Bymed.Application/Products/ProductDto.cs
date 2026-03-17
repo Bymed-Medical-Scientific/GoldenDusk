@@ -8,6 +8,15 @@ public sealed record ProductDto
     public required string Description { get; init; }
     public required Guid CategoryId { get; init; }
     public required string CategoryName { get; init; }
+    /// <summary>
+    /// Primary image URL for listing cards (optional).
+    /// </summary>
+    public string? PrimaryImageUrl { get; init; }
+
+    /// <summary>
+    /// Full image gallery for product detail pages (optional).
+    /// </summary>
+    public IReadOnlyList<ProductImageDto>? Images { get; init; }
     public decimal Price { get; init; }
     public string Currency { get; init; } = string.Empty;
     public int InventoryCount { get; init; }
