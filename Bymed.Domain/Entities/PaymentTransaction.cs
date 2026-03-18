@@ -1,5 +1,6 @@
 using Bymed.Domain.Enums;
 using Bymed.Domain.Primitives;
+using System.Text.RegularExpressions;
 
 namespace Bymed.Domain.Entities;
 
@@ -24,6 +25,11 @@ public sealed class PaymentTransaction : FullAuditedEntity
     public string? InitiationResponseRaw { get; private set; }
     public string? LastStatusUpdateRaw { get; private set; }
 
+    // Requirement: never store complete credit card numbers.
+    // We treat any 13-19 consecutive digits as card-like data and mask it.
+    private static readonly Regex CardLikeDigitsRegex =
+        new(@"\d{13,19}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private PaymentTransaction()
     {
     }
@@ -38,18 +44,18 @@ public sealed class PaymentTransaction : FullAuditedEntity
 
     public void SetInitiationDetails(string? payNowReference, string? pollUrl, string? redirectUrl, string? initiationResponseRaw)
     {
-        PayNowReference = TrimToMax(payNowReference, PayNowReferenceMaxLength);
-        PollUrl = TrimToMax(pollUrl, UrlMaxLength);
-        RedirectUrl = TrimToMax(redirectUrl, UrlMaxLength);
-        InitiationResponseRaw = TrimToMax(initiationResponseRaw, RawPayloadMaxLength);
+        PayNowReference = TrimToMax(MaskCardLikeDigits(payNowReference), PayNowReferenceMaxLength);
+        PollUrl = TrimToMax(MaskCardLikeDigits(pollUrl), UrlMaxLength);
+        RedirectUrl = TrimToMax(MaskCardLikeDigits(redirectUrl), UrlMaxLength);
+        InitiationResponseRaw = TrimToMax(MaskCardLikeDigits(initiationResponseRaw), RawPayloadMaxLength);
     }
 
     public void ApplyStatusUpdate(PaymentStatus status, string? payNowReference, string? pollUrl, string? statusUpdateRaw)
     {
         Status = status;
-        PayNowReference = TrimToMax(payNowReference, PayNowReferenceMaxLength) ?? PayNowReference;
-        PollUrl = TrimToMax(pollUrl, UrlMaxLength) ?? PollUrl;
-        LastStatusUpdateRaw = TrimToMax(statusUpdateRaw, RawPayloadMaxLength);
+        PayNowReference = TrimToMax(MaskCardLikeDigits(payNowReference), PayNowReferenceMaxLength) ?? PayNowReference;
+        PollUrl = TrimToMax(MaskCardLikeDigits(pollUrl), UrlMaxLength) ?? PollUrl;
+        LastStatusUpdateRaw = TrimToMax(MaskCardLikeDigits(statusUpdateRaw), RawPayloadMaxLength);
     }
 
     private void SetReference(string reference)
@@ -87,6 +93,23 @@ public sealed class PaymentTransaction : FullAuditedEntity
             return null;
         var trimmed = value.Trim();
         return trimmed.Length <= maxLen ? trimmed : trimmed[..maxLen];
+    }
+
+    private static string? MaskCardLikeDigits(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        return CardLikeDigitsRegex.Replace(value, match =>
+        {
+            var digits = match.Value;
+            if (digits.Length <= 4)
+                return digits;
+
+            var maskedPrefix = new string('X', digits.Length - 4);
+            var last4 = digits[^4..];
+            return maskedPrefix + last4;
+        });
     }
 }
 

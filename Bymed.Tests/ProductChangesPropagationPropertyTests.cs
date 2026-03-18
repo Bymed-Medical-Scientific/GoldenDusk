@@ -40,7 +40,7 @@ public class ProductChangesPropagationPropertyTests
 
             product.UpdateInventory(next, reason: "adjustment", changedBy: "tester");
 
-            var events = product.DomainEvents.OfType<InventoryChangedEvent>().ToList();
+            var events = product.GetAndClearDomainEvents().OfType<InventoryChangedEvent>().ToList();
             events.Should().NotBeEmpty();
             var evt = events.Last();
 
@@ -66,7 +66,7 @@ public class ProductChangesPropagationPropertyTests
 
             product.UpdateInventory(0, reason: "sold-out", changedBy: "tester");
 
-            var evt = product.DomainEvents.OfType<ProductOutOfStockEvent>().LastOrDefault();
+            var evt = product.GetAndClearDomainEvents().OfType<ProductOutOfStockEvent>().LastOrDefault();
             evt.Should().NotBeNull("zero inventory must emit out-of-stock event");
             evt!.ProductId.Should().Be(product.Id);
             evt.ProductName.Should().Be(product.Name);

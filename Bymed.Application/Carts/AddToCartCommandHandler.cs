@@ -79,8 +79,6 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
 
         if (isNewCart)
             _cartRepository.Add(cart);
-        else
-            _cartRepository.Update(cart);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

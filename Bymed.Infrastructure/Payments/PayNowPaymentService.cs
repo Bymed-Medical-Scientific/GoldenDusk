@@ -229,6 +229,7 @@ public sealed class PayNowPaymentService : IPaymentService
         var mapped = MapPayNowStatus(statusText);
 
         PaymentTransaction? tx = null;
+        var isNewTx = false;
         if (!string.IsNullOrWhiteSpace(reference))
             tx = await _transactions.GetByReferenceAsync(reference.Trim(), cancellationToken).ConfigureAwait(false);
         if (tx is null && !string.IsNullOrWhiteSpace(payNowRef))
@@ -241,13 +242,15 @@ public sealed class PayNowPaymentService : IPaymentService
             {
                 tx = new PaymentTransaction(reference.Trim(), amount.Value, Product.DefaultCurrency);
                 _transactions.Add(tx);
+                isNewTx = true;
             }
         }
 
         if (tx is not null)
         {
             tx.ApplyStatusUpdate(mapped, payNowRef, pollUrl, webhookEvent.RawBody);
-            _transactions.Update(tx);
+            if (!isNewTx)
+                _transactions.Update(tx);
         }
 
         if (!string.IsNullOrWhiteSpace(reference))

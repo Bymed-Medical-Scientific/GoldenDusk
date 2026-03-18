@@ -238,8 +238,8 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - DELETE /api/cart
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 10. Implement payment integration with PayNow
-  - [ ] 10.1 Create IPaymentService interface and PayNow implementation
+- [x] 10. Implement payment integration with PayNow
+  - [x] 10.1 Create IPaymentService interface and PayNow implementation
     - Implement InitiatePaymentAsync method
     - Implement ConfirmPaymentAsync method
     - Implement HandleWebhookAsync method for payment status updates
@@ -247,13 +247,13 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add payment transaction logging
     - _Requirements: 3.3, 12.3_
   
-  - [ ] 10.2 Create payment webhook endpoint
-    - POST /api/payments/webhook (for PayNow callbacks)
+  - [x] 10.2 Create payment webhook endpoint
+    - POST /api/v1/payments/webhook (for PayNow callbacks)
     - Validate webhook signatures
     - Update order payment status
     - _Requirements: 3.3, 3.4_
   
-  - [ ]* 10.3 Write property test for credit card non-storage
+- [x]* 10.3 Write property test for credit card non-storage
     - **Property 33: Credit Card Non-Storage**
     - **Validates: Requirements 12.3**
 
