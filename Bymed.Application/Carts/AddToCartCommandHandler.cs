@@ -45,6 +45,7 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
             return Result<CartDto>.Failure("Product is not available.");
 
         Cart? cart = null;
+        var isNewCart = false;
 
         if (request.UserId is not null)
         {
@@ -52,7 +53,11 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
                 .GetByUserIdAsync(request.UserId.Value, cancellationToken)
                 .ConfigureAwait(false);
 
-            cart ??= Cart.ForUser(request.UserId.Value);
+            if (cart is null)
+            {
+                cart = Cart.ForUser(request.UserId.Value);
+                isNewCart = true;
+            }
         }
         else if (!string.IsNullOrWhiteSpace(request.SessionId))
         {
@@ -60,7 +65,11 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
                 .GetBySessionIdAsync(request.SessionId, cancellationToken)
                 .ConfigureAwait(false);
 
-            cart ??= Cart.ForGuest(request.SessionId!);
+            if (cart is null)
+            {
+                cart = Cart.ForGuest(request.SessionId!);
+                isNewCart = true;
+            }
         }
 
         if (cart is null)
@@ -68,7 +77,7 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
 
         cart.AddOrUpdateItem(product.Id, request.Request.Quantity, product.Price);
 
-        if (cart.Id == Guid.Empty)
+        if (isNewCart)
             _cartRepository.Add(cart);
         else
             _cartRepository.Update(cart);
