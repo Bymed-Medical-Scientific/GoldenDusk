@@ -203,8 +203,8 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 1.3, 8.2_
 
 
-- [ ] 9. Implement shopping cart functionality
-  - [ ] 9.1 Create Cart use cases and DTOs
+- [x] 9. Implement shopping cart functionality
+  - [x] 9.1 Create Cart use cases and DTOs
     - Create CartDto, CartItemDto, AddToCartRequest
     - Implement GetCartQuery and handler (support both authenticated and guest users)
     - Implement AddToCartCommand and handler
@@ -214,23 +214,23 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement cart total calculation logic
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
   
-  - [ ]* 9.2 Write property test for cart addition persistence
+  - [x]* 9.2 Write property test for cart addition persistence
     - **Property 3: Cart Addition Persistence**
     - **Validates: Requirements 2.1**
   
-  - [ ]* 9.3 Write property test for cart item count accuracy
+  - [x]* 9.3 Write property test for cart item count accuracy
     - **Property 4: Cart Item Count Accuracy**
     - **Validates: Requirements 2.2**
   
-  - [ ]* 9.4 Write property test for cart total calculation
+  - [x]* 9.4 Write property test for cart total calculation
     - **Property 5: Cart Total Calculation**
     - **Validates: Requirements 2.3, 2.4**
   
-  - [ ]* 9.5 Write property test for cart item removal
+  - [x]* 9.5 Write property test for cart item removal
     - **Property 6: Cart Item Removal**
     - **Validates: Requirements 2.5**
   
-  - [ ] 9.6 Create CartController
+  - [x] 9.6 Create CartController
     - GET /api/cart
     - POST /api/cart/items
     - PUT /api/cart/items/{productId}
