@@ -1,9 +1,11 @@
 using Bymed.Application.Auth;
 using Bymed.Application.Files;
+using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Infrastructure.Auth;
 using Bymed.Infrastructure.Files;
+using Bymed.Infrastructure.Payments;
 using Bymed.Infrastructure.Persistence;
 using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +30,10 @@ public static class DependencyInjection
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
+        services.Configure<PayNowOptions>(configuration.GetSection(PayNowOptions.SectionName));
+        services.AddHttpClient<PayNowPaymentService>();
+        services.AddScoped<IPaymentService, PayNowPaymentService>();
+
         return services.AddInfrastructureRepositories();
     }
 
@@ -39,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }

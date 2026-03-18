@@ -35,6 +35,18 @@ public class OrderRepository : IOrderRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<Order?> GetByPaymentReferenceAsync(string paymentReference, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(paymentReference))
+            return null;
+
+        var trimmed = paymentReference.Trim();
+        return await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.PaymentReference == trimmed, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<PagedResult<Order>> GetPagedAsync(PaginationParams pagination, Guid? userId = null, OrderStatus? status = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Orders.AsNoTracking().Include(o => o.Items).AsQueryable();

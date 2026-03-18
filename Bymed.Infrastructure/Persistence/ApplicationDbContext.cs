@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<PageContent> PageContents => Set<PageContent>();
     public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
@@ -43,6 +44,7 @@ public class ApplicationDbContext : DbContext
         ApplyCartItemConfiguration(modelBuilder);
         ApplyOrderConfiguration(modelBuilder);
         ApplyOrderItemConfiguration(modelBuilder);
+        ApplyPaymentTransactionConfiguration(modelBuilder);
         ApplyAddressConfiguration(modelBuilder);
         ApplyPageContentConfiguration(modelBuilder);
         ApplyContentVersionConfiguration(modelBuilder);
@@ -223,6 +225,26 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ApplyPaymentTransactionConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Reference).IsUnique();
+            entity.HasIndex(e => e.PayNowReference);
+            entity.HasIndex(e => e.Status);
+
+            entity.Property(e => e.Reference).IsRequired().HasMaxLength(PaymentTransaction.ReferenceMaxLength);
+            entity.Property(e => e.PayNowReference).HasMaxLength(PaymentTransaction.PayNowReferenceMaxLength);
+            entity.Property(e => e.PollUrl).HasMaxLength(PaymentTransaction.UrlMaxLength);
+            entity.Property(e => e.RedirectUrl).HasMaxLength(PaymentTransaction.UrlMaxLength);
+            entity.Property(e => e.Currency).HasMaxLength(PaymentTransaction.CurrencyMaxLength);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.InitiationResponseRaw).HasMaxLength(PaymentTransaction.RawPayloadMaxLength);
+            entity.Property(e => e.LastStatusUpdateRaw).HasMaxLength(PaymentTransaction.RawPayloadMaxLength);
         });
     }
 
