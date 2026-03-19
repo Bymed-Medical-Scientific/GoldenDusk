@@ -257,8 +257,8 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 33: Credit Card Non-Storage**
     - **Validates: Requirements 12.3**
 
-- [ ] 11. Implement order processing and management
-  - [ ] 11.1 Create Order use cases and DTOs
+- [x] 11. Implement order processing and management
+  - [x] 11.1 Create Order use cases and DTOs
     - Create OrderDto, CreateOrderRequest, UpdateOrderStatusRequest
     - Implement ProcessOrderCommand and handler (checkout flow)
     - Implement GetOrderByIdQuery and handler
@@ -301,7 +301,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 21: Order Export Completeness**
     - **Validates: Requirements 7.6**
   
-  - [ ] 11.10 Create OrdersController
+  - [x] 11.10 Create OrdersController
     - POST /api/orders (create order / checkout)
     - GET /api/orders/my-orders (user's orders)
     - GET /api/orders/{id}
