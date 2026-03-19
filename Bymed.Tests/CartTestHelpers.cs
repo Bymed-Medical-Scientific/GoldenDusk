@@ -13,6 +13,13 @@ internal static class CartTestHelpers
         var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
         await connection.OpenAsync().ConfigureAwait(false);
 
+        // In-memory SQLite enforces foreign keys by default in EF Core, but these
+        // property tests don't always seed all FK principals (e.g., User records).
+        // Disabling enforcement keeps tests focused on business invariants.
+        using var pragma = connection.CreateCommand();
+        pragma.CommandText = "PRAGMA foreign_keys = OFF;";
+        await pragma.ExecuteNonQueryAsync().ConfigureAwait(false);
+
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddInfrastructureRepositories();
@@ -31,7 +38,11 @@ internal static class CartTestHelpers
         decimal price,
         bool isAvailable = true)
     {
-        var category = new Bymed.Domain.Entities.Category("Test Category", "test-category", null, displayOrder: 0);
+        var category = new Bymed.Domain.Entities.Category(
+            "Test Category",
+            $"test-category-{Guid.NewGuid():N}",
+            null,
+            displayOrder: 0);
         context.Categories.Add(category);
 
         var product = new Bymed.Domain.Entities.Product(

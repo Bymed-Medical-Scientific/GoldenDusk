@@ -3,6 +3,8 @@ using Bymed.Application.Repositories;
 using Bymed.Application.Products;
 using Bymed.Domain.Entities;
 using FluentAssertions;
+using System.Collections.Generic;
+using System.Reflection;
 using FsCheck;
 using FsCheck.Fluent;
 using FsCheck.Xunit;
@@ -30,6 +32,10 @@ public class CategoryFilteringCompletenessPropertyTests
         return Prop.ForAll(nonEmptyGuid, categoryId =>
         {
             var repo = CreateProductRepository();
+            var productImageRepository = Substitute.For<IProductImageRepository>();
+            productImageRepository
+                .GetPrimaryImageUrlsByProductIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult((IReadOnlyDictionary<Guid, string>)new Dictionary<Guid, string>()));
 
             var allProducts = new List<Product>
             {
@@ -37,6 +43,11 @@ public class CategoryFilteringCompletenessPropertyTests
                 new("P2", "p2-slug", "Desc", categoryId, 20m, 5, 1),
                 new("Other", "other-slug", "Desc", Guid.NewGuid(), 30m, 5, 1)
             };
+
+            // Handler relies on Product.Category navigation to build ProductDto.CategoryName.
+            var categoryNavigation = new Category("Test Category", "test-category", null, displayOrder: 0);
+            foreach (var p in allProducts)
+                SetProductCategoryNavigation(p, categoryNavigation);
 
             var pagination = new PaginationParams(1, 50);
             repo.GetPagedAsync(pagination, categoryId, Arg.Any<bool?>(), Arg.Any<CancellationToken>())
@@ -46,7 +57,7 @@ public class CategoryFilteringCompletenessPropertyTests
                     return new PagedResult<Product>(filtered, pagination.PageNumber, pagination.PageSize, filtered.Count);
                 });
 
-            var handler = new GetProductsQueryHandler(repo);
+            var handler = new GetProductsQueryHandler(repo, productImageRepository);
             var query = new GetProductsQuery(1, 50, categoryId, null, null);
             var result = handler.Handle(query, CancellationToken.None).GetAwaiter().GetResult();
 
@@ -56,5 +67,18 @@ public class CategoryFilteringCompletenessPropertyTests
             var expectedCount = allProducts.Count(p => p.CategoryId == categoryId);
             result.TotalCount.Should().Be(expectedCount);
         });
+    }
+
+    private static void SetProductCategoryNavigation(Product product, Category category)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        ArgumentNullException.ThrowIfNull(category);
+
+        var prop = typeof(Product).GetProperty(
+            "Category",
+            BindingFlags.Instance | BindingFlags.Public);
+
+        prop.Should().NotBeNull();
+        prop!.SetValue(product, category);
     }
 }

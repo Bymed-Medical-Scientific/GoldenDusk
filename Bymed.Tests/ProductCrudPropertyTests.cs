@@ -5,6 +5,7 @@ using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
 using FluentAssertions;
 using NSubstitute;
+using System.Reflection;
 using Xunit;
 
 namespace Bymed.Tests;
@@ -49,8 +50,8 @@ public class ProductCrudPropertyTests
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be("Infusion Pump");
         result.Value.Slug.Should().Be("infusion-pump");
-        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await repo.Received(1).Add(Arg.Any<Product>());
+        unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        repo.Received(1).Add(Arg.Any<Product>());
     }
 
     [Fact]
@@ -65,6 +66,11 @@ public class ProductCrudPropertyTests
             500m,
             inventoryCount: 5,
             lowStockThreshold: 1);
+
+        // Handlers rely on the Category navigation when constructing DTOs.
+        // Tests create Product instances directly, so we wire the navigation via reflection.
+        var category = new Category("Test Category", "test-category", null, displayOrder: 0);
+        SetProductCategoryNavigation(existing, category);
 
         var repo = CreateProductRepository();
         repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(existing);
@@ -93,8 +99,21 @@ public class ProductCrudPropertyTests
         result.Value.Slug.Should().Be("updated-slug");
         existing.Name.Should().Be("Updated Name");
         existing.Slug.Should().Be("updated-slug");
-        await repo.Received(1).Update(existing);
-        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        repo.Received(1).Update(existing);
+        unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    private static void SetProductCategoryNavigation(Product product, Category category)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        ArgumentNullException.ThrowIfNull(category);
+
+        var prop = typeof(Product).GetProperty(
+            "Category",
+            BindingFlags.Instance | BindingFlags.Public);
+
+        prop.Should().NotBeNull();
+        prop!.SetValue(product, category);
     }
 
     [Fact]
@@ -120,7 +139,7 @@ public class ProductCrudPropertyTests
 
         result.IsSuccess.Should().BeTrue();
         product.IsAvailable.Should().BeFalse();
-        await repo.Received(1).Update(product);
-        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        repo.Received(1).Update(product);
+        unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
