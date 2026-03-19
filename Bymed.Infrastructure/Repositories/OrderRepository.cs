@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Bymed.Application.Common;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
@@ -24,6 +25,17 @@ public class OrderRepository : IOrderRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+            return null;
+
+        return await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.IdempotencyKey == idempotencyKey.Trim(), cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(orderNumber))
@@ -47,7 +59,7 @@ public class OrderRepository : IOrderRepository
             .ConfigureAwait(false);
     }
 
-    public async Task<PagedResult<Order>> GetPagedAsync(PaginationParams pagination, Guid? userId = null, OrderStatus? status = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Order>> GetPagedAsync(PaginationParams pagination, Guid? userId = null, OrderStatus? status = null, DateTime? dateFrom = null, DateTime? dateTo = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Orders.AsNoTracking().Include(o => o.Items).AsQueryable();
 
@@ -55,6 +67,10 @@ public class OrderRepository : IOrderRepository
             query = query.Where(o => o.UserId == userId.Value);
         if (status.HasValue)
             query = query.Where(o => o.Status == status.Value);
+        if (dateFrom.HasValue)
+            query = query.Where(o => o.CreationTime >= dateFrom.Value);
+        if (dateTo.HasValue)
+            query = query.Where(o => o.CreationTime <= dateTo.Value);
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
@@ -66,6 +82,60 @@ public class OrderRepository : IOrderRepository
             .ConfigureAwait(false);
 
         return new PagedResult<Order>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+    }
+
+    public async Task<OrderAnalyticsResult> GetAnalyticsAsync(DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Orders.AsNoTracking().AsQueryable();
+        if (dateFrom.HasValue)
+            query = query.Where(o => o.CreationTime >= dateFrom.Value);
+        if (dateTo.HasValue)
+            query = query.Where(o => o.CreationTime <= dateTo.Value);
+
+        var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+        var totalRevenue = await query.SumAsync(o => o.Total, cancellationToken).ConfigureAwait(false);
+        var avgOrderValue = totalCount > 0 ? totalRevenue / totalCount : 0m;
+
+        var countByStatus = await query
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var dict = countByStatus.ToDictionary(x => x.Status, x => x.Count);
+        foreach (var status in Enum.GetValues<OrderStatus>())
+        {
+            if (!dict.ContainsKey(status))
+                dict[status] = 0;
+        }
+
+        return new OrderAnalyticsResult
+        {
+            TotalOrderCount = totalCount,
+            TotalRevenue = totalRevenue,
+            AverageOrderValue = avgOrderValue,
+            CountByStatus = dict
+        };
+    }
+
+    public async IAsyncEnumerable<Order> GetOrdersForExportAsync(OrderStatus? status, DateTime? dateFrom, DateTime? dateTo, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var query = _context.Orders
+            .AsNoTracking()
+            .Include(o => o.Items)
+            .AsQueryable();
+
+        if (status.HasValue)
+            query = query.Where(o => o.Status == status.Value);
+        if (dateFrom.HasValue)
+            query = query.Where(o => o.CreationTime >= dateFrom.Value);
+        if (dateTo.HasValue)
+            query = query.Where(o => o.CreationTime <= dateTo.Value);
+
+        await foreach (var order in query.OrderByDescending(o => o.CreationTime).AsAsyncEnumerable().WithCancellation(cancellationToken))
+        {
+            yield return order;
+        }
     }
 
     public void Add(Order order)

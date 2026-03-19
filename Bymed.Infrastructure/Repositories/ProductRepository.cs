@@ -23,6 +23,18 @@ public class ProductRepository : IProductRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<Product>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids is null || ids.Count == 0)
+            return [];
+
+        return await _context.Products
+            .AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<Product?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(slug))

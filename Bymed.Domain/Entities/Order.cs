@@ -7,6 +7,7 @@ namespace Bymed.Domain.Entities;
 public class Order : FullAuditedEntity
 {
     public const int OrderNumberMaxLength = 50;
+    public const int IdempotencyKeyMaxLength = 64;
     public const int CustomerEmailMaxLength = 256;
     public const int CustomerNameMaxLength = 200;
     public const int PaymentReferenceMaxLength = 100;
@@ -16,6 +17,7 @@ public class Order : FullAuditedEntity
     public const int CurrencyMaxLength = 3;
 
     public string OrderNumber { get; private set; } = string.Empty;
+    public string? IdempotencyKey { get; private set; }
     public Guid? UserId { get; private set; }
     public OrderStatus Status { get; private set; }
     public string CustomerEmail { get; private set; } = string.Empty;
@@ -44,6 +46,7 @@ public class Order : FullAuditedEntity
 
     public Order(
         string orderNumber,
+        string? idempotencyKey,
         Guid? userId,
         string customerEmail,
         string customerName,
@@ -55,6 +58,7 @@ public class Order : FullAuditedEntity
         PaymentStatus paymentStatus = PaymentStatus.Pending)
     {
         SetOrderNumber(orderNumber);
+        SetIdempotencyKey(idempotencyKey);
         UserId = userId;
         Status = OrderStatus.Pending;
         SetCustomerEmail(customerEmail);
@@ -67,6 +71,7 @@ public class Order : FullAuditedEntity
         SetPaymentReference(paymentReference);
         SetPaymentMethod(paymentMethod);
         PaymentStatus = paymentStatus;
+        CreationTime = DateTime.UtcNow;
     }
 
     public void AddItem(Guid productId, string productName, string productImageUrl, int quantity, decimal pricePerUnit)
@@ -125,6 +130,19 @@ public class Order : FullAuditedEntity
         if (trimmed.Length > NotesMaxLength)
             throw new ArgumentException($"Notes must not exceed {NotesMaxLength} characters.", nameof(notes));
         Notes = trimmed;
+    }
+
+    private void SetIdempotencyKey(string? idempotencyKey)
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            IdempotencyKey = null;
+            return;
+        }
+        var trimmed = idempotencyKey.Trim();
+        if (trimmed.Length > IdempotencyKeyMaxLength)
+            throw new ArgumentException($"Idempotency key must not exceed {IdempotencyKeyMaxLength} characters.", nameof(idempotencyKey));
+        IdempotencyKey = trimmed;
     }
 
     private void SetOrderNumber(string orderNumber)
