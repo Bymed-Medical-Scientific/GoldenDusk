@@ -166,11 +166,13 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.OrderNumber).IsUnique();
+            entity.HasIndex(e => e.IdempotencyKey).IsUnique().HasFilter("\"IdempotencyKey\" IS NOT NULL");
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreationTime);
 
             entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(Order.OrderNumberMaxLength);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(Order.IdempotencyKeyMaxLength);
             entity.Property(e => e.CustomerEmail).IsRequired().HasMaxLength(Order.CustomerEmailMaxLength);
             entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(Order.CustomerNameMaxLength);
             entity.Property(e => e.Subtotal).HasPrecision(18, 2);
