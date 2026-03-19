@@ -269,35 +269,35 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement ExportOrdersQuery and handler (CSV format)
     - _Requirements: 3.1, 3.4, 4.4, 7.1, 7.2, 7.3, 7.5, 7.6_
   
-  - [ ]* 11.2 Write property test for checkout validation
+  - [x]* 11.2 Write property test for checkout validation
     - **Property 7: Checkout Validation**
     - **Validates: Requirements 3.2**
   
-  - [ ]* 11.3 Write property test for order creation on payment success
+  - [x]* 11.3 Write property test for order creation on payment success
     - **Property 8: Order Creation on Payment Success**
     - **Validates: Requirements 3.4**
   
-  - [ ]* 11.4 Write property test for cart preservation on payment failure
+  - [x]* 11.4 Write property test for cart preservation on payment failure
     - **Property 9: Cart Preservation on Payment Failure**
     - **Validates: Requirements 3.5**
   
-  - [ ]* 11.5 Write property test for order history retrieval
+  - [x]* 11.5 Write property test for order history retrieval
     - **Property 13: Order History Retrieval**
     - **Validates: Requirements 4.4**
   
-  - [ ]* 11.6 Write property test for order filtering accuracy
+  - [x]* 11.6 Write property test for order filtering accuracy
     - **Property 18: Order Filtering Accuracy**
     - **Validates: Requirements 7.2**
   
-  - [ ]* 11.7 Write property test for order status updates
+  - [x]* 11.7 Write property test for order status updates
     - **Property 19: Order Status Updates**
     - **Validates: Requirements 7.3**
   
-  - [ ]* 11.8 Write property test for order analytics calculation
+  - [x]* 11.8 Write property test for order analytics calculation
     - **Property 20: Order Analytics Calculation**
     - **Validates: Requirements 7.5**
   
-  - [ ]* 11.9 Write property test for order export completeness
+  - [x]* 11.9 Write property test for order export completeness
     - **Property 21: Order Export Completeness**
     - **Validates: Requirements 7.6**
   
