@@ -313,7 +313,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
 
 
 - [ ] 12. Implement inventory tracking system
-  - [ ] 12.1 Create Inventory use cases and DTOs
+  - [x] 12.1 Create Inventory use cases and DTOs
     - Create InventoryDto, InventoryLogDto, AdjustInventoryRequest
     - Implement GetInventoryQuery with filtering (lowStockOnly) and pagination
     - Implement AdjustInventoryCommand and handler (manual adjustments)

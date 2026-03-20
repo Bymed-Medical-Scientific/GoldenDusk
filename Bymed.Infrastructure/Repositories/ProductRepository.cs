@@ -67,6 +67,35 @@ public class ProductRepository : IProductRepository
         return new PagedResult<Product>(items, pagination.PageNumber, pagination.PageSize, totalCount);
     }
 
+    public async Task<PagedResult<Product>> GetInventoryPagedAsync(PaginationParams pagination, bool lowStockOnly = false, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Products.AsNoTracking().AsQueryable();
+        if (lowStockOnly)
+            query = query.Where(p => p.InventoryCount <= p.LowStockThreshold);
+
+        var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+        var items = await query
+            .OrderBy(p => p.InventoryCount)
+            .ThenBy(p => p.Name)
+            .Skip(pagination.Skip)
+            .Take(pagination.PageSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResult<Product>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+    }
+
+    public async Task<IReadOnlyList<Product>> GetLowStockProductsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .Where(p => p.InventoryCount <= p.LowStockThreshold)
+            .OrderBy(p => p.InventoryCount)
+            .ThenBy(p => p.Name)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<bool> ExistsSlugAsync(string slug, Guid? excludeProductId = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(slug))
