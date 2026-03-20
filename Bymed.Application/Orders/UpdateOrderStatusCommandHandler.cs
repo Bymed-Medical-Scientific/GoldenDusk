@@ -56,15 +56,19 @@ public sealed class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrde
 
     private async Task<Result<bool>> DecrementInventoryForCompletedOrder(Order order, CancellationToken cancellationToken)
     {
+        var productMap = new Dictionary<Guid, Product>();
         var productIds = order.Items.Select(i => i.ProductId).Distinct().ToList();
-        var products = await _productRepository.GetByIdsAsync(productIds, cancellationToken).ConfigureAwait(false);
-        var productMap = products.ToDictionary(p => p.Id);
+        foreach (var productId in productIds)
+        {
+            var product = await _productRepository.GetByIdAsync(productId, cancellationToken).ConfigureAwait(false);
+            if (product is null)
+                return Result<bool>.Failure($"Product {productId} not found for inventory update.");
+            productMap[productId] = product;
+        }
 
         foreach (var item in order.Items)
         {
-            if (!productMap.TryGetValue(item.ProductId, out var product))
-                return Result<bool>.Failure($"Product {item.ProductId} not found for inventory update.");
-
+            var product = productMap[item.ProductId];
             if (product.InventoryCount < item.Quantity)
                 return Result<bool>.Failure($"Insufficient inventory for product '{product.Name}'.");
         }
