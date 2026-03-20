@@ -313,7 +313,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
 
 
 - [ ] 12. Implement inventory tracking system
-  - [ ] 12.1 Create Inventory use cases and DTOs
+  - [x] 12.1 Create Inventory use cases and DTOs
     - Create InventoryDto, InventoryLogDto, AdjustInventoryRequest
     - Implement GetInventoryQuery with filtering (lowStockOnly) and pagination
     - Implement AdjustInventoryCommand and handler (manual adjustments)
@@ -323,23 +323,23 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add automatic out-of-stock marking when inventory reaches zero
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
   
-  - [ ]* 12.2 Write property test for inventory decrement on order
+  - [x]* 12.2 Write property test for inventory decrement on order
     - **Property 25: Inventory Decrement on Order**
     - **Validates: Requirements 9.2**
   
-  - [ ]* 12.3 Write property test for out of stock marking
+  - [x]* 12.3 Write property test for out of stock marking
     - **Property 26: Out of Stock Marking**
     - **Validates: Requirements 9.3**
   
-  - [ ]* 12.4 Write property test for low stock alerts
+  - [x]* 12.4 Write property test for low stock alerts
     - **Property 27: Low Stock Alerts**
     - **Validates: Requirements 9.4**
   
-  - [ ]* 12.5 Write property test for inventory adjustment logging
+  - [x]* 12.5 Write property test for inventory adjustment logging
     - **Property 28: Inventory Adjustment Logging**
     - **Validates: Requirements 9.5**
   
-  - [ ] 12.6 Create InventoryController
+  - [x] 12.6 Create InventoryController
     - GET /api/inventory (admin only)
     - POST /api/inventory/adjust (admin only)
     - GET /api/inventory/history/{productId} (admin only)
