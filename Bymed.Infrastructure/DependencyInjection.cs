@@ -1,8 +1,10 @@
 using Bymed.Application.Auth;
 using Bymed.Application.Files;
+using Bymed.Application.Notifications;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
+using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Auth;
 using Bymed.Infrastructure.Files;
 using Bymed.Infrastructure.Payments;
@@ -11,6 +13,7 @@ using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Bymed.Infrastructure;
 
@@ -29,6 +32,11 @@ public static class DependencyInjection
 
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.Configure<PayNowOptions>(configuration.GetSection(PayNowOptions.SectionName));
         services.AddHttpClient<PayNowPaymentService>();
@@ -55,6 +63,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
         services.AddScoped<IEmailSender, NoOpEmailSender>();
+        services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
+        services.AddScoped<IEmailBackgroundJobRunner, EmailBackgroundJobRunner>();
+        services.AddScoped<IEmailService, HangfireEmailService>();
         services.AddScoped<IAuthService, AuthService>();
         return services;
     }

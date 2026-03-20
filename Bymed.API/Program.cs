@@ -3,6 +3,8 @@ using Bymed.Application;
 using Bymed.Application.Auth;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Asp.Versioning;
 using Microsoft.AspNetCore.OpenApi;
@@ -57,6 +59,11 @@ builder.Services.AddApplication();
 
 // Database and repositories (Clean Architecture Infrastructure)
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddHangfire(configuration =>
+    configuration.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))));
+builder.Services.AddHangfireServer();
 
 // ASP.NET Core Identity with domain User entity (custom store)
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -118,6 +125,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
 

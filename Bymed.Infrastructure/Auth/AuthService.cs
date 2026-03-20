@@ -3,10 +3,12 @@ using System.Security.Claims;
 using System.Text;
 using Bymed.Application.Auth;
 using Bymed.Application.Common;
+using Bymed.Application.Notifications;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
+using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -19,23 +21,26 @@ public sealed class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRefreshTokenStore _refreshTokenStore;
-    private readonly IEmailSender _emailSender;
+    private readonly IEmailService _emailService;
     private readonly JwtSettings _jwtSettings;
+    private readonly EmailOptions _emailOptions;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IRefreshTokenStore refreshTokenStore,
-        IEmailSender emailSender,
-        IOptions<JwtSettings> jwtSettings)
+        IEmailService emailService,
+        IOptions<JwtSettings> jwtSettings,
+        IOptions<EmailOptions> emailOptions)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _refreshTokenStore = refreshTokenStore ?? throw new ArgumentNullException(nameof(refreshTokenStore));
-        _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
+        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _jwtSettings = jwtSettings?.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
+        _emailOptions = emailOptions?.Value ?? throw new ArgumentNullException(nameof(emailOptions));
     }
 
     public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -184,10 +189,9 @@ public sealed class AuthService : IAuthService
         if (string.IsNullOrEmpty(token))
             return Result.Success();
 
-        var resetLink = $"https://example.com/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
-        var subject = "Reset your password";
-        var body = $"Use this link to reset your password: {resetLink}. The link expires in 24 hours.";
-        await _emailSender.SendAsync(email, subject, body, cancellationToken).ConfigureAwait(false);
+        var baseUrl = _emailOptions.PasswordResetBaseUrl.TrimEnd('/');
+        var resetLink = $"{baseUrl}?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+        await _emailService.SendPasswordResetEmailAsync(email, user.Name, resetLink, cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }
