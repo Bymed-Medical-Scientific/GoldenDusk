@@ -1,5 +1,6 @@
 using Bymed.Application.Common;
 using Bymed.Application.Inventory;
+using Bymed.Application.Notifications;
 using Bymed.Application.Orders;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -11,6 +12,7 @@ using FsCheck;
 using FsCheck.Fluent;
 using FsCheck.Xunit;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using ApplicationDbContext = Bymed.Infrastructure.Persistence.ApplicationDbContext;
 
 namespace Bymed.Tests;
@@ -174,7 +176,8 @@ public class InventoryTrackingPropertyTests
             sp.GetRequiredService<IOrderRepository>(),
             sp.GetRequiredService<IProductRepository>(),
             sp.GetRequiredService<IInventoryLogRepository>(),
-            sp.GetRequiredService<IUnitOfWork>());
+            sp.GetRequiredService<IUnitOfWork>(),
+            Substitute.For<IEmailService>());
 
     private static Order CreateOrderWithSingleItem(IServiceProvider sp, Guid productId, int quantity, string suffix)
     {

@@ -6,6 +6,7 @@ using Bymed.Application.Orders;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
+using Bymed.Application.Notifications;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
 using Bymed.Infrastructure.Payments;
@@ -17,6 +18,7 @@ using FsCheck.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using Xunit;
 using ApplicationDbContext = Bymed.Infrastructure.Persistence.ApplicationDbContext;
 
@@ -230,7 +232,8 @@ public class OrderProcessingPropertyTests
                 sp.GetRequiredService<IOrderRepository>(),
                 sp.GetRequiredService<IProductRepository>(),
                 sp.GetRequiredService<IInventoryLogRepository>(),
-                sp.GetRequiredService<IUnitOfWork>());
+                sp.GetRequiredService<IUnitOfWork>(),
+                Substitute.For<IEmailService>());
 
             var first = handler.Handle(
                 new UpdateOrderStatusCommand(order.Id, new UpdateOrderStatusRequest { Status = OrderStatus.Processing }),
@@ -341,7 +344,8 @@ public class OrderProcessingPropertyTests
             sp.GetRequiredService<ICartRepository>(),
             sp.GetRequiredService<IProductRepository>(),
             sp.GetRequiredService<IProductImageRepository>(),
-            sp.GetRequiredService<IUnitOfWork>());
+            sp.GetRequiredService<IUnitOfWork>(),
+            Substitute.For<IEmailService>());
 
     private static void AddItemToUserCart(IServiceProvider sp, Guid userId, decimal price, int quantity)
     {

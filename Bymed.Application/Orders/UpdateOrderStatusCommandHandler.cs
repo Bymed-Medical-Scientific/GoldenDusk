@@ -1,4 +1,5 @@
 using Bymed.Application.Common;
+using Bymed.Application.Notifications;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
@@ -13,17 +14,20 @@ public sealed class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrde
     private readonly IProductRepository _productRepository;
     private readonly IInventoryLogRepository _inventoryLogRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
 
     public UpdateOrderStatusCommandHandler(
         IOrderRepository orderRepository,
         IProductRepository productRepository,
         IInventoryLogRepository inventoryLogRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEmailService emailService)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _inventoryLogRepository = inventoryLogRepository ?? throw new ArgumentNullException(nameof(inventoryLogRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
     }
 
     public async Task<Result<OrderDto>> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
@@ -50,8 +54,28 @@ public sealed class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrde
 
         _orderRepository.Update(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await SendOrderStatusNotificationAsync(order, request.Request.Status, cancellationToken).ConfigureAwait(false);
 
         return Result<OrderDto>.Success(OrderMappings.ToDto(order));
+    }
+
+    private Task SendOrderStatusNotificationAsync(Order order, OrderStatus status, CancellationToken cancellationToken)
+    {
+        return status switch
+        {
+            OrderStatus.Shipped => _emailService.SendShippingNotificationAsync(
+                order.CustomerEmail,
+                order.CustomerName,
+                order.OrderNumber,
+                order.TrackingNumber ?? "N/A",
+                cancellationToken),
+            OrderStatus.Delivered => _emailService.SendDeliveryConfirmationAsync(
+                order.CustomerEmail,
+                order.CustomerName,
+                order.OrderNumber,
+                cancellationToken),
+            _ => Task.CompletedTask
+        };
     }
 
     private async Task<Result<bool>> DecrementInventoryForCompletedOrder(Order order, CancellationToken cancellationToken)

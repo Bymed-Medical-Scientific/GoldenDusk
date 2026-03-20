@@ -1,4 +1,5 @@
 using Bymed.Application.Common;
+using Bymed.Application.Notifications;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
@@ -15,19 +16,22 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
     private readonly IProductRepository _productRepository;
     private readonly IProductImageRepository _productImageRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
 
     public ProcessOrderCommandHandler(
         IOrderRepository orderRepository,
         ICartRepository cartRepository,
         IProductRepository productRepository,
         IProductImageRepository productImageRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEmailService emailService)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
     }
 
     public async Task<Result<OrderDto>> Handle(ProcessOrderCommand request, CancellationToken cancellationToken)
@@ -91,6 +95,11 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
 
         _orderRepository.Add(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _emailService.SendOrderConfirmationAsync(
+            order.CustomerEmail,
+            order.CustomerName,
+            order.OrderNumber,
+            cancellationToken).ConfigureAwait(false);
 
         return Result<OrderDto>.Success(OrderMappings.ToDto(order));
     }
