@@ -339,7 +339,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 28: Inventory Adjustment Logging**
     - **Validates: Requirements 9.5**
   
-  - [ ] 12.6 Create InventoryController
+  - [x] 12.6 Create InventoryController
     - GET /api/inventory (admin only)
     - POST /api/inventory/adjust (admin only)
     - GET /api/inventory/history/{productId} (admin only)

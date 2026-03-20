@@ -48,7 +48,7 @@ public sealed class InventoryController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{productId:guid}/history")]
+    [HttpGet("history/{productId:guid}")]
     [ProducesResponseType(typeof(PagedResult<InventoryLogDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHistory(
         Guid productId,
@@ -62,15 +62,18 @@ public sealed class InventoryController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("{productId:guid}/adjust")]
+    [HttpPost("adjust")]
     [ProducesResponseType(typeof(InventoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Adjust(
-        Guid productId,
+        [FromQuery] Guid productId,
         [FromBody] AdjustInventoryRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (productId == Guid.Empty)
+            return BadRequest(new { error = "ProductId is required." });
+
         if (request is null)
             return BadRequest(new { error = "Invalid request." });
 
