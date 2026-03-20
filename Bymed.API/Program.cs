@@ -1,7 +1,9 @@
 using Bymed.API.Authorization;
 using Bymed.Application;
 using Bymed.Application.Auth;
+using Bymed.Application.Notifications;
 using Bymed.Infrastructure;
+using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Identity;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -64,6 +66,7 @@ builder.Services.AddHangfire(configuration =>
     configuration.UsePostgreSqlStorage(options =>
         options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddHangfireServer();
+builder.Services.AddScoped<IEmailService, HangfireEmailService>();
 
 // ASP.NET Core Identity with domain User entity (custom store)
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

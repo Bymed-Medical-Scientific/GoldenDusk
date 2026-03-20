@@ -358,11 +358,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add retry logic for failed emails
     - _Requirements: 3.6, 4.6, 7.4, 13.1, 13.2, 13.3, 13.4, 14.2_
   
-  - [ ]* 13.2 Write property test for email notification triggers
+  - [x]* 13.2 Write property test for email notification triggers
     - **Property 10: Email Notification Triggers**
     - **Validates: Requirements 3.6, 7.4, 13.1, 13.2, 13.3**
   
-  - [ ]* 13.3 Write property test for email content completeness
+  - [x]* 13.3 Write property test for email content completeness
     - **Property 35: Email Content Completeness**
     - **Validates: Requirements 13.4**
   

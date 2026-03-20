@@ -13,7 +13,7 @@ using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Bymed.Infrastructure;
 
@@ -65,7 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, NoOpEmailSender>();
         services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
         services.AddScoped<IEmailBackgroundJobRunner, EmailBackgroundJobRunner>();
-        services.AddScoped<IEmailService, HangfireEmailService>();
+        services.TryAddScoped<IEmailService, NoOpEmailService>();
         services.AddScoped<IAuthService, AuthService>();
         return services;
     }
