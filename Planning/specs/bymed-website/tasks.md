@@ -489,13 +489,13 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 14.1, 14.2, 14.3_
 
 - [ ] 18. Configure API security and middleware
-  - [ ] 18.1 Configure HTTPS and security headers
+  - [x] 18.1 Configure HTTPS and security headers
     - Enforce HTTPS on all endpoints
     - Add HSTS headers
     - Configure CORS for frontend domains
     - _Requirements: 12.1_
   
-  - [ ] 18.2 Implement rate limiting
+  - [x] 18.2 Implement rate limiting
     - Configure rate limits for all endpoints
     - Stricter limits for authentication endpoints (5 per 15 minutes)
     - Use AspNetCoreRateLimit middleware

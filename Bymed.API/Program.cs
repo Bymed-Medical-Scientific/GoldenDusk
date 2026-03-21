@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Bymed.API.Authorization;
 using Bymed.Application;
 using Bymed.Application.Auth;
@@ -19,6 +20,26 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+var frontendCorsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()?
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .ToArray() ?? Array.Empty<string>();
+
+// In development, allow localhost if no origins configured
+if (builder.Environment.IsDevelopment() && frontendCorsOrigins.Length == 0)
+    frontendCorsOrigins = ["http://localhost:3000"];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(frontendCorsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -60,6 +81,11 @@ builder.Services.AddOpenApi("v1", options =>
 builder.Services.AddApplication();
 
 builder.Services.AddMemoryCache();
+
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // Database and repositories (Clean Architecture Infrastructure)
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -119,14 +145,26 @@ builder.Services.AddAuthorization(options => options.AddBymedRolePolicies());
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var ipPolicyStore = scope.ServiceProvider.GetRequiredService<IIpPolicyStore>();
+    await ipPolicyStore.SeedAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference(options => options.WithTitle("Bymed API"));
 }
+else
+{
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+app.UseIpRateLimiting();
+app.UseCors("FrontendPolicy");
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -134,4 +172,4 @@ app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
