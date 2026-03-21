@@ -83,5 +83,17 @@ public class PageContent : FullAuditedEntity
         Content = content;
     }
 
+    /// <summary>
+    /// Records the current content as a version snapshot before updating.
+    /// Call this before <see cref="Update"/> to preserve history.
+    /// Returns the created version so it can be persisted.
+    /// </summary>
+    public ContentVersion RecordVersion(string createdBy)
+    {
+        var version = new ContentVersion(Id, Content, createdBy);
+        _versions.Add(version);
+        return version;
+    }
+
     internal void AddVersion(ContentVersion version) => _versions.Add(version);
 }
