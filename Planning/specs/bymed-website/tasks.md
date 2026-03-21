@@ -418,7 +418,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 43: Order Currency Recording**
     - **Validates: Requirements 15.6**
   
-  - [ ] 15.5 Create CurrencyController
+  - [x] 15.5 Create CurrencyController
     - GET /api/currency/rates
     - GET /api/currency/detect
     - _Requirements: 15.1, 15.2, 15.5_
