@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Asp.Versioning;
 using Bymed.Application.Auth;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,26 @@ namespace Bymed.API.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IValidator<RegisterRequest> _registerValidator;
+    private readonly IValidator<LoginRequest> _loginValidator;
+    private readonly IValidator<ResetPasswordRequest> _resetPasswordValidator;
+    private readonly IValidator<ConfirmResetPasswordRequest> _confirmResetPasswordValidator;
+    private readonly IValidator<ChangePasswordRequest> _changePasswordValidator;
 
-    public AuthController(IAuthService authService)
+    public AuthController(
+        IAuthService authService,
+        IValidator<RegisterRequest> registerValidator,
+        IValidator<LoginRequest> loginValidator,
+        IValidator<ResetPasswordRequest> resetPasswordValidator,
+        IValidator<ConfirmResetPasswordRequest> confirmResetPasswordValidator,
+        IValidator<ChangePasswordRequest> changePasswordValidator)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _registerValidator = registerValidator ?? throw new ArgumentNullException(nameof(registerValidator));
+        _loginValidator = loginValidator ?? throw new ArgumentNullException(nameof(loginValidator));
+        _resetPasswordValidator = resetPasswordValidator ?? throw new ArgumentNullException(nameof(resetPasswordValidator));
+        _confirmResetPasswordValidator = confirmResetPasswordValidator ?? throw new ArgumentNullException(nameof(confirmResetPasswordValidator));
+        _changePasswordValidator = changePasswordValidator ?? throw new ArgumentNullException(nameof(changePasswordValidator));
     }
 
     [HttpPost("register")]
@@ -26,6 +43,10 @@ public sealed class AuthController : ControllerBase
     {
         if (request == null)
             return BadRequest(new { error = "Invalid request." });
+
+        var validation = await _registerValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
 
         var result = await _authService.RegisterAsync(request, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess)
@@ -42,6 +63,10 @@ public sealed class AuthController : ControllerBase
     {
         if (request == null)
             return BadRequest(new { error = "Invalid request." });
+
+        var validation = await _loginValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
 
         var result = await _authService.LoginAsync(request, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess)
@@ -86,6 +111,10 @@ public sealed class AuthController : ControllerBase
         if (request == null)
             return BadRequest(new { error = "Invalid request." });
 
+        var validation = await _resetPasswordValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
+
         await _authService.RequestPasswordResetAsync(request, cancellationToken).ConfigureAwait(false);
         return NoContent();
     }
@@ -97,6 +126,10 @@ public sealed class AuthController : ControllerBase
     {
         if (request == null)
             return BadRequest(new { error = "Invalid request." });
+
+        var validation = await _confirmResetPasswordValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
 
         var result = await _authService.ConfirmPasswordResetAsync(request, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess)
@@ -114,6 +147,10 @@ public sealed class AuthController : ControllerBase
     {
         if (request == null)
             return BadRequest(new { error = "Invalid request." });
+
+        var validation = await _changePasswordValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
 
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))

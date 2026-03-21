@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Asp.Versioning;
 using Bymed.Application.Carts;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,12 @@ namespace Bymed.API.Controllers;
 public sealed class CartController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IValidator<AddToCartRequest> _addToCartValidator;
 
-    public CartController(IMediator mediator)
+    public CartController(IMediator mediator, IValidator<AddToCartRequest> addToCartValidator)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        _addToCartValidator = addToCartValidator ?? throw new ArgumentNullException(nameof(addToCartValidator));
     }
 
     private (Guid? UserId, string? SessionId) ResolveCartIdentity()
@@ -88,6 +91,10 @@ public sealed class CartController : ControllerBase
     {
         if (request is null)
             return BadRequest(new { error = "Invalid request." });
+
+        var validation = await _addToCartValidator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
 
         var (userId, sessionId) = ResolveCartIdentity();
 
