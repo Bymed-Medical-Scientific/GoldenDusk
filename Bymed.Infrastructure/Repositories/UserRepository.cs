@@ -22,6 +22,14 @@ public class UserRepository : IUserRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<User?> GetByIdWithAddressesAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -30,6 +38,25 @@ public class UserRepository : IUserRepository
         var normalized = email.Trim().ToUpperInvariant();
         return await _context.Users
             .FirstOrDefaultAsync(u => u.Email.ToUpper() == normalized, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Address>> GetAddressesByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var addresses = await _context.Addresses
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.Id)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return addresses;
+    }
+
+    public async Task<Address?> GetAddressByIdAsync(Guid addressId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Addresses
+            .FirstOrDefaultAsync(a => a.Id == addressId, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -59,5 +86,23 @@ public class UserRepository : IUserRepository
     {
         ArgumentNullException.ThrowIfNull(user);
         _context.Users.Update(user);
+    }
+
+    public void AddAddress(Address address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        _context.Addresses.Add(address);
+    }
+
+    public void UpdateAddress(Address address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        _context.Addresses.Update(address);
+    }
+
+    public void RemoveAddress(Address address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        _context.Addresses.Remove(address);
     }
 }
