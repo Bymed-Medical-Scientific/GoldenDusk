@@ -55,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IInventoryLogRepository, InventoryLogRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
