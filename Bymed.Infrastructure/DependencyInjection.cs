@@ -1,9 +1,11 @@
 using Bymed.Application.Auth;
+using Bymed.Application.Currency;
 using Bymed.Application.Files;
 using Bymed.Application.Notifications;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
+using Bymed.Infrastructure.Currency;
 using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Auth;
 using Bymed.Infrastructure.Files;
@@ -41,6 +43,10 @@ public static class DependencyInjection
         services.Configure<PayNowOptions>(configuration.GetSection(PayNowOptions.SectionName));
         services.AddHttpClient<PayNowPaymentService>();
         services.AddScoped<IPaymentService, PayNowPaymentService>();
+
+        services.Configure<CurrencyOptions>(configuration.GetSection(CurrencyOptions.SectionName));
+        services.AddHttpClient<CurrencyService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
 
         return services.AddInfrastructureRepositories();
     }
