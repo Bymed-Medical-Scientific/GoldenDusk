@@ -424,7 +424,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 15.1, 15.2, 15.5_
 
 - [ ] 16. Implement user profile management
-  - [ ] 16.1 Create User profile use cases and DTOs
+  - [x] 16.1 Create User profile use cases and DTOs
     - Create DTOs:
       - UserProfileDto (id, email, firstName, lastName, phoneNumber)
       - UserAddressDto (id, label, line1, line2, city, state, postalCode, country, isDefault)
@@ -447,7 +447,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add structured logging and error handling for profile/address operations
     - _Requirements: 4.4, 4.5_
   
-  - [ ]* 16.2 Write property test for profile update persistence
+  - [x]* 16.2 Write property test for profile update persistence
     - **Property 14: Profile Update Persistence**
     - **Validates: Requirements 4.5**
   
