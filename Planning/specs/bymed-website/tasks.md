@@ -451,7 +451,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 14: Profile Update Persistence**
     - **Validates: Requirements 4.5**
   
-  - [ ] 16.3 Create UsersController
+  - [x] 16.3 Create UsersController
     - GET /api/users/profile
     - PUT /api/users/profile
     - GET /api/users/addresses
