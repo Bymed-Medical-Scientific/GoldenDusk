@@ -121,6 +121,11 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(User.EmailMaxLength);
             entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(User.NameMaxLength);
+
+            entity.HasMany(e => e.Addresses)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
@@ -267,7 +272,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Phone).IsRequired().HasMaxLength(Address.PhoneMaxLength);
 
             entity.HasOne(e => e.User)
-                .WithMany()
+                .WithMany(u => u.Addresses)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

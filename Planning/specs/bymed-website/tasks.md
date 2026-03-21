@@ -424,18 +424,34 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 15.1, 15.2, 15.5_
 
 - [ ] 16. Implement user profile management
-  - [ ] 16.1 Create User profile use cases and DTOs
-    - Create UserProfileDto, UpdateProfileRequest
+  - [x] 16.1 Create User profile use cases and DTOs
+    - Create DTOs:
+      - UserProfileDto (id, email, firstName, lastName, phoneNumber)
+      - UserAddressDto (id, label, line1, line2, city, state, postalCode, country, isDefault)
+      - UpdateProfileRequest (firstName, lastName, phoneNumber)
+      - AddAddressRequest / UpdateAddressRequest (address fields + label)
     - Implement GetUserProfileQuery and handler
+      - Resolve current authenticated user from JWT claims
+      - Return profile with addresses sorted by isDefault desc, createdAt desc
     - Implement UpdateUserProfileCommand and handler
-    - Implement address management (add, update, delete, set default)
+      - Validate input (length, required fields, phone format)
+      - Update only allowed profile fields (no role/email mutation in this flow)
+    - Implement address management use cases and handlers
+      - AddUserAddressCommand
+      - UpdateUserAddressCommand
+      - DeleteUserAddressCommand
+      - SetDefaultUserAddressCommand
+      - Enforce one default address per user (transactional update)
+      - Prevent cross-user address access/modification
+    - Add FluentValidation validators and mapping profiles for all request models
+    - Add structured logging and error handling for profile/address operations
     - _Requirements: 4.4, 4.5_
   
-  - [ ]* 16.2 Write property test for profile update persistence
+  - [x]* 16.2 Write property test for profile update persistence
     - **Property 14: Profile Update Persistence**
     - **Validates: Requirements 4.5**
   
-  - [ ] 16.3 Create UsersController
+  - [x] 16.3 Create UsersController
     - GET /api/users/profile
     - PUT /api/users/profile
     - GET /api/users/addresses

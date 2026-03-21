@@ -12,6 +12,7 @@ public class User : FullAuditedEntity
     public string PasswordHash { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public UserRole Role { get; private set; }
+    public ICollection<Address> Addresses { get; private set; } = new List<Address>();
 
     private User()
     {
