@@ -6,6 +6,7 @@ using Bymed.Application.PageContent;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bymed.API.Controllers;
@@ -39,6 +40,34 @@ public sealed class ContentController : ControllerBase
             .Send(new GetAllPagesQuery(pageNumber, pageSize), cancellationToken)
             .ConfigureAwait(false);
         return Ok(result);
+    }
+
+    /// <summary>Upload an image for CMS pages (admin only). Returns public URL for embedding.</summary>
+    [HttpPost("images")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ContentImageUploadDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UploadImage(IFormFile? file, CancellationToken cancellationToken = default)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "Image file is required." });
+
+        await using var memory = new MemoryStream();
+        await file.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+
+        var command = new UploadContentImageCommand(
+            memory.ToArray(),
+            file.FileName,
+            file.ContentType ?? "application/octet-stream");
+
+        var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.Error });
+
+        return Created(string.Empty, result.Value);
     }
 
     /// <summary>Get page content by slug.</summary>

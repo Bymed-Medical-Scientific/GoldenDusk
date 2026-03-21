@@ -372,7 +372,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Trigger delivery confirmation on status update to "delivered"
     - _Requirements: 3.6, 7.4, 13.1, 13.2, 13.3_
 
-- [ ] 14. Implement content management system
+- [x] 14. Implement content management system
   - [x] 14.1 Create PageContent use cases and DTOs
     - Create PageContentDto, UpdatePageContentRequest
     - Implement GetAllPagesQuery and handler
@@ -389,7 +389,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - **Property 24: Content Version History**
     - **Validates: Requirements 8.4**
   
-  - [ ] 14.2 Create ContentController
+  - [x] 14.4 Create ContentController
     - GET /api/content (list all pages)
     - GET /api/content/{slug}
     - PUT /api/content/{slug} (admin only)
