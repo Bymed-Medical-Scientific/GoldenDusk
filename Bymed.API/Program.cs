@@ -11,6 +11,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,26 @@ using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+const long MaxRequestBodySizeBytes = 10L * 1024 * 1024; // 10MB
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = MaxRequestBodySizeBytes;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = MaxRequestBodySizeBytes;
+});
+
+builder.Services.AddRequestTimeouts(options =>
+{
+    options.DefaultPolicy = new RequestTimeoutPolicy
+    {
+        Timeout = TimeSpan.FromSeconds(30),
+        TimeoutStatusCode = StatusCodes.Status504GatewayTimeout
+    };
+});
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
@@ -170,6 +191,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseRequestTimeouts();
 app.UseIpRateLimiting();
 app.UseCors("FrontendPolicy");
 app.UseStaticFiles();
