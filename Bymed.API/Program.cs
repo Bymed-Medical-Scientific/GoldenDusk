@@ -59,6 +59,8 @@ builder.Services.AddOpenApi("v1", options =>
 // Application use cases (MediatR, FluentValidation)
 builder.Services.AddApplication();
 
+builder.Services.AddMemoryCache();
+
 // Database and repositories (Clean Architecture Infrastructure)
 builder.Services.AddInfrastructure(builder.Configuration);
 
