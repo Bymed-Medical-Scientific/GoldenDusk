@@ -461,7 +461,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 4.4, 4.5_
 
 - [ ] 17. Implement contact form functionality
-  - [ ] 17.1 Create contact form use cases and DTOs
+  - [x] 17.1 Create contact form use cases and DTOs
     - Create ContactFormDto, SubmitContactFormRequest
     - Implement SubmitContactFormCommand and handler
     - Add email validation
