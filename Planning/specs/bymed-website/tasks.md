@@ -381,11 +381,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement version history tracking
     - _Requirements: 8.1, 8.3, 8.4_
   
-  - [ ]* 14.2 Write property test for content publishing visibility
+  - [x]* 14.2 Write property test for content publishing visibility
     - **Property 23: Content Publishing Visibility**
     - **Validates: Requirements 8.3**
   
-  - [ ]* 14.3 Write property test for content version history
+  - [x]* 14.3 Write property test for content version history
     - **Property 24: Content Version History**
     - **Validates: Requirements 8.4**
   
