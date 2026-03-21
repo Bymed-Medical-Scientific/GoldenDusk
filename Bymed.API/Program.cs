@@ -1,5 +1,6 @@
 using AspNetCoreRateLimit;
 using Bymed.API.Authorization;
+using Bymed.API.Middleware;
 using Bymed.Application;
 using Bymed.Application.Auth;
 using Bymed.Application.Notifications;
@@ -15,9 +16,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddControllers();
 
@@ -151,6 +156,8 @@ using (var scope = app.Services.CreateScope())
     await ipPolicyStore.SeedAsync();
 }
 
+app.UseGlobalExceptionHandler();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -172,4 +179,11 @@ app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
 
-await app.RunAsync();
+try
+{
+    await app.RunAsync();
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}
