@@ -2,6 +2,45 @@ import { getPublicApiBaseUrl } from "@/lib/env";
 import { joinUrl } from "@/lib/url";
 import type { ApiValidationIssue } from "@/types/api-common";
 
+const BYMED_BROWSER_PROXY_PREFIX = "/api/bymed";
+
+/**
+ * Guest flows keep `cart_session_id` on the API origin. Authenticated calls use the
+ * Next.js BFF proxy so httpOnly access cookies can supply `Authorization`.
+ */
+function isDirectBrowserApiPath(path: string, method: string): boolean {
+  if (typeof window === "undefined") return false;
+  const base = path.split("?")[0];
+  if (/\/Cart(\/|$)/i.test(base)) return true;
+  if (/\/Payments\/orders\//i.test(base)) return true;
+  if (method === "POST" && /\/Orders$/i.test(base)) return true;
+  if (
+    method === "GET" &&
+    /^.+\/Orders\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      base,
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function resolveRequestUrl(path: string, method: string): string {
+  const base = getPublicApiBaseUrl();
+  if (!base) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not set. Add it to .env.local (see .env.example).",
+    );
+  }
+  if (typeof window === "undefined") {
+    return joinUrl(base, path);
+  }
+  if (isDirectBrowserApiPath(path, method)) {
+    return joinUrl(base, path);
+  }
+  return joinUrl("", joinUrl(BYMED_BROWSER_PROXY_PREFIX, path));
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly body: unknown;
@@ -117,22 +156,18 @@ export async function apiFetch(
   init: RequestInit = {},
   options: ApiFetchOptions = {},
 ): Promise<Response> {
-  const base = getPublicApiBaseUrl();
-  if (!base) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL is not set. Add it to .env.local (see .env.example).",
-    );
-  }
-
-  const url = joinUrl(base, path);
   const method = (init.method ?? "GET").toUpperCase();
+  const url = resolveRequestUrl(path, method);
   const idempotent = ["GET", "HEAD", "OPTIONS"].includes(method);
   const allowRetry = options.retry !== false && idempotent;
   const maxRetries = options.maxRetries ?? 3;
   const maxAttempts = allowRetry ? maxRetries + 1 : 1;
 
+  const useProxy =
+    typeof window !== "undefined" && !isDirectBrowserApiPath(path, method);
+
   const headers = new Headers(init.headers);
-  if (!options.skipAuth) {
+  if (!options.skipAuth && !useProxy) {
     const token = await resolveAccessToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
