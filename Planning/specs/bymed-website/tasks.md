@@ -541,7 +541,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 4.1, 4.3, 12.1_
 
 - [ ] 21. Implement customer frontend layout and navigation
-  - [ ] 21.1 Create main layout with header and footer
+  - [x] 21.1 Create main layout with header and footer
     - Implement Header component with logo, navigation, search bar, cart icon, user menu
     - Implement Footer component with company info, links, contact details
     - Add responsive mobile menu

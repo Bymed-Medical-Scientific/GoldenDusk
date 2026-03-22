@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-context";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -36,7 +38,22 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <a href="#main-content" className="skip-to-main">
+              Skip to main content
+            </a>
+            <div className="flex min-h-screen flex-col">
+              <SiteHeader />
+              <main
+                id="main-content"
+                tabIndex={-1}
+                className="flex flex-1 flex-col outline-none"
+              >
+                {children}
+              </main>
+              <SiteFooter />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

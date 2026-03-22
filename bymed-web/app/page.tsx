@@ -1,34 +1,7 @@
-import { ThemeToggle } from "@/components/theme-toggle";
-import Link from "next/link";
-
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-brand text-brand-foreground shadow-[0_4px_0_0_#000000]">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <div>
-            <p className="text-xl font-semibold tracking-tight">ByMed</p>
-            <p className="text-sm text-white/90">Medical &amp; Scientific</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-white/90 hover:underline"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/account"
-              className="text-sm font-medium text-white/90 hover:underline"
-            >
-              Account
-            </Link>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl px-4 py-12">
+    <div className="bg-background text-foreground">
+      <div className="mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
           Medical and scientific equipment
         </h1>
@@ -50,7 +23,7 @@ export default function Home() {
             Secondary
           </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
