@@ -5,7 +5,6 @@ namespace Bymed.Application.Auth;
 public sealed class ConfirmResetPasswordRequestValidator : AbstractValidator<ConfirmResetPasswordRequest>
 {
     private const int EmailMaxLength = 256;
-    private const int MinimumPasswordLength = 8;
 
     public ConfirmResetPasswordRequestValidator()
     {
@@ -18,6 +17,7 @@ public sealed class ConfirmResetPasswordRequestValidator : AbstractValidator<Con
 
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("New password is required.")
-            .MinimumLength(MinimumPasswordLength).WithMessage($"New password must be at least {MinimumPasswordLength} characters.");
+            .MinimumLength(PasswordPolicy.MinimumLength).WithMessage($"New password must be at least {PasswordPolicy.MinimumLength} characters.")
+            .Must(PasswordPolicy.MeetsComplexity).WithMessage(PasswordPolicy.ComplexityDescription);
     }
 }

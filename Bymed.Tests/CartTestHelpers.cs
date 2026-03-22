@@ -23,6 +23,7 @@ internal static class CartTestHelpers
         await pragma.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddInfrastructureRepositories();
 

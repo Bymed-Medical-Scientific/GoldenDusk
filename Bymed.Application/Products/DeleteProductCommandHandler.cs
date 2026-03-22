@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -9,13 +10,16 @@ public sealed class DeleteProductCommandHandler : IRequestHandler<DeleteProductC
 {
     private readonly IProductRepository _productRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICatalogReadCache _catalogReadCache;
 
     public DeleteProductCommandHandler(
         IProductRepository productRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICatalogReadCache catalogReadCache)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
 
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
@@ -31,6 +35,7 @@ public sealed class DeleteProductCommandHandler : IRequestHandler<DeleteProductC
         product.MarkAsUnavailable();
         _productRepository.Update(product);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _catalogReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

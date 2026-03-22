@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Inventory;
 using Bymed.Application.Notifications;
@@ -142,7 +143,8 @@ public class InventoryTrackingPropertyTests
             var handler = new AdjustInventoryCommandHandler(
                 sp.GetRequiredService<IProductRepository>(),
                 sp.GetRequiredService<IInventoryLogRepository>(),
-                sp.GetRequiredService<IUnitOfWork>());
+                sp.GetRequiredService<IUnitOfWork>(),
+                sp.GetRequiredService<ICatalogReadCache>());
 
             var reason = $"manual-adjust-{Guid.NewGuid():N}";
             var changedBy = "inventory-admin@test.local";
@@ -195,6 +197,7 @@ public class InventoryTrackingPropertyTests
             orderNumber,
             idempotency,
             Guid.NewGuid(),
+            sessionId: null,
             "customer@example.com",
             "Customer",
             new ShippingAddress("Jane Doe", "123 Main St", null, "Harare", "Harare", "00000", "ZW", "263770000000"),

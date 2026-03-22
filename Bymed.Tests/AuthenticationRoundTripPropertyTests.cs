@@ -19,6 +19,7 @@ namespace Bymed.Tests;
 public class AuthenticationRoundTripPropertyTests
 {
     private const string TestSecretKey = "TestSecretKeyForJwtSigning-MustBeLongEnough-32Chars";
+    private const string ValidTestPassword = "ValidPass1!word";
 
     /// <summary>
     /// Integration-style: Register a user then login with same credentials succeeds and returns session (user + token).
@@ -30,7 +31,7 @@ public class AuthenticationRoundTripPropertyTests
         var (authService, _) = await CreateAuthServicesAsync();
 
         var email = "roundtrip@example.com";
-        var password = "password123";
+        var password = ValidTestPassword;
         var name = "Round Trip User";
 
         var registerResult = await authService.RegisterAsync(new RegisterRequest
@@ -71,7 +72,7 @@ public class AuthenticationRoundTripPropertyTests
         var (authService, _) = await CreateAuthServicesAsync();
 
         var email = "wrongpwd@example.com";
-        var password = "password123";
+        var password = ValidTestPassword;
 
         await authService.RegisterAsync(new RegisterRequest
         {
@@ -118,16 +119,20 @@ public class AuthenticationRoundTripPropertyTests
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlite(connection));
 
+        services.AddLogging();
         services.AddInfrastructureRepositories();
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {
-            options.Password.RequiredLength = 8;
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = Bymed.Application.Auth.PasswordPolicy.MinimumLength;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
             options.User.RequireUniqueEmail = true;
+            options.Lockout.AllowedForNewUsers = true;
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
         .AddUserStore<BymedUserStore>();
         // Do not add AddDefaultTokenProviders() in test - it requires IDataProtectionProvider; login/register only need password hashing

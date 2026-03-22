@@ -9,4 +9,7 @@ public sealed class ApplicationUser
     public string? PasswordHash { get; set; }
     public string? Name { get; set; }
     public UserRole Role { get; set; } = UserRole.Customer;
+    public int AccessFailedCount { get; set; }
+    public DateTimeOffset? LockoutEnd { get; set; }
+    public bool LockoutEnabled { get; set; } = true;
 }

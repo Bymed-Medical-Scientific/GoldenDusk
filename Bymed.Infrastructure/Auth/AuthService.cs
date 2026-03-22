@@ -11,6 +11,7 @@ using Bymed.Domain.Enums;
 using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,6 +25,7 @@ public sealed class AuthService : IAuthService
     private readonly IEmailService _emailService;
     private readonly JwtSettings _jwtSettings;
     private readonly EmailOptions _emailOptions;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -32,7 +34,8 @@ public sealed class AuthService : IAuthService
         IRefreshTokenStore refreshTokenStore,
         IEmailService emailService,
         IOptions<JwtSettings> jwtSettings,
-        IOptions<EmailOptions> emailOptions)
+        IOptions<EmailOptions> emailOptions,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -41,6 +44,7 @@ public sealed class AuthService : IAuthService
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _jwtSettings = jwtSettings?.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
         _emailOptions = emailOptions?.Value ?? throw new ArgumentNullException(nameof(emailOptions));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -53,8 +57,8 @@ public sealed class AuthService : IAuthService
             return Result<AuthResponse>.Failure("Email is required.");
         if (string.IsNullOrEmpty(request.Password))
             return Result<AuthResponse>.Failure("Password is required.");
-        if (request.Password.Length < 8)
-            return Result<AuthResponse>.Failure("Password must be at least 8 characters.");
+        if (!PasswordPolicy.MeetsComplexity(request.Password))
+            return Result<AuthResponse>.Failure(PasswordPolicy.ComplexityDescription);
         if (string.IsNullOrWhiteSpace(request.Name))
             return Result<AuthResponse>.Failure("Name is required.");
 
@@ -103,22 +107,34 @@ public sealed class AuthService : IAuthService
         if (string.IsNullOrEmpty(request.Password))
             return Result<AuthResponse>.Failure("Password is required.");
 
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken).ConfigureAwait(false);
-        if (user == null)
-            return Result<AuthResponse>.Failure("Invalid email or password.");
-
-        var appUser = new ApplicationUser
+        var appUser = await _userManager.FindByEmailAsync(email).ConfigureAwait(false);
+        if (appUser == null)
         {
-            Id = user.Id.ToString(),
-            UserName = user.Email,
-            Name = user.Name,
-            Role = user.Role,
-            PasswordHash = user.PasswordHash
-        };
+            _logger.LogWarning("Login failed: no account for normalized email.");
+            return Result<AuthResponse>.Failure("Invalid email or password.");
+        }
+
+        if (await _userManager.IsLockedOutAsync(appUser).ConfigureAwait(false))
+        {
+            _logger.LogWarning("Login failed: account locked for user {UserId}.", appUser.Id);
+            return Result<AuthResponse>.Failure("Account is locked. Try again later.");
+        }
 
         var isValid = await _userManager.CheckPasswordAsync(appUser, request.Password).ConfigureAwait(false);
         if (!isValid)
+        {
+            await _userManager.AccessFailedAsync(appUser).ConfigureAwait(false);
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogWarning("Login failed: invalid password for user {UserId}.", appUser.Id);
             return Result<AuthResponse>.Failure("Invalid email or password.");
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(appUser).ConfigureAwait(false);
+        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var user = await _userRepository.GetByIdAsync(Guid.Parse(appUser.Id), cancellationToken).ConfigureAwait(false);
+        if (user == null)
+            return Result<AuthResponse>.Failure("User could not be loaded.");
 
         var token = GenerateAccessToken(user);
         var refreshToken = await _refreshTokenStore.CreateAsync(user.Id, cancellationToken).ConfigureAwait(false);
@@ -208,8 +224,8 @@ public sealed class AuthService : IAuthService
             return Result.Failure("Token is required.");
         if (string.IsNullOrEmpty(request.NewPassword))
             return Result.Failure("New password is required.");
-        if (request.NewPassword.Length < 8)
-            return Result.Failure("Password must be at least 8 characters.");
+        if (!PasswordPolicy.MeetsComplexity(request.NewPassword))
+            return Result.Failure(PasswordPolicy.ComplexityDescription);
 
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken).ConfigureAwait(false);
         if (user == null)
@@ -239,8 +255,8 @@ public sealed class AuthService : IAuthService
             return Result.Failure("Current password is required.");
         if (string.IsNullOrEmpty(request.NewPassword))
             return Result.Failure("New password is required.");
-        if (request.NewPassword.Length < 8)
-            return Result.Failure("New password must be at least 8 characters.");
+        if (!PasswordPolicy.MeetsComplexity(request.NewPassword))
+            return Result.Failure(PasswordPolicy.ComplexityDescription);
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
         if (user == null)

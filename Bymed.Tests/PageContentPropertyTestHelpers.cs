@@ -27,6 +27,7 @@ internal static class PageContentPropertyTestHelpers
         }
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddInfrastructureRepositories();
 

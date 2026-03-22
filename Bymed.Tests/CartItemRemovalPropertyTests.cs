@@ -34,8 +34,11 @@ public class CartItemRemovalPropertyTests
         var priceGen = ArbMap.Default.GeneratorFor<decimal>().Where(p => p >= 0m && p <= 500m);
         var isGuestGen = ArbMap.Default.GeneratorFor<bool>();
         var sessionIdGen = ArbMap.Default.GeneratorFor<string>()
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(s => string.Concat(s.Trim().Where(c => !char.IsControl(c))))
+            .Select(s =>
+            {
+                var cleaned = string.Concat((s ?? "").Trim().Where(c => !char.IsControl(c)));
+                return string.IsNullOrEmpty(cleaned) ? $"s-{Guid.NewGuid():N}" : cleaned;
+            })
             .Where(s => s.Length > 0 && s.Length <= Bymed.Domain.Entities.Cart.SessionIdMaxLength);
 
         var scenarioArb = (from isGuest in isGuestGen

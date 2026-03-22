@@ -19,6 +19,8 @@ public class Order : FullAuditedEntity
     public string OrderNumber { get; private set; } = string.Empty;
     public string? IdempotencyKey { get; private set; }
     public Guid? UserId { get; private set; }
+    /// <summary>Guest checkout session id (cookie); null for user orders.</summary>
+    public string? SessionId { get; private set; }
     public OrderStatus Status { get; private set; }
     public string CustomerEmail { get; private set; } = string.Empty;
     public string CustomerName { get; private set; } = string.Empty;
@@ -48,6 +50,7 @@ public class Order : FullAuditedEntity
         string orderNumber,
         string? idempotencyKey,
         Guid? userId,
+        string? sessionId,
         string customerEmail,
         string customerName,
         ShippingAddress shippingAddress,
@@ -60,6 +63,7 @@ public class Order : FullAuditedEntity
         SetOrderNumber(orderNumber);
         SetIdempotencyKey(idempotencyKey);
         UserId = userId;
+        SetSessionId(sessionId);
         Status = OrderStatus.Pending;
         SetCustomerEmail(customerEmail);
         SetCustomerName(customerName);
@@ -130,6 +134,19 @@ public class Order : FullAuditedEntity
         if (trimmed.Length > NotesMaxLength)
             throw new ArgumentException($"Notes must not exceed {NotesMaxLength} characters.", nameof(notes));
         Notes = trimmed;
+    }
+
+    private void SetSessionId(string? sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            SessionId = null;
+            return;
+        }
+        var trimmed = sessionId.Trim();
+        if (trimmed.Length > Cart.SessionIdMaxLength)
+            throw new ArgumentException($"Session id must not exceed {Cart.SessionIdMaxLength} characters.", nameof(sessionId));
+        SessionId = trimmed;
     }
 
     private void SetIdempotencyKey(string? idempotencyKey)

@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -9,13 +10,16 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
 {
     private readonly IProductRepository _productRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICatalogReadCache _catalogReadCache;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICatalogReadCache catalogReadCache)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
 
     public async Task<Result<ProductDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -46,6 +50,7 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
 
         _productRepository.Update(product);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _catalogReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
         var dto = new ProductDto
         {

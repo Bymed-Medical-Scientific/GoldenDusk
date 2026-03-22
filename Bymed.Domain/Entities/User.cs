@@ -12,6 +12,9 @@ public class User : FullAuditedEntity
     public string PasswordHash { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public UserRole Role { get; private set; }
+    public int AccessFailedCount { get; private set; }
+    public DateTimeOffset? LockoutEnd { get; private set; }
+    public bool LockoutEnabled { get; private set; } = true;
     public ICollection<Address> Addresses { get; private set; } = new List<Address>();
 
     private User()
@@ -47,6 +50,27 @@ public class User : FullAuditedEntity
     {
         SetEmail(email);
     }
+
+    public void ResetAccessFailedCount() => AccessFailedCount = 0;
+
+    public void IncrementAccessFailedCount() => AccessFailedCount++;
+
+    public void SetLockoutEnd(DateTimeOffset? lockoutEnd) => LockoutEnd = lockoutEnd;
+
+    public void SetLockoutEnabled(bool enabled) => LockoutEnabled = enabled;
+
+    /// <summary>Updates lockout fields as persisted by ASP.NET Identity lockout store.</summary>
+    public void SetLockoutState(int accessFailedCount, DateTimeOffset? lockoutEnd, bool lockoutEnabled)
+    {
+        if (accessFailedCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(accessFailedCount));
+        AccessFailedCount = accessFailedCount;
+        LockoutEnd = lockoutEnd;
+        LockoutEnabled = lockoutEnabled;
+    }
+
+    public bool IsLockedOut(DateTimeOffset utcNow) =>
+        LockoutEnabled && LockoutEnd.HasValue && LockoutEnd.Value > utcNow;
 
     private void SetEmail(string email)
     {

@@ -8,7 +8,8 @@ namespace Bymed.Infrastructure.Identity;
 
 public sealed class BymedUserStore : IUserStore<ApplicationUser>,
     IUserPasswordStore<ApplicationUser>,
-    IUserEmailStore<ApplicationUser>
+    IUserEmailStore<ApplicationUser>,
+    IUserLockoutStore<ApplicationUser>
 {
     private readonly IUserRepository _userRepository;
 
@@ -214,6 +215,66 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
         return Task.CompletedTask;
     }
 
+    public Task<DateTimeOffset?> GetLockoutEndDateAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return Task.FromResult(user.LockoutEnd);
+    }
+
+    public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        user.LockoutEnd = lockoutEnd;
+        return PersistLockoutAsync(user, cancellationToken);
+    }
+
+    public Task<int> GetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return Task.FromResult(user.AccessFailedCount);
+    }
+
+    public Task ResetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        user.AccessFailedCount = 0;
+        return PersistLockoutAsync(user, cancellationToken);
+    }
+
+    public async Task<int> IncrementAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        user.AccessFailedCount++;
+        await PersistLockoutAsync(user, cancellationToken).ConfigureAwait(false);
+        return user.AccessFailedCount;
+    }
+
+    public Task<bool> GetLockoutEnabledAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return Task.FromResult(user.LockoutEnabled);
+    }
+
+    public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        user.LockoutEnabled = enabled;
+        return PersistLockoutAsync(user, cancellationToken);
+    }
+
+    private async Task PersistLockoutAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(user.Id, out var id))
+            return;
+
+        var domainUser = await _userRepository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (domainUser is null)
+            return;
+
+        domainUser.SetLockoutState(user.AccessFailedCount, user.LockoutEnd, user.LockoutEnabled);
+        _userRepository.Update(domainUser);
+    }
+
     private static ApplicationUser ToApplicationUser(User user)
     {
         return new ApplicationUser
@@ -222,7 +283,10 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
             UserName = user.Email,
             PasswordHash = user.PasswordHash,
             Name = user.Name,
-            Role = user.Role
+            Role = user.Role,
+            AccessFailedCount = user.AccessFailedCount,
+            LockoutEnd = user.LockoutEnd,
+            LockoutEnabled = user.LockoutEnabled
         };
     }
 
@@ -230,6 +294,6 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
     {
         if (string.IsNullOrWhiteSpace(email))
             return null;
-        return email.Trim().ToLowerInvariant();
+        return email.Trim().ToUpperInvariant();
     }
 }

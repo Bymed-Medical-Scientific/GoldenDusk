@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -9,13 +10,16 @@ public sealed class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategor
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICatalogReadCache _catalogReadCache;
 
     public UpdateCategoryCommandHandler(
         ICategoryRepository categoryRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICatalogReadCache catalogReadCache)
     {
         _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
 
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
@@ -42,6 +46,7 @@ public sealed class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategor
 
         _categoryRepository.Update(category);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _catalogReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
         var dto = new CategoryDto
         {
