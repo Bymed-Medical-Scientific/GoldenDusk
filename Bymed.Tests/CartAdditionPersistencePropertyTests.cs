@@ -34,8 +34,8 @@ public class CartAdditionPersistencePropertyTests
         var priceGen = ArbMap.Default.GeneratorFor<decimal>().Where(p => p >= 0m && p <= 1000m);
         var sessionIdGen = ArbMap.Default.GeneratorFor<string>()
             .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(s => s.Trim())
-            .Where(s => s.Length <= Bymed.Domain.Entities.Cart.SessionIdMaxLength);
+            .Select(s => string.Concat(s.Trim().Where(c => !char.IsControl(c))))
+            .Where(s => s.Length > 0 && s.Length <= Bymed.Domain.Entities.Cart.SessionIdMaxLength);
         var isGuestGen = ArbMap.Default.GeneratorFor<bool>();
 
         var scenarioArb = (from isGuest in isGuestGen
@@ -57,6 +57,8 @@ public class CartAdditionPersistencePropertyTests
                 var sp = scope.ServiceProvider;
 
                 var db = sp.GetRequiredService<ApplicationDbContext>();
+                if (!isGuest)
+                    CartTestHelpers.SeedUserAsync(db, userId).GetAwaiter().GetResult();
                 var productId = CartTestHelpers.SeedProductAsync(db, price, isAvailable: true).GetAwaiter().GetResult();
 
                 var cartRepo = sp.GetRequiredService<ICartRepository>();

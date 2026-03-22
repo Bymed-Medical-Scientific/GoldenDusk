@@ -150,6 +150,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<CartItem>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.HasIndex(e => new { e.CartId, e.ProductId }).IsUnique();
             entity.Property(e => e.PriceAtAdd).HasPrecision(18, 2);
 
