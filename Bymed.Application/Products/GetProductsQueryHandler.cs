@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Repositories;
 using MediatR;
@@ -8,17 +9,26 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
 {
     private readonly IProductRepository _productRepository;
     private readonly IProductImageRepository _productImageRepository;
+    private readonly ICatalogReadCache _catalogCache;
 
     public GetProductsQueryHandler(
         IProductRepository productRepository,
-        IProductImageRepository productImageRepository)
+        IProductImageRepository productImageRepository,
+        ICatalogReadCache catalogCache)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
+        _catalogCache = catalogCache ?? throw new ArgumentNullException(nameof(catalogCache));
     }
 
     public async Task<PagedResult<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
+        var cached = await _catalogCache
+            .TryGetProductsAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        if (cached is not null)
+            return cached;
+
         var pagination = new PaginationParams(request.PageNumber, request.PageSize);
 
         // For now use repository-level category and availability filters.
@@ -52,10 +62,14 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
             })
             .ToList();
 
-        return new PagedResult<ProductDto>(
+        var result = new PagedResult<ProductDto>(
             dtoItems,
             pagedProducts.PageNumber,
             pagedProducts.PageSize,
             pagedProducts.TotalCount);
+
+        await _catalogCache.SetProductsAsync(request, result, cancellationToken).ConfigureAwait(false);
+
+        return result;
     }
 }

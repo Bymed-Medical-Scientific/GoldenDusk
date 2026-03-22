@@ -43,7 +43,7 @@ public class ProductCrudPropertyTests
             Specifications = new Dictionary<string, string> { ["flow-rate"] = "0.1-1200 ml/h" }
         };
 
-        var handler = new CreateProductCommandHandler(repo, unitOfWork);
+        var handler = new CreateProductCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new CreateProductCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -90,7 +90,7 @@ public class ProductCrudPropertyTests
             Specifications = new Dictionary<string, string> { ["updated"] = "true" }
         };
 
-        var handler = new UpdateProductCommandHandler(repo, unitOfWork);
+        var handler = new UpdateProductCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new UpdateProductCommand(id, request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -134,7 +134,7 @@ public class ProductCrudPropertyTests
         var unitOfWork = CreateUnitOfWork();
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
-        var handler = new DeleteProductCommandHandler(repo, unitOfWork);
+        var handler = new DeleteProductCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new DeleteProductCommand(id), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();

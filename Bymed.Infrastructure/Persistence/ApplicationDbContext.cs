@@ -121,6 +121,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(User.EmailMaxLength);
             entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(User.NameMaxLength);
+            entity.Property(e => e.AccessFailedCount).HasDefaultValue(0);
+            entity.Property(e => e.LockoutEnd);
+            entity.Property(e => e.LockoutEnabled).HasDefaultValue(true);
 
             entity.HasMany(e => e.Addresses)
                 .WithOne(e => e.User)
@@ -150,6 +153,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<CartItem>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.HasIndex(e => new { e.CartId, e.ProductId }).IsUnique();
             entity.Property(e => e.PriceAtAdd).HasPrecision(18, 2);
 
@@ -178,6 +182,8 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(Order.OrderNumberMaxLength);
             entity.Property(e => e.IdempotencyKey).HasMaxLength(Order.IdempotencyKeyMaxLength);
+            entity.Property(e => e.SessionId).HasMaxLength(Cart.SessionIdMaxLength);
+            entity.HasIndex(e => e.SessionId);
             entity.Property(e => e.CustomerEmail).IsRequired().HasMaxLength(Order.CustomerEmailMaxLength);
             entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(Order.CustomerNameMaxLength);
             entity.Property(e => e.Subtotal).HasPrecision(18, 2);

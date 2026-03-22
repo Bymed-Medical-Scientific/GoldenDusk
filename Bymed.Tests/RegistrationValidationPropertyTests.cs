@@ -1,4 +1,5 @@
 using Bymed.Application.Auth;
+using FluentAssertions;
 using FsCheck;
 using FsCheck.Fluent;
 using FsCheck.Xunit;
@@ -9,7 +10,7 @@ namespace Bymed.Tests;
 /// <summary>
 /// Property 11: Registration Validation.
 /// For any registration attempt, invalid email formats should be rejected and passwords
-/// not meeting strength requirements (minimum 8 characters) should be rejected.
+/// not meeting strength requirements should be rejected.
 /// Validates: Requirements 4.2
 /// </summary>
 public class RegistrationValidationPropertyTests
@@ -23,8 +24,14 @@ public class RegistrationValidationPropertyTests
 
     private static readonly Arbitrary<string> ShortPasswordArb =
         ArbMap.Default.GeneratorFor<string>()
-            .Select(s => (s ?? "").Length > 8 ? (s ?? "").Substring(0, 7) : (s ?? ""))
-            .Where(s => s.Length < 8)
+            .Select(s =>
+            {
+                var raw = s ?? "";
+                if (raw.Length >= PasswordPolicy.MinimumLength)
+                    raw = raw[..(PasswordPolicy.MinimumLength - 1)];
+                return raw;
+            })
+            .Where(s => s.Length < PasswordPolicy.MinimumLength)
             .ToArbitrary();
 
     private static bool IsValidEmailFormat(string email)
@@ -43,7 +50,7 @@ public class RegistrationValidationPropertyTests
             var request = new RegisterRequest
             {
                 Email = email ?? "",
-                Password = "password1",
+                Password = "ValidPass1!word",
                 Name = "Test User"
             };
             var validationResult = Validator.Validate(request);
@@ -54,7 +61,7 @@ public class RegistrationValidationPropertyTests
 
     // Feature: bymed-website, Property 11: Registration Validation (short password rejected)
     [Property(MaxTest = 100)]
-    public Property PasswordShorterThan8_ShouldFailValidation()
+    public Property PasswordShorterThanMinimum_ShouldFailValidation()
     {
         return Prop.ForAll(ShortPasswordArb, password =>
         {
@@ -66,8 +73,21 @@ public class RegistrationValidationPropertyTests
             };
             var validationResult = Validator.Validate(request);
             return (validationResult.IsValid == false)
-                .Label("Password with fewer than 8 characters must be rejected");
+                .Label($"Password with fewer than {PasswordPolicy.MinimumLength} characters must be rejected");
         });
+    }
+
+    [Fact]
+    public void Password_WithoutComplexity_ShouldFailValidation()
+    {
+        var request = new RegisterRequest
+        {
+            Email = "user@example.com",
+            Password = "abcdefghijkl",
+            Name = "Test User"
+        };
+        var result = Validator.Validate(request);
+        result.IsValid.Should().BeFalse();
     }
 
     // Feature: bymed-website, Property 11: Registration Validation (valid request passes)
@@ -78,22 +98,18 @@ public class RegistrationValidationPropertyTests
             .Select(s => "u" + (s ?? "").Replace("@", "").Replace(" ", "") + "@example.com")
             .Where(s => s.Length >= 12 && IsValidEmailFormat(s))
             .ToArbitrary();
-        var validPassword = ArbMap.Default.GeneratorFor<string>()
-            .Select(s => (s ?? "") + "12345678")
-            .Where(s => s.Length >= 8)
-            .ToArbitrary();
 
-        return Prop.ForAll(validEmail, validPassword, (email, password) =>
+        return Prop.ForAll(validEmail, email =>
         {
             var request = new RegisterRequest
             {
                 Email = email ?? "user@example.com",
-                Password = password ?? "12345678",
+                Password = "ValidPass1!word",
                 Name = "Test User"
             };
             var validationResult = Validator.Validate(request);
             return validationResult.IsValid
-                .Label("Valid email and password (8+ chars) must pass validation");
+                .Label("Valid email and strong password must pass validation");
         });
     }
 }

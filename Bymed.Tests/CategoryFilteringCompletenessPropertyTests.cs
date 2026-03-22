@@ -57,7 +57,7 @@ public class CategoryFilteringCompletenessPropertyTests
                     return new PagedResult<Product>(filtered, pagination.PageNumber, pagination.PageSize, filtered.Count);
                 });
 
-            var handler = new GetProductsQueryHandler(repo, productImageRepository);
+            var handler = new GetProductsQueryHandler(repo, productImageRepository, TestCatalogCacheHelper.Create());
             var query = new GetProductsQuery(1, 50, categoryId, null, null);
             var result = handler.Handle(query, CancellationToken.None).GetAwaiter().GetResult();
 

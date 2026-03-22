@@ -34,9 +34,12 @@ public class CartItemCountAccuracyPropertyTests
         var itemCountGen = ArbMap.Default.GeneratorFor<int>().Where(n => n >= 1 && n <= 5);
         var isGuestGen = ArbMap.Default.GeneratorFor<bool>();
         var sessionIdGen = ArbMap.Default.GeneratorFor<string>()
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(s => s.Trim())
-            .Where(s => s.Length <= Bymed.Domain.Entities.Cart.SessionIdMaxLength);
+            .Select(s =>
+            {
+                var cleaned = string.Concat((s ?? "").Trim().Where(c => !char.IsControl(c)));
+                return string.IsNullOrEmpty(cleaned) ? $"s-{Guid.NewGuid():N}" : cleaned;
+            })
+            .Where(s => s.Length > 0 && s.Length <= Bymed.Domain.Entities.Cart.SessionIdMaxLength);
 
         var scenarioArb = (from isGuest in isGuestGen
             from userId in nonEmptyGuidGen
@@ -55,6 +58,9 @@ public class CartItemCountAccuracyPropertyTests
                 using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
                 var sp = scope.ServiceProvider;
                 var db = sp.GetRequiredService<ApplicationDbContext>();
+
+                if (!isGuest)
+                    CartTestHelpers.SeedUserAsync(db, userId).GetAwaiter().GetResult();
 
                 var cartRepo = sp.GetRequiredService<ICartRepository>();
                 var productRepo = sp.GetRequiredService<IProductRepository>();

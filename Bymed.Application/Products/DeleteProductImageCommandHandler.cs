@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Files;
 using Bymed.Application.Persistence;
@@ -11,15 +12,18 @@ public sealed class DeleteProductImageCommandHandler : IRequestHandler<DeletePro
     private readonly IProductImageRepository _productImageRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICatalogReadCache _catalogReadCache;
 
     public DeleteProductImageCommandHandler(
         IProductImageRepository productImageRepository,
         IFileStorageService fileStorageService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICatalogReadCache catalogReadCache)
     {
         _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
         _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
 
     public async Task<Result> Handle(DeleteProductImageCommand request, CancellationToken cancellationToken)
@@ -40,6 +44,7 @@ public sealed class DeleteProductImageCommandHandler : IRequestHandler<DeletePro
 
         _productImageRepository.Remove(image);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _catalogReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

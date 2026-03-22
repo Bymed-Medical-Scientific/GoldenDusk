@@ -1,4 +1,5 @@
 using Bymed.Application.Auth;
+using Bymed.Application.Caching;
 using Bymed.Application.Currency;
 using Bymed.Application.Files;
 using Bymed.Application.Notifications;
@@ -8,12 +9,14 @@ using Bymed.Application.Repositories;
 using Bymed.Infrastructure.Currency;
 using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Auth;
+using Bymed.Infrastructure.Caching;
 using Bymed.Infrastructure.Files;
 using Bymed.Infrastructure.Payments;
 using Bymed.Infrastructure.Persistence;
 using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -63,6 +66,11 @@ public static class DependencyInjection
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        if (!services.Any(d => d.ServiceType == typeof(IDistributedCache)))
+            services.AddDistributedMemoryCache();
+
+        services.AddSingleton<ICatalogReadCache, DistributedCatalogReadCache>();
         return services;
     }
 

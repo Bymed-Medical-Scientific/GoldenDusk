@@ -4,7 +4,7 @@ namespace Bymed.Application.Auth;
 
 public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
-    public const int MinimumPasswordLength = 8;
+    public const int MinimumPasswordLength = PasswordPolicy.MinimumLength;
     public const int EmailMaxLength = 256;
     public const int NameMaxLength = 200;
 
@@ -17,7 +17,8 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(MinimumPasswordLength).WithMessage($"Password must be at least {MinimumPasswordLength} characters.");
+            .MinimumLength(MinimumPasswordLength).WithMessage($"Password must be at least {MinimumPasswordLength} characters.")
+            .Must(PasswordPolicy.MeetsComplexity).WithMessage(PasswordPolicy.ComplexityDescription);
 
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")

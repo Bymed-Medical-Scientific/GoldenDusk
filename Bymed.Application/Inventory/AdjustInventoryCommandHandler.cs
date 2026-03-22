@@ -1,3 +1,4 @@
+using Bymed.Application.Caching;
 using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -11,15 +12,18 @@ public sealed class AdjustInventoryCommandHandler : IRequestHandler<AdjustInvent
     private readonly IProductRepository _productRepository;
     private readonly IInventoryLogRepository _inventoryLogRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICatalogReadCache _catalogReadCache;
 
     public AdjustInventoryCommandHandler(
         IProductRepository productRepository,
         IInventoryLogRepository inventoryLogRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICatalogReadCache catalogReadCache)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _inventoryLogRepository = inventoryLogRepository ?? throw new ArgumentNullException(nameof(inventoryLogRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
 
     public async Task<Result<InventoryDto>> Handle(AdjustInventoryCommand request, CancellationToken cancellationToken)
@@ -47,6 +51,7 @@ public sealed class AdjustInventoryCommandHandler : IRequestHandler<AdjustInvent
         _inventoryLogRepository.Add(inventoryLog);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _catalogReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
         return Result<InventoryDto>.Success(new InventoryDto
         {

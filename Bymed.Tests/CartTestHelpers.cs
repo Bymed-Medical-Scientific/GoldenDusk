@@ -1,3 +1,5 @@
+using Bymed.Domain.Entities;
+using Bymed.Domain.Enums;
 using Bymed.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ internal static class CartTestHelpers
         await pragma.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddInfrastructureRepositories();
 
@@ -31,6 +34,18 @@ internal static class CartTestHelpers
         await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
         return scope;
+    }
+
+    /// <summary>
+    /// Seeds a User with the given Id for cart tests that use user (non-guest) carts.
+    /// Required because Cart has FK to User when UserId is set.
+    /// </summary>
+    public static async Task SeedUserAsync(ApplicationDbContext context, Guid userId)
+    {
+        var user = new User(userId, $"test-{userId:N}@test.com", "Test User", UserRole.Customer);
+        user.SetPasswordHash("hashed-password");
+        context.Users.Add(user);
+        await context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public static async Task<Guid> SeedProductAsync(

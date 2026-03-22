@@ -404,6 +404,7 @@ public class OrderProcessingPropertyTests
             orderNumber,
             idempotency,
             userId,
+            sessionId: null,
             "customer@example.com",
             "Customer",
             new Bymed.Domain.ValueObjects.ShippingAddress("Jane Doe", "123 Main St", null, "Harare", "Harare", "00000", "ZW", "263770000000"),

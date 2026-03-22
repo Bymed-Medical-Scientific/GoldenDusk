@@ -68,10 +68,13 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         var orderNumber = GenerateOrderNumber();
         var paymentReference = idempotencyKey;
 
+        var sessionIdForOrder = string.IsNullOrWhiteSpace(req.SessionId) ? null : req.SessionId.Trim();
+
         var order = new Order(
             orderNumber,
             idempotencyKey,
             req.UserId,
+            sessionIdForOrder,
             req.CustomerEmail.Trim(),
             req.CustomerName.Trim(),
             shippingAddress,

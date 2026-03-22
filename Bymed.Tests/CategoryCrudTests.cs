@@ -26,7 +26,7 @@ public class CategoryCrudTests
         repo.GetAllOrderedByDisplayOrderAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { category });
 
-        var handler = new GetCategoriesQueryHandler(repo);
+        var handler = new GetCategoriesQueryHandler(repo, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new GetCategoriesQuery(), CancellationToken.None);
 
         result.Should().NotBeNull();
@@ -42,7 +42,7 @@ public class CategoryCrudTests
         var repo = CreateCategoryRepository();
         repo.GetAllOrderedByDisplayOrderAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<Category>());
 
-        var handler = new GetCategoriesQueryHandler(repo);
+        var handler = new GetCategoriesQueryHandler(repo, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new GetCategoriesQuery(), CancellationToken.None);
 
         result.Should().NotBeNull().And.BeEmpty();
@@ -95,7 +95,7 @@ public class CategoryCrudTests
             Description = "Consumable items",
             DisplayOrder = 2
         };
-        var handler = new CreateCategoryCommandHandler(repo, unitOfWork);
+        var handler = new CreateCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new CreateCategoryCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -122,7 +122,7 @@ public class CategoryCrudTests
             Description = null,
             DisplayOrder = 0
         };
-        var handler = new CreateCategoryCommandHandler(repo, unitOfWork);
+        var handler = new CreateCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new CreateCategoryCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
@@ -149,7 +149,7 @@ public class CategoryCrudTests
             Description = "New desc",
             DisplayOrder = 1
         };
-        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork);
+        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new UpdateCategoryCommand(id, request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -177,7 +177,7 @@ public class CategoryCrudTests
             Description = null,
             DisplayOrder = 0
         };
-        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork);
+        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new UpdateCategoryCommand(id, request), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
@@ -203,7 +203,7 @@ public class CategoryCrudTests
             Description = null,
             DisplayOrder = 0
         };
-        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork);
+        var handler = new UpdateCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new UpdateCategoryCommand(id, request), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
@@ -222,7 +222,7 @@ public class CategoryCrudTests
         var unitOfWork = CreateUnitOfWork();
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
-        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork);
+        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new DeleteCategoryCommand(id), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -240,7 +240,7 @@ public class CategoryCrudTests
         repo.HasProductsAsync(id, Arg.Any<CancellationToken>()).Returns(true);
         var unitOfWork = CreateUnitOfWork();
 
-        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork);
+        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new DeleteCategoryCommand(id), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
@@ -257,7 +257,7 @@ public class CategoryCrudTests
         repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Category?)null);
         var unitOfWork = CreateUnitOfWork();
 
-        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork);
+        var handler = new DeleteCategoryCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new DeleteCategoryCommand(id), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
