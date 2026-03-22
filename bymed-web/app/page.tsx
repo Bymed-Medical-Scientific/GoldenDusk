@@ -1,3 +1,5 @@
+import { PriceExamples } from "@/components/price/price-examples";
+
 export default function Home() {
   return (
     <div className="bg-background text-foreground">
@@ -9,6 +11,7 @@ export default function Home() {
           Storefront foundation with light and dark themes aligned to the ByMed
           brand palette.
         </p>
+        <PriceExamples />
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             type="button"

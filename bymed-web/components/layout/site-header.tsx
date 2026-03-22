@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth/auth-context";
+import { CurrencySelector } from "@/components/currency/currency-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { primaryNavLinks } from "@/lib/site-nav";
 import Link from "next/link";
@@ -132,6 +133,8 @@ export function SiteHeader() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileNavId = useId();
+  const currencySelectHeaderId = useId();
+  const currencySelectDrawerId = useId();
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -246,6 +249,11 @@ export function SiteHeader() {
         </form>
 
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+          <CurrencySelector
+            variant="header"
+            selectId={currencySelectHeaderId}
+            className="hidden md:block"
+          />
           <Link
             href="/cart"
             className="relative rounded-md p-2 text-white hover:bg-white/10"
@@ -359,6 +367,12 @@ export function SiteHeader() {
                   </button>
                 </div>
               </form>
+            </div>
+            <div className="border-b border-border p-3">
+              <CurrencySelector
+                variant="drawer"
+                selectId={currencySelectDrawerId}
+              />
             </div>
             <ul className="flex flex-col gap-0.5 p-3">
               {primaryNavLinks.map(({ href, label }) => {
