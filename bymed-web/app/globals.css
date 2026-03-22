@@ -2,22 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Brand palette: primary blue #0000CC, on-primary #FFFFFF, depth #000000.
+  Dark theme uses a slightly lifted blue for contrast on dark surfaces.
+*/
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a12;
+  --muted: #f4f4f8;
+  --muted-foreground: #52525b;
+  --border: #e4e4eb;
+  --brand-primary: #0000cc;
+  --brand-primary-hover: #0000a8;
+  --brand-on-primary: #ffffff;
+  --ring: #0000cc;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --brand-primary: #5c5cff;
+  --brand-primary-hover: #7a7aff;
+  --brand-on-primary: #ffffff;
+  --ring: #818cf8;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 @layer utilities {
