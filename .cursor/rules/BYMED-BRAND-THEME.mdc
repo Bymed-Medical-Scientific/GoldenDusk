@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+
+# Bymed customer website — brand colors and theme
+
+Use these for all **bymed-web** (Next.js storefront) UI work unless the user specifies otherwise.
+
+## Brand palette (from ByMed Medical & Scientific logo)
+
+- **Primary brand blue:** saturated royal blue, canonical token `#0000CC` (`--brand-primary` in light theme). Use for primary actions, key navigation, and brand emphasis.
+- **On-primary / logo text:** `#FFFFFF`.
+- **Depth / shadow / strong borders:** `#000000` (use sparingly; prefer semantic tokens below).
+
+## Light and dark mode
+
+- The storefront **must** support **light** and **dark** themes for accessibility and user preference.
+- Implement with **`next-themes`** + Tailwind **`darkMode: "class"`** + CSS variables in `bymed-web/app/globals.css`.
+- In **dark** theme, the primary blue may be **slightly lighter or adjusted** than `#0000CC` so contrast on near-black backgrounds meets WCAG for text and controls; keep the same brand character.
+
+## Source of truth in code
+
+Canonical variable definitions live in **`bymed-web/app/globals.css`** (`:root` and `.dark`). Tailwind maps them via **`bymed-web/tailwind.config.ts`**. Do not hardcode one-off hex values in components when a token exists.
