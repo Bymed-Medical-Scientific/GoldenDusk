@@ -1,24 +1,16 @@
+import { redirect } from "next/navigation";
+
 type SearchPageProps = {
-  searchParams: { q?: string };
+  searchParams: Record<string, string | string[] | undefined>;
 };
 
+/**
+ * Header search submits to `/products`; this route keeps old `/search?q=` links working.
+ */
 export default function SearchPage({ searchParams }: SearchPageProps) {
-  const q = searchParams.q?.trim() ?? "";
-
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        Search
-      </h1>
-      {q ? (
-        <p className="mt-2 text-muted-foreground">
-          Results for &quot;{q}&quot; will appear here.
-        </p>
-      ) : (
-        <p className="mt-2 text-muted-foreground">
-          Use the search bar in the header to find products.
-        </p>
-      )}
-    </div>
-  );
+  const raw = typeof searchParams.q === "string" ? searchParams.q.trim() : "";
+  if (!raw) {
+    redirect("/products");
+  }
+  redirect(`/products?q=${encodeURIComponent(raw)}`);
 }

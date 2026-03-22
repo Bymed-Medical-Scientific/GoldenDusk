@@ -221,7 +221,7 @@ export function SiteHeader() {
         </nav>
 
         <form
-          action="/search"
+          action="/products"
           method="get"
           role="search"
           className="mx-auto hidden min-w-0 max-w-md flex-1 md:flex"
@@ -345,7 +345,7 @@ export function SiteHeader() {
             aria-label="Mobile primary"
           >
             <div className="border-b border-border p-3">
-              <form action="/search" method="get" role="search">
+              <form action="/products" method="get" role="search">
                 <label htmlFor="site-search-mobile" className="sr-only">
                   Search products
                 </label>
