@@ -517,8 +517,8 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 20. Set up Next.js customer frontend project
-  - [ ] 20.1 Initialize Next.js project with TypeScript
+- [x] 20. Set up Next.js customer frontend project
+  - [x] 20.1 Initialize Next.js project with TypeScript
     - Create Next.js 14+ project with App Router
     - Configure TypeScript
     - Install and configure Tailwind CSS
