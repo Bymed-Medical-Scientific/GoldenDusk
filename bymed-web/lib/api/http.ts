@@ -1,0 +1,201 @@
+import { getPublicApiBaseUrl } from "@/lib/env";
+import { joinUrl } from "@/lib/url";
+import type { ApiValidationIssue } from "@/types/api-common";
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: unknown;
+  readonly validationIssues?: ApiValidationIssue[];
+
+  constructor(
+    status: number,
+    message: string,
+    body?: unknown,
+    validationIssues?: ApiValidationIssue[],
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.body = body;
+    this.validationIssues = validationIssues;
+  }
+}
+
+let accessTokenGetter: () => string | null | Promise<string | null> = () => null;
+
+export function setBymedAccessTokenGetter(
+  getter: () => string | null | Promise<string | null>,
+): void {
+  accessTokenGetter = getter;
+}
+
+async function resolveAccessToken(): Promise<string | null> {
+  try {
+    const t = await accessTokenGetter();
+    return t?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function backoffMs(attempt: number): number {
+  return Math.min(1000 * 2 ** attempt, 8000);
+}
+
+function isLikelyNetworkError(e: unknown): boolean {
+  return e instanceof TypeError;
+}
+
+function extractValidationIssues(body: unknown): ApiValidationIssue[] | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const raw = (body as { errors?: unknown }).errors;
+  if (!Array.isArray(raw)) return undefined;
+  const out: ApiValidationIssue[] = [];
+  for (const item of raw) {
+    if (
+      item &&
+      typeof item === "object" &&
+      "propertyName" in item &&
+      "errorMessage" in item &&
+      typeof (item as ApiValidationIssue).propertyName === "string" &&
+      typeof (item as ApiValidationIssue).errorMessage === "string"
+    ) {
+      out.push({
+        propertyName: (item as ApiValidationIssue).propertyName,
+        errorMessage: (item as ApiValidationIssue).errorMessage,
+      });
+    }
+  }
+  return out.length ? out : undefined;
+}
+
+async function throwApiError(res: Response): Promise<never> {
+  let body: unknown;
+  const ct = res.headers.get("content-type") ?? "";
+  try {
+    if (ct.includes("application/json")) {
+      body = await res.json();
+    } else {
+      const text = await res.text();
+      body = text || undefined;
+    }
+  } catch {
+    body = undefined;
+  }
+
+  let message = res.statusText || `HTTP ${res.status}`;
+  if (body && typeof body === "object" && "error" in body) {
+    const err = (body as { error: unknown }).error;
+    if (typeof err === "string" && err.trim()) message = err;
+  } else if (typeof body === "string" && body.trim()) {
+    message = body;
+  }
+
+  throw new ApiError(
+    res.status,
+    message,
+    body,
+    extractValidationIssues(body),
+  );
+}
+
+export type ApiFetchOptions = {
+  /** When false, disables retry (default: true for GET/HEAD/OPTIONS). */
+  retry?: boolean;
+  /** Max retries after the first attempt (default 3) for idempotent requests. */
+  maxRetries?: number;
+  /** Omit Authorization header (e.g. login). */
+  skipAuth?: boolean;
+};
+
+export async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+  options: ApiFetchOptions = {},
+): Promise<Response> {
+  const base = getPublicApiBaseUrl();
+  if (!base) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not set. Add it to .env.local (see .env.example).",
+    );
+  }
+
+  const url = joinUrl(base, path);
+  const method = (init.method ?? "GET").toUpperCase();
+  const idempotent = ["GET", "HEAD", "OPTIONS"].includes(method);
+  const allowRetry = options.retry !== false && idempotent;
+  const maxRetries = options.maxRetries ?? 3;
+  const maxAttempts = allowRetry ? maxRetries + 1 : 1;
+
+  const headers = new Headers(init.headers);
+  if (!options.skipAuth) {
+    const token = await resolveAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+  }
+  if (
+    init.body != null &&
+    !(init.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  let lastNetworkError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const res = await fetch(url, {
+        ...init,
+        headers,
+        credentials: "include",
+      });
+
+      if (
+        allowRetry &&
+        attempt < maxAttempts - 1 &&
+        (res.status === 502 || res.status === 503 || res.status === 504)
+      ) {
+        await sleep(backoffMs(attempt));
+        continue;
+      }
+
+      return res;
+    } catch (e) {
+      lastNetworkError = e;
+      if (allowRetry && attempt < maxAttempts - 1 && isLikelyNetworkError(e)) {
+        await sleep(backoffMs(attempt));
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  throw lastNetworkError;
+}
+
+export async function parseJsonResponse<T>(res: Response): Promise<T> {
+  if (res.status === 204 || res.status === 205) {
+    return undefined as T;
+  }
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
+}
+
+export async function readJson<T>(
+  res: Response,
+  okStatuses: number[] = [200, 201],
+): Promise<T> {
+  if (!okStatuses.includes(res.status) && res.status !== 204) {
+    await throwApiError(res);
+  }
+  return parseJsonResponse<T>(res);
+}
+
+export async function readTextResponse(res: Response): Promise<string> {
+  if (!res.ok) await throwApiError(res);
+  return res.text();
+}

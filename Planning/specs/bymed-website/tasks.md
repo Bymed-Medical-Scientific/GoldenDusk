@@ -525,9 +525,9 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Set up project structure (app, components, lib, types)
     - _Requirements: 5.5, 11.1_
   
-  - [ ] 20.2 Create API client and types
-    - Create TypeScript interfaces for all DTOs (Product, Category, Cart, Order, User)
-    - Implement API client functions for all backend endpoints
+  - [x] 20.2 Create API client and types
+    - Create TypeScript interfaces for all public API DTOs and requests (auth, products, categories, cart, orders, users, CMS content, contact, currency, inventory, payments, shared pagination)
+    - Implement API client functions for all customer-relevant backend endpoints (admin and health included where applicable; PayNow webhook remains server-only)
     - Add error handling and retry logic
     - Configure base URL and authentication headers
     - _Requirements: All requirements (frontend foundation)_
