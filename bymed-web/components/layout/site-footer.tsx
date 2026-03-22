@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  siteFooterContact,
+  siteFooterMailtoHref,
+  siteFooterTelHref,
+} from "@/lib/site-contact";
 import { footerQuickLinks } from "@/lib/site-nav";
 
 const year = new Date().getFullYear();
@@ -43,21 +48,21 @@ export function SiteFooter() {
             <ul className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground">
               <li>
                 <a
-                  href="mailto:support@bymed.example"
+                  href={siteFooterMailtoHref}
                   className="transition-colors hover:text-foreground"
                 >
-                  support@bymed.example
+                  {siteFooterContact.email}
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:+263000000000"
+                  href={siteFooterTelHref}
                   className="transition-colors hover:text-foreground"
                 >
-                  +263 00 000 0000
+                  {siteFooterContact.phoneDisplay}
                 </a>
               </li>
-              <li>Mon–Fri, 8:00–17:00 (CAT)</li>
+              <li>{siteFooterContact.hoursLine}</li>
             </ul>
           </div>
         </div>
