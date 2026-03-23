@@ -598,7 +598,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Update count when items added/removed
     - _Requirements: 2.2_
   
-  - [ ]* 23.3 Write unit tests for cart functionality
+  - [x]* 23.3 Write unit tests for cart functionality
     - Test cart total calculation
     - Test quantity updates
     - Test item removal
