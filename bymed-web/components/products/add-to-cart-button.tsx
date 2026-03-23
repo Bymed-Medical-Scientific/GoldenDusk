@@ -1,21 +1,30 @@
 "use client";
 
-import { addCartItem } from "@/lib/api/cart";
+import { useCart } from "@/components/cart/cart-context";
 import { ApiError } from "@/lib/api/http";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 type AddToCartButtonProps = {
   productId: string;
+  productName: string;
+  productPrice: number;
+  productCurrency: string;
+  productImageUrl?: string | null;
   disabled: boolean;
   maxQuantity: number;
 };
 
 export function AddToCartButton({
   productId,
+  productName,
+  productPrice,
+  productCurrency,
+  productImageUrl,
   disabled,
   maxQuantity,
 }: AddToCartButtonProps) {
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +39,17 @@ export function AddToCartButton({
     setSuccess(false);
     try {
       const qty = Math.min(Math.max(1, quantity), cap);
-      await addCartItem({ productId, quantity: qty });
+      await addItem(
+        {
+          productId,
+          name: productName,
+          imageUrl: productImageUrl ?? null,
+          currency: productCurrency,
+          isAvailable: true,
+        },
+        qty,
+        productPrice,
+      );
       setSuccess(true);
     } catch (e) {
       const msg =
@@ -41,7 +60,18 @@ export function AddToCartButton({
     } finally {
       setLoading(false);
     }
-  }, [cap, disabled, loading, productId, quantity]);
+  }, [
+    addItem,
+    cap,
+    disabled,
+    loading,
+    productCurrency,
+    productId,
+    productImageUrl,
+    productName,
+    productPrice,
+    quantity,
+  ]);
 
   if (disabled) {
     return (
