@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth/auth-context";
+import { useCart } from "@/components/cart/cart-context";
 import { CurrencySelector } from "@/components/currency/currency-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { primaryNavLinks } from "@/lib/site-nav";
@@ -129,6 +130,7 @@ function IconChevronDown({ className }: { className?: string }) {
 export function SiteHeader() {
   const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
+  const { totalItems } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -260,6 +262,11 @@ export function SiteHeader() {
             aria-label="Shopping cart"
           >
             <IconCart />
+            {totalItems > 0 ? (
+              <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-semibold leading-none text-brand">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            ) : null}
           </Link>
 
           <div className="relative" ref={menuRef}>

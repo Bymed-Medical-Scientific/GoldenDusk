@@ -90,6 +90,10 @@ export function ProductDetail({
           <div className="mt-8 border-t border-border pt-8">
             <AddToCartButton
               productId={product.id}
+              productName={product.name}
+              productPrice={product.price}
+              productCurrency={product.currency}
+              productImageUrl={product.primaryImageUrl}
               disabled={!inStock}
               maxQuantity={product.inventoryCount}
             />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-context";
+import { CartProvider } from "@/components/cart/cart-context";
 import { CurrencyProvider } from "@/components/currency/currency-context";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -40,22 +41,24 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <CurrencyProvider>
-              <a href="#main-content" className="skip-to-main">
-                Skip to main content
-              </a>
-              <div className="flex min-h-screen flex-col">
-                <SiteHeader />
-                <main
-                  id="main-content"
-                  tabIndex={-1}
-                  className="flex flex-1 flex-col outline-none"
-                >
-                  {children}
-                </main>
-                <SiteFooter />
-              </div>
-            </CurrencyProvider>
+            <CartProvider>
+              <CurrencyProvider>
+                <a href="#main-content" className="skip-to-main">
+                  Skip to main content
+                </a>
+                <div className="flex min-h-screen flex-col">
+                  <SiteHeader />
+                  <main
+                    id="main-content"
+                    tabIndex={-1}
+                    className="flex flex-1 flex-col outline-none"
+                  >
+                    {children}
+                  </main>
+                  <SiteFooter />
+                </div>
+              </CurrencyProvider>
+            </CartProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
