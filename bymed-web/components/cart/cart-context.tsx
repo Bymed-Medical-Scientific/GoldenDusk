@@ -167,6 +167,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isAuthenticated) return;
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== GUEST_CART_STORAGE_KEY) return;
+      setItems(readGuestCart());
+      setError(null);
+    };
+
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [isAuthenticated]);
+
   const addItem = useCallback<CartContextValue["addItem"]>(
     async (product, quantity, unitPrice) => {
       const safeQty = Math.max(1, Math.floor(quantity));
