@@ -1,6 +1,6 @@
 export function EmptyState({ message }: { message: string }) {
   return (
-    <p className="text-center text-neutral-600" role="status">
+    <p className="text-center text-muted-foreground" role="status">
       {message}
     </p>
   );
