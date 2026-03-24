@@ -12,7 +12,8 @@ import { ApiError } from "@/lib/api/http";
 import type { CartDto } from "@/types/cart";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-const GUEST_CART_STORAGE_KEY = "bymed_guest_cart_v1";
+/** Used by guest cart and checkout (clear after order). */
+export const GUEST_CART_STORAGE_KEY = "bymed_guest_cart_v1";
 
 export type CartProductSnapshot = {
   productId: string;
@@ -95,7 +96,7 @@ function calculateTotals(items: CartViewItem[]): { totalItems: number; total: nu
 }
 
 async function enrichProducts(items: CartViewItem[]): Promise<CartViewItem[]> {
-  const uniqueIds = [...new Set(items.map((i) => i.productId))];
+  const uniqueIds = Array.from(new Set(items.map((i) => i.productId)));
   const products = await Promise.all(
     uniqueIds.map(async (id) => {
       try {
