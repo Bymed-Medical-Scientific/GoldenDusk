@@ -607,7 +607,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
 
 
 - [x] 24. Implement checkout flow
-  - [ ] 24.1 Create checkout page with multi-step form
+  - [x] 24.1 Create checkout page with multi-step form
     - Implement shipping address form with validation
     - Implement contact information form
     - Implement payment details form (PayNow integration)
@@ -615,7 +615,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add form validation with error messages
     - _Requirements: 3.1, 3.2_
   
-  - [ ] 24.2 Implement payment processing
+  - [x] 24.2 Implement payment processing
     - Integrate with PayNow payment gateway
     - Handle payment success and failure
     - Display loading states during payment

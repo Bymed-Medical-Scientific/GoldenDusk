@@ -10,7 +10,7 @@ import { FormattedPrice } from "@/components/price/formatted-price";
 import { clearCart } from "@/lib/api/cart";
 import { ApiError } from "@/lib/api/http";
 import { createOrder } from "@/lib/api/orders";
-import { initiatePaymentForOrder } from "@/lib/api/payments";
+import { confirmPaymentForOrder, initiatePaymentForOrder } from "@/lib/api/payments";
 import { syncGuestCartToServer } from "@/lib/checkout/sync-guest-cart";
 import {
   validateContact,
@@ -18,12 +18,21 @@ import {
   type ContactFormState,
   type ShippingFormState,
 } from "@/lib/checkout/validate-checkout";
+import { PaymentStatus } from "@/types/enums";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const FALLBACK_CURRENCY = "USD";
 const PAYMENT_METHOD_PAYNOW = "PayNow";
 const STEPS = ["Shipping", "Contact", "Payment", "Review"] as const;
+const MAX_CONFIRM_ATTEMPTS = 3;
+const CONFIRM_RETRY_MS = 1200;
+
+type PaymentUiState = "idle" | "initiating" | "confirming" | "success" | "failed";
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -66,6 +75,9 @@ export function CheckoutPageContent() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentState, setPaymentState] = useState<PaymentUiState>("idle");
+  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -81,6 +93,56 @@ export function CheckoutPageContent() {
   );
 
   const canCheckout = items.length > 0 && totalItems > 0;
+
+  const confirmPaymentWithRetry = useCallback(async (orderId: string): Promise<void> => {
+    setPaymentState("confirming");
+    setPaymentMessage("Confirming payment status...");
+
+    for (let attempt = 1; attempt <= MAX_CONFIRM_ATTEMPTS; attempt++) {
+      try {
+        const result = await confirmPaymentForOrder(orderId);
+        if (result.success && result.status === PaymentStatus.Completed) {
+          setPaymentState("success");
+          setPaymentMessage("Payment confirmed successfully.");
+          return;
+        }
+
+        if (result.status === PaymentStatus.Pending && attempt < MAX_CONFIRM_ATTEMPTS) {
+          await sleep(CONFIRM_RETRY_MS * attempt);
+          continue;
+        }
+
+        setPaymentState("failed");
+        setPaymentMessage(
+          result.errorMessage?.trim() ||
+            "Payment was not completed. You can retry payment from this page.",
+        );
+        return;
+      } catch (error) {
+        if (attempt < MAX_CONFIRM_ATTEMPTS) {
+          await sleep(CONFIRM_RETRY_MS * attempt);
+          continue;
+        }
+        setPaymentState("failed");
+        if (error instanceof ApiError) {
+          setPaymentMessage(error.message);
+        } else if (error instanceof Error) {
+          setPaymentMessage(error.message);
+        } else {
+          setPaymentMessage("Failed to confirm payment status.");
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("orderId");
+    const paymentReturned = params.get("payment") === "returned";
+    if (!orderId || !paymentReturned) return;
+    void confirmPaymentWithRetry(orderId);
+  }, [confirmPaymentWithRetry]);
 
   function clearFieldError(key: string) {
     setFieldErrors((prev) => {
@@ -113,6 +175,8 @@ export function CheckoutPageContent() {
   async function placeOrder() {
     setSubmitError(null);
     setIsSubmitting(true);
+    setPaymentState("idle");
+    setPaymentMessage(null);
     try {
       if (!canCheckout) {
         setSubmitError("Your cart is empty.");
@@ -158,13 +222,17 @@ export function CheckoutPageContent() {
         window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
       }
       await refresh();
+      setLastOrderId(order.id);
 
+      setPaymentState("initiating");
+      setPaymentMessage("Starting secure PayNow checkout...");
       const payment = await initiatePaymentForOrder(order.id);
       if (payment.success && payment.redirectUrl) {
         window.location.assign(payment.redirectUrl);
         return;
       }
 
+      setPaymentState("failed");
       setSubmitError(
         payment.errorMessage?.trim() ||
           "Payment could not be started. Your order was created; you can retry payment from your account or contact support.",
@@ -181,8 +249,37 @@ export function CheckoutPageContent() {
       } else {
         setSubmitError("Checkout failed. Please try again.");
       }
+      setPaymentState("failed");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function retryPayment(): Promise<void> {
+    if (!lastOrderId) return;
+    setSubmitError(null);
+    setPaymentState("initiating");
+    setPaymentMessage("Retrying PayNow checkout...");
+    try {
+      const payment = await initiatePaymentForOrder(lastOrderId);
+      if (payment.success && payment.redirectUrl) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
+
+      setPaymentState("failed");
+      setPaymentMessage(
+        payment.errorMessage?.trim() || "Retry failed. Please try again in a moment.",
+      );
+    } catch (error) {
+      setPaymentState("failed");
+      if (error instanceof ApiError) {
+        setPaymentMessage(error.message);
+      } else if (error instanceof Error) {
+        setPaymentMessage(error.message);
+      } else {
+        setPaymentMessage("Retry failed.");
+      }
     }
   }
 
@@ -243,6 +340,20 @@ export function CheckoutPageContent() {
             className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
           >
             {submitError}
+          </p>
+        ) : null}
+        {paymentMessage ? (
+          <p
+            role="status"
+            className={
+              paymentState === "success"
+                ? "mb-4 rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-300"
+                : paymentState === "failed"
+                  ? "mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
+                  : "mb-4 rounded-md border border-brand/30 bg-brand/5 px-3 py-2 text-sm text-foreground"
+            }
+          >
+            {paymentMessage}
           </p>
         ) : null}
 
@@ -516,12 +627,24 @@ export function CheckoutPageContent() {
             <button
               type="button"
               onClick={() => void placeOrder()}
-              disabled={isSubmitting}
+              disabled={isSubmitting || paymentState === "confirming"}
               className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover disabled:opacity-50"
             >
-              {isSubmitting ? "Processing…" : "Place order and pay"}
+              {isSubmitting || paymentState === "initiating" || paymentState === "confirming"
+                ? "Processing…"
+                : "Place order and pay"}
             </button>
           )}
+          {paymentState === "failed" && lastOrderId ? (
+            <button
+              type="button"
+              onClick={() => void retryPayment()}
+              disabled={isSubmitting}
+              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
+            >
+              Retry payment
+            </button>
+          ) : null}
         </div>
       </div>
 
