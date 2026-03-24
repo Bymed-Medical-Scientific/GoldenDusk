@@ -20,6 +20,7 @@ import {
 } from "@/lib/checkout/validate-checkout";
 import { PaymentStatus } from "@/types/enums";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const FALLBACK_CURRENCY = "USD";
@@ -53,6 +54,7 @@ function inputClass(hasError: boolean): string {
 }
 
 export function CheckoutPageContent() {
+  const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { items, totalItems, total, isLoading: cartLoading, error: cartError, refresh } = useCart();
 
@@ -104,6 +106,7 @@ export function CheckoutPageContent() {
         if (result.success && result.status === PaymentStatus.Completed) {
           setPaymentState("success");
           setPaymentMessage("Payment confirmed successfully.");
+          router.replace(`/checkout/confirmation?orderId=${encodeURIComponent(orderId)}`);
           return;
         }
 
@@ -133,7 +136,7 @@ export function CheckoutPageContent() {
         }
       }
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -16,6 +16,12 @@ export default function AccountPage() {
       <p className="mt-1 text-sm text-muted-foreground">{user?.name}</p>
 
       <div className="mt-8 flex flex-wrap gap-3">
+        <Link
+          href="/account/orders"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+        >
+          Order history
+        </Link>
         <button
           type="button"
           onClick={() => void logout()}
