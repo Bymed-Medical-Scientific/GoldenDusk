@@ -1,11 +1,46 @@
-import { AddToCartButton } from "@/components/products/add-to-cart-button";
-import { ProductImageGallery } from "@/components/products/product-image-gallery";
 import type { ProductCardProduct } from "@/components/products/product-card";
-import { ProductGrid } from "@/components/products/product-grid";
 import { FormattedPrice } from "@/components/price/formatted-price";
 import type { GalleryImage } from "@/lib/catalog/product-gallery-images";
 import type { ProductDto } from "@/types/product";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const AddToCartButton = dynamic(
+  () =>
+    import("@/components/products/add-to-cart-button").then(
+      (mod) => mod.AddToCartButton,
+    ),
+  {
+    loading: () => (
+      <div className="h-11 w-full max-w-xs animate-pulse rounded-lg bg-muted" />
+    ),
+  },
+);
+
+const ProductImageGallery = dynamic(
+  () =>
+    import("@/components/products/product-image-gallery").then(
+      (mod) => mod.ProductImageGallery,
+    ),
+  {
+    loading: () => (
+      <div className="aspect-square w-full animate-pulse rounded-xl bg-muted" />
+    ),
+  },
+);
+
+const ProductGrid = dynamic(
+  () =>
+    import("@/components/products/product-grid").then((mod) => mod.ProductGrid),
+  {
+    loading: () => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="aspect-square animate-pulse rounded-xl bg-muted" />
+        <div className="aspect-square animate-pulse rounded-xl bg-muted" />
+      </div>
+    ),
+  },
+);
 
 type ProductDetailProps = {
   product: ProductDto;

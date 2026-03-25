@@ -1,6 +1,8 @@
 "use client";
 
 import type { GalleryImage } from "@/lib/catalog/product-gallery-images";
+import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
+import Image from "next/image";
 import { useId, useState } from "react";
 
 type ProductImageGalleryProps = {
@@ -31,15 +33,16 @@ export function ProductImageGallery({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
-        {/* eslint-disable-next-line @next/next/no-img-element -- remote catalog URLs vary by deployment */}
-        <img
+      <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
+        <Image
           src={main.url}
           alt={main.alt}
           className="aspect-square w-full object-cover"
           width={960}
           height={960}
           sizes="(max-width: 1024px) 100vw, 50vw"
+          placeholder="blur"
+          blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
           fetchPriority="high"
         />
       </div>
@@ -66,13 +69,15 @@ export function ProductImageGallery({
                         : "border-transparent opacity-80 hover:opacity-100"
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={img.url}
                       alt={img.alt}
                       className="h-16 w-16 object-cover sm:h-20 sm:w-20"
                       width={80}
                       height={80}
+                      loading="lazy"
+                      placeholder="blur"
+                      blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
                     />
                   </button>
                 </li>
