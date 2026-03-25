@@ -120,6 +120,10 @@ export default function LoginPage() {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
+        <Link href="/reset-password" className="text-brand hover:underline">
+          Forgot password?
+        </Link>
+        <span className="mx-2 text-muted-foreground">|</span>
         <Link href="/register" className="text-brand hover:underline">
           Create an account
         </Link>
