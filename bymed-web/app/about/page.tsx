@@ -63,13 +63,14 @@ function withFallback(values: string[], fallback: string[]): string[] {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const fallbackTitle = "About | ByMed Medical & Scientific";
+  const fallbackTitle = "About | Bymed Medical & Scientific";
   const fallbackDescription =
-    "Learn about ByMed, our mission, and the medical and scientific services we provide.";
+    "Learn about Bymed Medical & Scientific, our mission, and the medical and scientific services we provide.";
 
   try {
     const page = await getAboutPageContent();
-    const title = page.metadata.metaTitle?.trim() || `${page.title} | ByMed`;
+    const title =
+      page.metadata.metaTitle?.trim() || `${page.title} | Bymed Medical & Scientific`;
     const description = page.metadata.metaDescription?.trim() || fallbackDescription;
     const canonical = absoluteUrl("/about");
     const ogImage = page.metadata.ogImage?.trim() || undefined;

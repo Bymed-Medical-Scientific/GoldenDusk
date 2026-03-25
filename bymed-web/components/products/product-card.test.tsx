@@ -65,9 +65,9 @@ describe("ProductCard", () => {
     ).toBeInTheDocument();
 
     const img = screen.getByRole("img", { name: "Centrifuge on bench" });
-    expect(img).toHaveAttribute(
-      "src",
-      "https://cdn.example.com/products/centrifuge.jpg",
+    expect(img).toHaveAttribute("src");
+    expect(img.getAttribute("src")).toContain(
+      encodeURIComponent("https://cdn.example.com/products/centrifuge.jpg"),
     );
 
     expect(screen.getByTestId("product-card-price")).toHaveTextContent(

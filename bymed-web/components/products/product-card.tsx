@@ -1,6 +1,8 @@
 "use client";
 
 import { FormattedPrice } from "@/components/price/formatted-price";
+import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
+import Image from "next/image";
 import Link from "next/link";
 
 export type ProductCardProduct = {
@@ -31,13 +33,15 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-describedby={`${product.id}-meta`}
       >
         {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- remote catalog URLs vary by deployment
-          <img
+          <Image
             src={product.imageUrl}
             alt={product.imageAlt}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 33vw, 25vw"
+            placeholder="blur"
+            blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
             loading="lazy"
-            decoding="async"
           />
         ) : (
           <div

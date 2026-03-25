@@ -1,4 +1,24 @@
 import { CartPageContent } from "@/components/cart/cart-page-content";
+import { absoluteUrl } from "@/lib/site-url";
+import type { Metadata } from "next";
+
+const title = "Shopping cart";
+const description =
+  "Review items in your cart and continue to checkout on Bymed Medical & Scientific.";
+const canonical = absoluteUrl("/cart");
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: canonical ? { canonical } : undefined,
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: `${title} | Bymed Medical & Scientific`,
+    description,
+    type: "website",
+    url: canonical,
+  },
+};
 
 export default function CartPage() {
   return (

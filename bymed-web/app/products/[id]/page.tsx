@@ -21,7 +21,7 @@ export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
   if (!UUID_RE.test(params.id)) {
-    return { title: "Product | ByMed" };
+    return { title: "Product | Bymed Medical & Scientific" };
   }
   try {
     const product = await getProductById(params.id);
@@ -35,7 +35,7 @@ export async function generateMetadata({
     const canonical = absoluteUrl(`/products/${product.id}`);
 
     return {
-      title: `${product.name} | ByMed`,
+      title: `${product.name} | Bymed Medical & Scientific`,
       description,
       alternates: canonical ? { canonical } : undefined,
       openGraph: {
@@ -47,7 +47,7 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: "Product | ByMed" };
+    return { title: "Product | Bymed Medical & Scientific" };
   }
 }
 

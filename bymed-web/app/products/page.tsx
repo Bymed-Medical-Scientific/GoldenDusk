@@ -10,6 +10,7 @@ import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url"
 import { listCategories } from "@/lib/api/categories";
 import { listProducts } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/http";
+import { absoluteUrl } from "@/lib/site-url";
 import type { CategoryDto } from "@/types/category";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -24,15 +25,19 @@ export async function generateMetadata({
 }: ProductsPageProps): Promise<Metadata> {
   const { q } = parseCatalogQuery(searchParams);
   const title = q
-    ? `Products — “${q}” | ByMed`
-    : "Products | ByMed Medical & Scientific";
+    ? `Products — “${q}” | Bymed Medical & Scientific`
+    : "Products | Bymed Medical & Scientific";
   const description = q
-    ? `Browse products matching “${q}” at ByMed.`
-    : "Browse medical and scientific equipment and supplies at ByMed.";
+    ? `Browse products matching “${q}” at Bymed Medical & Scientific.`
+    : "Browse medical and scientific equipment and supplies at Bymed Medical & Scientific.";
+  const canonical = absoluteUrl(
+    q ? `/products?q=${encodeURIComponent(q)}` : "/products",
+  );
   return {
     title,
     description,
-    openGraph: { title, description },
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: { title, description, type: "website", url: canonical },
   };
 }
 

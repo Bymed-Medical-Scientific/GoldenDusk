@@ -1,4 +1,23 @@
 import { PriceExamples } from "@/components/price/price-examples";
+import { absoluteUrl } from "@/lib/site-url";
+import type { Metadata } from "next";
+
+const title = "Medical and scientific equipment";
+const description =
+  "Shop reliable medical and scientific equipment, consumables, and supplies from Bymed Medical & Scientific.";
+const canonical = absoluteUrl("/");
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: canonical ? { canonical } : undefined,
+  openGraph: {
+    title: `${title} | Bymed Medical & Scientific`,
+    description,
+    type: "website",
+    url: canonical,
+  },
+};
 
 export default function Home() {
   return (

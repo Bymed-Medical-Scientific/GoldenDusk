@@ -1,4 +1,11 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Search redirect",
+  description: "Redirecting your search to the products catalog.",
+  robots: { index: false, follow: false },
+};
 
 type SearchPageProps = {
   searchParams: Record<string, string | string[] | undefined>;
