@@ -1,17 +1,13 @@
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
-import { ProtectedRoute } from "@/components/auth/protected-route";
 
-const title = "My account";
+const title = "Reset password";
 const description =
-  "Manage your Bymed Medical & Scientific profile, saved addresses, and order history.";
-const canonical = absoluteUrl("/account");
+  "Request a secure password reset link for your Bymed Medical & Scientific account.";
+const canonical = absoluteUrl("/reset-password");
 
 export const metadata: Metadata = {
-  title: {
-    default: title,
-    template: "%s | Bymed Medical & Scientific",
-  },
+  title,
   description,
   alternates: canonical ? { canonical } : undefined,
   robots: { index: false, follow: false },
@@ -23,10 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AccountLayout({
+export default function ResetPasswordLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>;
+  return children;
 }

@@ -6,6 +6,7 @@ import { CurrencyProvider } from "@/components/currency/currency-context";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { getSiteBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -18,10 +19,27 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+const siteBaseUrl = getSiteBaseUrl();
 
 export const metadata: Metadata = {
-  title: "Bymed",
-  description: "Medical and scientific equipment",
+  metadataBase: siteBaseUrl ? new URL(siteBaseUrl) : undefined,
+  title: {
+    default: "Bymed Medical & Scientific",
+    template: "%s | Bymed Medical & Scientific",
+  },
+  description:
+    "Bymed Medical & Scientific supplies reliable medical and scientific equipment, consumables, and support services.",
+  openGraph: {
+    title: "Bymed Medical & Scientific",
+    description:
+      "Bymed Medical & Scientific supplies reliable medical and scientific equipment, consumables, and support services.",
+    type: "website",
+    siteName: "Bymed Medical & Scientific",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

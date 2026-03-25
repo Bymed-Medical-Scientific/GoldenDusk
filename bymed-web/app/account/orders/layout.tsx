@@ -1,17 +1,13 @@
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
-import { ProtectedRoute } from "@/components/auth/protected-route";
 
-const title = "My account";
+const title = "Order history";
 const description =
-  "Manage your Bymed Medical & Scientific profile, saved addresses, and order history.";
-const canonical = absoluteUrl("/account");
+  "Review your recent orders, statuses, and totals on Bymed Medical & Scientific.";
+const canonical = absoluteUrl("/account/orders");
 
 export const metadata: Metadata = {
-  title: {
-    default: title,
-    template: "%s | Bymed Medical & Scientific",
-  },
+  title,
   description,
   alternates: canonical ? { canonical } : undefined,
   robots: { index: false, follow: false },
@@ -23,10 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AccountLayout({
+export default function AccountOrdersLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>;
+  return children;
 }

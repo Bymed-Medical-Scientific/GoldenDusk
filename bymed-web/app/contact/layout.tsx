@@ -1,16 +1,15 @@
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
-const title = "Sign in";
+const title = "Contact us";
 const description =
-  "Sign in to your Bymed Medical & Scientific account to view orders and manage your profile.";
-const canonical = absoluteUrl("/login");
+  "Get in touch with Bymed Medical & Scientific for product questions, support, and procurement assistance.";
+const canonical = absoluteUrl("/contact");
 
 export const metadata: Metadata = {
   title,
   description,
   alternates: canonical ? { canonical } : undefined,
-  robots: { index: false, follow: false },
   openGraph: {
     title: `${title} | Bymed Medical & Scientific`,
     description,
@@ -19,12 +18,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-dynamic";
-
-export default function LoginLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ContactLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

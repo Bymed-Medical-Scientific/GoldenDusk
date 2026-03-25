@@ -1,10 +1,10 @@
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
-const title = "Sign in";
+const title = "Create account";
 const description =
-  "Sign in to your Bymed Medical & Scientific account to view orders and manage your profile.";
-const canonical = absoluteUrl("/login");
+  "Create a Bymed Medical & Scientific account to track orders, manage addresses, and speed up checkout.";
+const canonical = absoluteUrl("/register");
 
 export const metadata: Metadata = {
   title,
@@ -19,12 +19,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-dynamic";
-
-export default function LoginLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RegisterLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

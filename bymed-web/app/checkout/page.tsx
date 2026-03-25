@@ -1,9 +1,22 @@
 import { CheckoutPageContent } from "@/components/checkout/checkout-page-content";
+import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
+const title = "Checkout";
+const description = "Complete shipping, contact details, and payment for your order.";
+const canonical = absoluteUrl("/checkout");
+
 export const metadata: Metadata = {
-  title: "Checkout",
-  description: "Shipping, contact, and payment",
+  title,
+  description,
+  alternates: canonical ? { canonical } : undefined,
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: `${title} | Bymed Medical & Scientific`,
+    description,
+    type: "website",
+    url: canonical,
+  },
 };
 
 export default function CheckoutPage() {
