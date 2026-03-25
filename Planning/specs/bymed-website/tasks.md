@@ -642,7 +642,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Display validation errors
     - _Requirements: 4.1, 4.2, 4.3_
   
-  - [ ] 25.2 Create user profile page
+  - [x] 25.2 Create user profile page
     - Display user information
     - Implement profile edit form
     - Add saved addresses management
