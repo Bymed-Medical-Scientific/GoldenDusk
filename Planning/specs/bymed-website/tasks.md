@@ -628,28 +628,28 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add link to order history
     - _Requirements: 3.4, 3.6_
   
-  - [ ]* 24.4 Write unit tests for checkout validation
+  - [x]* 24.4 Write unit tests for checkout validation
     - Test form validation
     - Test required field checks
     - Test payment error handling
     - _Requirements: 3.2_
 
-- [ ] 25. Implement user account pages
-  - [ ] 25.1 Create registration and login pages
+- [x] 25. Implement user account pages
+  - [x] 25.1 Create registration and login pages
     - Implement registration form with validation
     - Implement login form
     - Add password strength indicator
     - Display validation errors
     - _Requirements: 4.1, 4.2, 4.3_
   
-  - [ ] 25.2 Create user profile page
+  - [x] 25.2 Create user profile page
     - Display user information
     - Implement profile edit form
     - Add saved addresses management
     - Implement password change form
     - _Requirements: 4.4, 4.5, 4.6_
   
-  - [ ] 25.3 Create order history page
+  - [x] 25.3 Create order history page
     - Display list of user's orders
     - Show order status and details
     - Add order detail view
