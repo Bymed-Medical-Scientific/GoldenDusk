@@ -8,6 +8,8 @@ import type {
 import { apiFetch, readJson } from "./http";
 import { apiPath } from "./routes";
 
+const PRODUCT_REVALIDATE_SECONDS = 120;
+
 export type ListProductsParams = {
   pageNumber?: number;
   pageSize?: number;
@@ -30,12 +32,27 @@ export async function listProducts(
   const res = await apiFetch(
     apiPath(`/Products${qs ? `?${qs}` : ""}`),
     { method: "GET" },
+    {
+      next: {
+        revalidate: PRODUCT_REVALIDATE_SECONDS,
+        tags: ["products"],
+      },
+    },
   );
   return readJson<PagedResult<ProductDto>>(res);
 }
 
 export async function getProductById(id: string): Promise<ProductDto> {
-  const res = await apiFetch(apiPath(`/Products/${id}`), { method: "GET" });
+  const res = await apiFetch(
+    apiPath(`/Products/${id}`),
+    { method: "GET" },
+    {
+      next: {
+        revalidate: PRODUCT_REVALIDATE_SECONDS,
+        tags: ["products", `product:${id}`],
+      },
+    },
+  );
   return readJson<ProductDto>(res);
 }
 

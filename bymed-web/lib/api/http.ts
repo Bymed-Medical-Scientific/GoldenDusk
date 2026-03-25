@@ -149,6 +149,13 @@ export type ApiFetchOptions = {
   maxRetries?: number;
   /** Omit Authorization header (e.g. login). */
   skipAuth?: boolean;
+  /** Browser/server cache mode forwarded to fetch. */
+  cache?: RequestCache;
+  /** Next.js data cache controls (server-side fetch only). */
+  next?: {
+    revalidate?: number;
+    tags?: string[];
+  };
 };
 
 export async function apiFetch(
@@ -182,10 +189,20 @@ export async function apiFetch(
   let lastNetworkError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const res = await fetch(url, {
+      const requestInit: RequestInit & {
+        next?: { revalidate?: number; tags?: string[] };
+      } = {
         ...init,
         headers,
         credentials: "include",
+      };
+      if (options.cache != null) requestInit.cache = options.cache;
+      if (typeof window === "undefined" && options.next) {
+        requestInit.next = options.next;
+      }
+
+      const res = await fetch(url, {
+        ...requestInit,
       });
 
       if (
