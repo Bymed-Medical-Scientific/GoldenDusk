@@ -649,7 +649,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement password change form
     - _Requirements: 4.4, 4.5, 4.6_
   
-  - [ ] 25.3 Create order history page
+  - [x] 25.3 Create order history page
     - Display list of user's orders
     - Show order status and details
     - Add order detail view

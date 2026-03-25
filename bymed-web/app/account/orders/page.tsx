@@ -3,6 +3,7 @@
 import { FormattedPrice } from "@/components/price/formatted-price";
 import { ApiError } from "@/lib/api/http";
 import { listMyOrders } from "@/lib/api/orders";
+import { OrderStatus, PaymentStatus } from "@/types/enums";
 import type { OrderDto } from "@/types/order";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -17,6 +18,38 @@ function formatDateTime(value: string): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(dt);
+}
+
+function getOrderStatusLabel(status: OrderStatus): string {
+  switch (status) {
+    case OrderStatus.Pending:
+      return "Pending";
+    case OrderStatus.Processing:
+      return "Processing";
+    case OrderStatus.Shipped:
+      return "Shipped";
+    case OrderStatus.Delivered:
+      return "Delivered";
+    case OrderStatus.Cancelled:
+      return "Cancelled";
+    default:
+      return "Unknown";
+  }
+}
+
+function getPaymentStatusLabel(status: PaymentStatus): string {
+  switch (status) {
+    case PaymentStatus.Pending:
+      return "Pending";
+    case PaymentStatus.Completed:
+      return "Completed";
+    case PaymentStatus.Failed:
+      return "Failed";
+    case PaymentStatus.Refunded:
+      return "Refunded";
+    default:
+      return "Unknown";
+  }
 }
 
 export default function AccountOrdersPage() {
@@ -89,9 +122,25 @@ export default function AccountOrdersPage() {
                   <FormattedPrice amount={order.total} currency={order.currency} />
                 </p>
               </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded bg-muted px-2 py-1 text-muted-foreground">
+                  Order: {getOrderStatusLabel(order.status)}
+                </span>
+                <span className="rounded bg-muted px-2 py-1 text-muted-foreground">
+                  Payment: {getPaymentStatusLabel(order.paymentStatus)}
+                </span>
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Tracking: {order.trackingNumber?.trim() || "Not assigned"}
+                Tracking: {order.trackingNumber?.trim() || "Not assigned yet"}
               </p>
+              <div className="mt-3">
+                <Link
+                  href={`/account/orders/${order.id}`}
+                  className="text-sm font-medium text-brand hover:underline"
+                >
+                  View details
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
