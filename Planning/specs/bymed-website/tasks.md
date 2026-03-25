@@ -684,11 +684,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Preserve form data on error
     - _Requirements: 5.3, 14.1, 14.2, 14.3, 14.4, 14.6_
   
-  - [ ]* 26.4 Write property test for HTML semantic structure
+  - [x]* 26.4 Write property test for HTML semantic structure
     - **Property 29: HTML Semantic Structure**
     - **Validates: Requirements 10.1**
   
-  - [ ]* 26.5 Write property test for page metadata completeness
+  - [x]* 26.5 Write property test for page metadata completeness
     - **Property 30: Page Metadata Completeness**
     - **Validates: Requirements 10.2, 10.4, 10.5**
 
