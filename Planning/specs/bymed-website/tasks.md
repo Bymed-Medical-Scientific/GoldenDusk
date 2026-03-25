@@ -656,14 +656,14 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Implement order tracking
     - _Requirements: 4.4_
   
-  - [ ]* 25.4 Write unit tests for authentication forms
+  - [x]* 25.4 Write unit tests for authentication forms
     - Test registration validation
     - Test login flow
     - Test password reset
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 26. Implement content pages
-  - [ ] 26.1 Create About page
+- [x] 26. Implement content pages
+  - [x] 26.1 Create About page
     - Fetch content from backend API
     - Render company overview, mission, services
     - Implement SSG for performance
