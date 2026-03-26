@@ -1,0 +1,19 @@
+<mat-toolbar color="primary" class="toolbar">
+  <div class="brand">
+    <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+    <span>ByMed Admin</span>
+  </div>
+
+  <nav class="nav">
+    <a mat-button routerLink="/dashboard" routerLinkActive="active-link">Dashboard</a>
+    <button mat-button type="button" (click)="logout()">Logout</button>
+  </nav>
+</mat-toolbar>
+
+@if (isNavigating()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+}
+
+<main class="shell-content">
+  <router-outlet />
+</main>
