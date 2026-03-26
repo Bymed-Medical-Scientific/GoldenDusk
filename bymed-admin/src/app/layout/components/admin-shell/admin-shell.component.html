@@ -1,19 +1,69 @@
-<mat-toolbar color="primary" class="toolbar">
-  <div class="brand">
-    <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
-    <span>ByMed Admin</span>
-  </div>
+<mat-sidenav-container class="shell-container">
+  <mat-sidenav
+    #sidebar
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="sidenavOpened()"
+    class="shell-sidenav"
+  >
+    <div class="sidenav-brand">
+      <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+      <span>ByMed Admin</span>
+    </div>
 
-  <nav class="nav">
-    <a mat-button routerLink="/dashboard" routerLinkActive="active-link">Dashboard</a>
-    <button mat-button type="button" (click)="logout()">Logout</button>
-  </nav>
-</mat-toolbar>
+    <nav aria-label="Admin navigation">
+      <mat-nav-list>
+        <a
+          mat-list-item
+          routerLink="/dashboard"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+      </mat-nav-list>
+    </nav>
+  </mat-sidenav>
 
-@if (isNavigating()) {
-  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-}
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="toolbar">
+      @if (isHandset()) {
+        <button
+          mat-icon-button
+          type="button"
+          (click)="sidebar.toggle()"
+          aria-label="Toggle navigation"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
 
-<main class="shell-content">
-  <router-outlet />
-</main>
+      <div class="toolbar-title">Dashboard</div>
+
+      <button
+        mat-icon-button
+        type="button"
+        [matMenuTriggerFor]="userMenu"
+        aria-label="Open user menu"
+      >
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+
+    @if (isNavigating()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <main class="shell-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

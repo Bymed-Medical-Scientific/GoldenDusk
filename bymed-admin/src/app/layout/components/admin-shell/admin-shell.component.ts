@@ -1,5 +1,6 @@
 
-import { Component, signal } from '@angular/core';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Component, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Event,
@@ -15,7 +16,10 @@ import {
 import { filter } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '@core/auth/auth.service';
 
@@ -27,7 +31,10 @@ import { AuthService } from '@core/auth/auth.service';
     RouterLinkActive,
     MatButtonModule,
     MatIconModule,
+    MatListModule,
+    MatMenuModule,
     MatProgressBarModule,
+    MatSidenavModule,
     MatToolbarModule
 ],
     templateUrl: './admin-shell.component.html',
@@ -35,11 +42,21 @@ import { AuthService } from '@core/auth/auth.service';
 })
 export class AdminShellComponent {
   protected readonly isNavigating = signal(false);
+  protected readonly isHandset = signal(false);
+  protected readonly sidenavOpened = computed(() => !this.isHandset());
 
   constructor(
     private readonly router: Router,
+    private readonly breakpointObserver: BreakpointObserver,
     private readonly authService: AuthService
   ) {
+    this.breakpointObserver
+      .observe('(max-width: 960px)')
+      .pipe(takeUntilDestroyed())
+      .subscribe((state) => {
+        this.isHandset.set(state.matches);
+      });
+
     this.router.events
       .pipe(
         filter((event: Event) => this.isNavigationEvent(event)),
