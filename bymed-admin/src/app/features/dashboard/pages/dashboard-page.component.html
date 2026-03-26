@@ -1,8 +1,132 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Dashboard</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    Admin dashboard scaffold is ready. Feature widgets will be added in task 30.
-  </mat-card-content>
-</mat-card>
+@if (isLoading()) {
+  <app-page-loading label="Loading dashboard overview..." />
+} @else {
+  @if (errorMessage()) {
+    <app-global-error [message]="errorMessage() ?? ''" />
+  }
+
+  <section class="quick-actions">
+    <button mat-raised-button color="primary" routerLink="/products/new">
+      <mat-icon>add_box</mat-icon>
+      New Product
+    </button>
+    <button mat-stroked-button routerLink="/categories/new">
+      <mat-icon>create_new_folder</mat-icon>
+      New Category
+    </button>
+    <button mat-stroked-button routerLink="/orders">
+      <mat-icon>receipt_long</mat-icon>
+      View Orders
+    </button>
+  </section>
+
+  <section class="dashboard-grid">
+    <mat-card class="widget widget-sales">
+      <mat-card-header>
+        <mat-card-title>Sales Summary</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="summary-grid">
+        <div>
+          <p class="summary-label">Today</p>
+          <p class="summary-value">
+            {{ salesSummary().today | currency: salesSummary().currency:'symbol':'1.2-2' }}
+          </p>
+        </div>
+        <div>
+          <p class="summary-label">Last 7 days</p>
+          <p class="summary-value">
+            {{ salesSummary().week | currency: salesSummary().currency:'symbol':'1.2-2' }}
+          </p>
+        </div>
+        <div>
+          <p class="summary-label">This month</p>
+          <p class="summary-value">
+            {{ salesSummary().month | currency: salesSummary().currency:'symbol':'1.2-2' }}
+          </p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="widget">
+      <mat-card-header>
+        <mat-card-title>Recent Orders</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (recentOrders().length) {
+          <ul class="plain-list">
+            @for (order of recentOrders(); track order.id) {
+              <li class="list-row">
+                <div>
+                  <strong>{{ order.orderNumber }}</strong>
+                  <p class="list-subtext">{{ order.createdAtUtc | date: 'medium' }}</p>
+                </div>
+                <div class="row-right">
+                  <span>{{ order.totalAmount | currency: order.currency:'symbol':'1.2-2' }}</span>
+                  <span class="chip" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-text">No recent orders found.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="widget">
+      <mat-card-header>
+        <mat-card-title>Low Stock Alerts</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (lowStockItems().length) {
+          <ul class="plain-list">
+            @for (item of lowStockItems(); track item.productId) {
+              <li class="list-row">
+                <div>
+                  <strong>{{ item.productName }}</strong>
+                  <p class="list-subtext">SKU: {{ item.sku }}</p>
+                </div>
+                <div class="row-right">
+                  <span>{{ item.currentStock }} left</span>
+                  <span class="list-subtext">Threshold: {{ item.lowStockThreshold }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-text">No low stock alerts.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="widget">
+      <mat-card-header>
+        <mat-card-title>Popular Products</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (popularProducts().length) {
+          <ul class="plain-list">
+            @for (product of popularProducts(); track product.id) {
+              <li class="list-row">
+                <div>
+                  <strong>{{ product.name }}</strong>
+                  <p class="list-subtext">SKU: {{ product.sku }}</p>
+                </div>
+                <div class="row-right">
+                  <span>{{ product.price | currency: product.currency:'symbol':'1.2-2' }}</span>
+                  <span class="list-subtext">Stock: {{ product.stockQuantity }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-text">No product data available.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  @if (!hasDashboardData()) {
+    <p class="empty-dashboard">No dashboard data available yet.</p>
+  }
+}
