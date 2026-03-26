@@ -3,12 +3,17 @@ export interface LoginRequestDto {
   readonly password: string;
 }
 
+export interface AuthUserDto {
+  readonly id: string;
+  readonly email: string;
+  readonly name: string;
+  readonly role: 'Customer' | 'Admin' | string;
+}
+
 export interface LoginResponseDto {
+  readonly user: AuthUserDto;
   readonly token: string;
   readonly refreshToken: string;
-  readonly expiresAtUtc: string;
-  readonly userId: string;
-  readonly roles: string[];
 }
 
 export interface RefreshTokenRequestDto {
@@ -18,5 +23,4 @@ export interface RefreshTokenRequestDto {
 export interface RefreshTokenResponseDto {
   readonly token: string;
   readonly refreshToken: string;
-  readonly expiresAtUtc: string;
 }

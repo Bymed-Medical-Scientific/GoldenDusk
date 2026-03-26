@@ -17,6 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { AuthService } from '@core/auth/auth.service';
 
 @Component({
     selector: 'app-admin-shell',
@@ -35,7 +36,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 export class AdminShellComponent {
   protected readonly isNavigating = signal(false);
 
-  constructor(private readonly router: Router) {
+  constructor(
+    private readonly router: Router,
+    private readonly authService: AuthService
+  ) {
     this.router.events
       .pipe(
         filter((event: Event) => this.isNavigationEvent(event)),
@@ -49,6 +53,10 @@ export class AdminShellComponent {
 
         this.isNavigating.set(false);
       });
+  }
+
+  protected logout(): void {
+    this.authService.logout().subscribe();
   }
 
   private isNavigationEvent(event: Event): boolean {
