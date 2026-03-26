@@ -368,3 +368,8 @@ FodyWeavers.xsd
 # Next.js
 .next/
 out/
+
+# Angular
+.angular/
+dist/
+coverage/
