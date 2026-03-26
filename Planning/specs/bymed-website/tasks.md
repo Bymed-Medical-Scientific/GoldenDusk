@@ -731,7 +731,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add baseline app shell with routing, global error UI, and loading state conventions
     - _Requirements: 6.1, 7.1, 8.1_
   
-  - [ ] 29.2 Create API service and models
+  - [x] 29.2 Create API service and models
     - Create TypeScript interfaces for all DTOs
     - Implement API service with HttpClient
     - Add authentication interceptor for JWT tokens
