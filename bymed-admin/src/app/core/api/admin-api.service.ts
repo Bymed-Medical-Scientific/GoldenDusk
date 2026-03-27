@@ -115,8 +115,24 @@ export class AdminApiService {
     return this.apiService.postFormData<ImportProductsResultDto>('products/import', formData);
   }
 
-  public getOrders(pageNumber: number, pageSize: number): Observable<PagedResultDto<OrderSummaryDto>> {
-    return this.apiService.get<PagedResultDto<OrderSummaryDto>>('orders', { pageNumber, pageSize });
+  public getOrders(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly status?: number | null;
+      readonly dateFrom?: string | null;
+      readonly dateTo?: string | null;
+      readonly search?: string | null;
+    }
+  ): Observable<PagedResultDto<OrderSummaryDto>> {
+    return this.apiService.get<PagedResultDto<OrderSummaryDto>>('orders', {
+      pageNumber,
+      pageSize,
+      status: query?.status,
+      dateFrom: query?.dateFrom,
+      dateTo: query?.dateTo,
+      search: query?.search
+    });
   }
 
   public getOrderById(orderId: string): Observable<OrderDetailDto> {

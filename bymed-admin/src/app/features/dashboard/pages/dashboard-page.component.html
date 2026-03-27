@@ -58,11 +58,13 @@
               <li class="list-row">
                 <div>
                   <strong>{{ order.orderNumber }}</strong>
-                  <p class="list-subtext">{{ order.createdAtUtc | date: 'medium' }}</p>
+                  <p class="list-subtext">{{ order.creationTime | date: 'medium' }}</p>
                 </div>
                 <div class="row-right">
-                  <span>{{ order.totalAmount | currency: order.currency:'symbol':'1.2-2' }}</span>
-                  <span class="chip" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+                  <span>{{ order.total | currency: order.currency:'symbol':'1.2-2' }}</span>
+                  <span class="chip" [ngClass]="orderStatusChipClass(order.status)">{{
+                    orderStatusLabel(order.status)
+                  }}</span>
                 </div>
               </li>
             }

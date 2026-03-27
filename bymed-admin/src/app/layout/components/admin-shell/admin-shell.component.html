@@ -40,6 +40,15 @@
           <mat-icon matListItemIcon aria-hidden="true">inventory_2</mat-icon>
           <span matListItemTitle>Products</span>
         </a>
+        <a
+          mat-list-item
+          routerLink="/orders"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">receipt_long</mat-icon>
+          <span matListItemTitle>Orders</span>
+        </a>
       </mat-nav-list>
     </nav>
   </mat-sidenav>

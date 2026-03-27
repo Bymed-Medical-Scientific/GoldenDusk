@@ -144,10 +144,11 @@ public sealed class OrdersController : ControllerBase
         [FromQuery] OrderStatus? status = null,
         [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null,
+        [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator
-            .Send(new GetAllOrdersQuery(pageNumber, pageSize, status, dateFrom, dateTo), cancellationToken)
+            .Send(new GetAllOrdersQuery(pageNumber, pageSize, status, dateFrom, dateTo, search), cancellationToken)
             .ConfigureAwait(false);
         return Ok(result);
     }

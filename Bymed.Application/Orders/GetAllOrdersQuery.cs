@@ -9,4 +9,5 @@ public sealed record GetAllOrdersQuery(
     int PageSize,
     OrderStatus? Status,
     DateTime? DateFrom,
-    DateTime? DateTo) : IRequest<PagedResult<OrderDto>>;
+    DateTime? DateTo,
+    string? Search) : IRequest<PagedResult<OrderDto>>;

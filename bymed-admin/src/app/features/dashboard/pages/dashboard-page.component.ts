@@ -6,6 +6,7 @@ import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { InventoryItemDto, OrderSummaryDto, ProductDto } from '@shared/models';
+import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,6 +36,9 @@ interface SalesSummary {
   styleUrls: ['./dashboard-page.component.scss']
 })
 export class DashboardPageComponent implements OnInit {
+  protected readonly orderStatusLabel = orderStatusLabel;
+  protected readonly orderStatusChipClass = orderStatusChipClass;
+
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly salesSummary = signal<SalesSummary>({
@@ -81,7 +85,7 @@ export class DashboardPageComponent implements OnInit {
       .subscribe(({ orders, inventory, products }) => {
         const orderItems = [...orders.items].sort(
           (left, right) =>
-            new Date(right.createdAtUtc).getTime() - new Date(left.createdAtUtc).getTime()
+            new Date(right.creationTime).getTime() - new Date(left.creationTime).getTime()
         );
 
         this.salesSummary.set(this.buildSalesSummary(orderItems));
@@ -118,8 +122,8 @@ export class DashboardPageComponent implements OnInit {
 
     const sumInRange = (fromDate: Date): number =>
       orders
-        .filter((order) => new Date(order.createdAtUtc) >= fromDate)
-        .reduce((total, order) => total + order.totalAmount, 0);
+        .filter((order) => new Date(order.creationTime) >= fromDate)
+        .reduce((total, order) => total + order.total, 0);
 
     return {
       today: sumInRange(todayStart),

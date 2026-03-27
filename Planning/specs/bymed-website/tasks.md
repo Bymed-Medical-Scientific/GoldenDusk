@@ -812,12 +812,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - _Requirements: 6.2, 6.3_
 
 - [ ] 33. Implement order management module
-  - [ ] 33.1 Create order list component
-    - Display orders in table with filters
-    - Add filter by date range, status, customer
-    - Add search functionality
-    - Implement pagination
-    - Display order summary (number, customer, total, status)
+  - [x] 33.1 Create order list component
+    - [x] `OrderListComponent` at `/orders` with Material table, loading/error states
+    - [x] Filters: status, date range (API `dateFrom`/`dateTo`), search (order number, name, email — backend `search` query)
+    - [x] Pagination via `MatPaginator` + `getOrders` query params
+    - [x] Columns: order number, customer (name + email), total, status chip, placed date
     - _Requirements: 7.1, 7.2_
   
   - [ ] 33.2 Create order detail component
