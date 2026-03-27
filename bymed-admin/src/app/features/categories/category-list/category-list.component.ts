@@ -6,7 +6,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -20,8 +19,6 @@ import { GlobalErrorComponent } from '@shared/components/global-error/global-err
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { CategoryDto } from '@shared/models';
 
-type StatusFilter = 'all' | 'active' | 'inactive';
-
 @Component({
   selector: 'app-category-list',
   standalone: true,
@@ -34,7 +31,6 @@ type StatusFilter = 'all' | 'active' | 'inactive';
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
-    MatSelectModule,
     MatSnackBarModule,
     MatSortModule,
     MatTableModule,
@@ -53,9 +49,8 @@ export class CategoryListComponent implements OnInit, AfterViewInit {
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly searchQuery = signal('');
-  protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly dataSource = new MatTableDataSource<CategoryDto>([]);
-  protected readonly displayedColumns: string[] = ['name', 'slug', 'displayOrder', 'isActive', 'actions'];
+  protected readonly displayedColumns: string[] = ['name', 'slug', 'displayOrder', 'actions'];
   protected readonly deletingId = signal<string | null>(null);
 
   @ViewChild(MatPaginator) private paginator!: MatPaginator;
@@ -63,18 +58,14 @@ export class CategoryListComponent implements OnInit, AfterViewInit {
 
   public ngOnInit(): void {
     this.dataSource.filterPredicate = (row, filter) => {
-      const parsed = JSON.parse(filter) as { q: string; status: StatusFilter };
+      const parsed = JSON.parse(filter) as { q: string };
       const q = parsed.q.trim().toLowerCase();
-      const matchesQ =
+      return (
         !q ||
         row.name.toLowerCase().includes(q) ||
         row.slug.toLowerCase().includes(q) ||
-        (row.description?.toLowerCase().includes(q) ?? false);
-      const matchesStatus =
-        parsed.status === 'all' ||
-        (parsed.status === 'active' && row.isActive) ||
-        (parsed.status === 'inactive' && !row.isActive);
-      return matchesQ && matchesStatus;
+        (row.description?.toLowerCase().includes(q) ?? false)
+      );
     };
 
     this.loadCategories();
@@ -87,11 +78,6 @@ export class CategoryListComponent implements OnInit, AfterViewInit {
 
   protected onSearchChange(value: string): void {
     this.searchQuery.set(value);
-    this.applyFilter();
-  }
-
-  protected onStatusChange(value: StatusFilter): void {
-    this.statusFilter.set(value);
     this.applyFilter();
   }
 
@@ -156,8 +142,7 @@ export class CategoryListComponent implements OnInit, AfterViewInit {
 
   private applyFilter(): void {
     this.dataSource.filter = JSON.stringify({
-      q: this.searchQuery(),
-      status: this.statusFilter()
+      q: this.searchQuery()
     });
     this.dataSource.paginator?.firstPage();
   }

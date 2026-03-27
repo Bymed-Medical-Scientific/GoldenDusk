@@ -1,0 +1,57 @@
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+  max-width: 40rem;
+}
+
+.actions-row {
+  margin-top: 1rem;
+}
+
+.form-card {
+  max-width: 640px;
+}
+
+.full-width {
+  width: 100%;
+  display: block;
+}
+
+.order-field {
+  width: 100%;
+  max-width: 280px;
+}
+
+.form-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  button[type='submit'] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.button-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+}

@@ -32,11 +32,6 @@
   min-width: 200px;
 }
 
-.status-field {
-  flex: 0 1 180px;
-  min-width: 160px;
-}
-
 .table-wrap {
   overflow: auto;
   border-radius: 4px;
@@ -49,21 +44,6 @@
 
 .slug {
   font-size: 0.8125rem;
-}
-
-.status-pill {
-  display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: rgba(63, 81, 181, 0.12);
-  color: #3f51b5;
-
-  &.inactive {
-    background: rgba(0, 0, 0, 0.08);
-    color: rgba(0, 0, 0, 0.65);
-  }
 }
 
 .col-actions {

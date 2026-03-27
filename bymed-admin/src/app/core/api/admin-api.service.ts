@@ -26,6 +26,10 @@ export class AdminApiService {
     return this.apiService.get<CategoryDto[]>('categories');
   }
 
+  public getCategoryById(categoryId: string): Observable<CategoryDto> {
+    return this.apiService.get<CategoryDto>(`categories/${categoryId}`);
+  }
+
   public createCategory(request: CreateCategoryRequestDto): Observable<CategoryDto> {
     return this.apiService.post<CreateCategoryRequestDto, CategoryDto>('categories', request);
   }

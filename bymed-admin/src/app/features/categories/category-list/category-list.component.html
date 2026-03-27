@@ -7,7 +7,7 @@
     <div class="page-header">
       <div class="page-header-text">
         <h1 class="page-title">Categories</h1>
-        <p class="page-subtitle">Manage product categories, display order, and visibility.</p>
+        <p class="page-subtitle">Manage product categories and display order.</p>
       </div>
       <a mat-flat-button color="primary" routerLink="/categories/new">
         <mat-icon>add</mat-icon>
@@ -38,19 +38,6 @@
           </button>
         }
       </mat-form-field>
-
-      <mat-form-field appearance="outline" class="status-field" subscriptSizing="dynamic">
-        <mat-label>Status</mat-label>
-        <mat-select
-          [ngModel]="statusFilter()"
-          (ngModelChange)="onStatusChange($event)"
-          aria-label="Filter by active status"
-        >
-          <mat-option value="all">All</mat-option>
-          <mat-option value="active">Active</mat-option>
-          <mat-option value="inactive">Inactive</mat-option>
-        </mat-select>
-      </mat-form-field>
     </div>
 
     <div class="table-wrap mat-elevation-z1">
@@ -70,15 +57,6 @@
         <ng-container matColumnDef="displayOrder">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
           <td mat-cell *matCellDef="let row">{{ row.displayOrder }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="isActive">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Status</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="status-pill" [class.inactive]="!row.isActive">
-              {{ row.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">

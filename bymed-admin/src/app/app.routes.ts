@@ -40,15 +40,15 @@ export const routes: Routes = [
       {
         path: 'categories/new',
         loadComponent: () =>
-          import('@features/categories/category-form-placeholder/category-form-placeholder.component').then(
-            (m) => m.CategoryFormPlaceholderComponent
+          import('@features/categories/category-form/category-form.component').then(
+            (m) => m.CategoryFormComponent
           )
       },
       {
         path: 'categories/:id/edit',
         loadComponent: () =>
-          import('@features/categories/category-form-placeholder/category-form-placeholder.component').then(
-            (m) => m.CategoryFormPlaceholderComponent
+          import('@features/categories/category-form/category-form.component').then(
+            (m) => m.CategoryFormComponent
           )
       }
     ]
