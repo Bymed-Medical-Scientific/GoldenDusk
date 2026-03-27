@@ -42,8 +42,22 @@ export class AdminApiService {
     return this.apiService.delete<void>(`categories/${categoryId}`);
   }
 
-  public getProducts(page: number, pageSize: number): Observable<PagedResultDto<ProductDto>> {
-    return this.apiService.get<PagedResultDto<ProductDto>>('products', { page, pageSize });
+  public getProducts(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly categoryId?: string | null;
+      readonly search?: string | null;
+      readonly inStock?: boolean | null;
+    }
+  ): Observable<PagedResultDto<ProductDto>> {
+    return this.apiService.get<PagedResultDto<ProductDto>>('products', {
+      pageNumber,
+      pageSize,
+      categoryId: query?.categoryId,
+      search: query?.search,
+      inStock: query?.inStock
+    });
   }
 
   public createProduct(request: CreateProductRequestDto): Observable<ProductDto> {
@@ -58,8 +72,8 @@ export class AdminApiService {
     return this.apiService.delete<void>(`products/${productId}`);
   }
 
-  public getOrders(page: number, pageSize: number): Observable<PagedResultDto<OrderSummaryDto>> {
-    return this.apiService.get<PagedResultDto<OrderSummaryDto>>('orders', { page, pageSize });
+  public getOrders(pageNumber: number, pageSize: number): Observable<PagedResultDto<OrderSummaryDto>> {
+    return this.apiService.get<PagedResultDto<OrderSummaryDto>>('orders', { pageNumber, pageSize });
   }
 
   public getOrderById(orderId: string): Observable<OrderDetailDto> {
@@ -70,7 +84,7 @@ export class AdminApiService {
     return this.apiService.get<InventoryItemDto[]>('inventory');
   }
 
-  public getUsers(page: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {
-    return this.apiService.get<PagedResultDto<UserSummaryDto>>('users', { page, pageSize });
+  public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {
+    return this.apiService.get<PagedResultDto<UserSummaryDto>>('users', { pageNumber, pageSize });
   }
 }

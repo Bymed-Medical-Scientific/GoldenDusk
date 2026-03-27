@@ -50,6 +50,27 @@ export const routes: Routes = [
           import('@features/categories/category-form/category-form.component').then(
             (m) => m.CategoryFormComponent
           )
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('@features/products/product-list/product-list.component').then(
+            (m) => m.ProductListComponent
+          )
+      },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('@features/products/product-form-placeholder/product-form-placeholder.component').then(
+            (m) => m.ProductFormPlaceholderComponent
+          )
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () =>
+          import('@features/products/product-form-placeholder/product-form-placeholder.component').then(
+            (m) => m.ProductFormPlaceholderComponent
+          )
       }
     ]
   },

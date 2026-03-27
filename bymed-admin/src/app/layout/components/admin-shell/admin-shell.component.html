@@ -31,6 +31,15 @@
           <mat-icon matListItemIcon aria-hidden="true">category</mat-icon>
           <span matListItemTitle>Categories</span>
         </a>
+        <a
+          mat-list-item
+          routerLink="/products"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">inventory_2</mat-icon>
+          <span matListItemTitle>Products</span>
+        </a>
       </mat-nav-list>
     </nav>
   </mat-sidenav>

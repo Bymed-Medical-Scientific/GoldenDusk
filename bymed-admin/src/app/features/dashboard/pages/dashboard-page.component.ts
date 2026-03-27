@@ -72,9 +72,9 @@ export class DashboardPageComponent implements OnInit {
         catchError(() => {
           this.errorMessage.set('Unable to load dashboard data right now. Please refresh and try again.');
           return of({
-            orders: { items: [], page: 1, pageSize: 12, totalCount: 0, totalPages: 0 },
+            orders: { items: [], pageNumber: 1, pageSize: 12, totalCount: 0, totalPages: 0 },
             inventory: [],
-            products: { items: [], page: 1, pageSize: 12, totalCount: 0, totalPages: 0 }
+            products: { items: [], pageNumber: 1, pageSize: 12, totalCount: 0, totalPages: 0 }
           });
         })
       )
@@ -94,7 +94,7 @@ export class DashboardPageComponent implements OnInit {
         );
         this.popularProducts.set(
           [...products.items]
-            .sort((left, right) => right.stockQuantity - left.stockQuantity)
+            .sort((left, right) => right.inventoryCount - left.inventoryCount)
             .slice(0, 5)
         );
         this.isLoading.set(false);

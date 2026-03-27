@@ -774,14 +774,14 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Display validation errors
     - _Requirements: 6.2_
   
-  - [ ]* 31.3 Write unit tests for category management
+  - [x]* 31.3 Write unit tests for category management
     - Test category list display
     - Test form validation
     - Test CRUD operations
     - _Requirements: 6.2_
 
-- [ ] 32. Implement product management module
-  - [ ] 32.1 Create product list component
+- [x] 32. Implement product management module
+  - [x] 32.1 Create product list component
     - Display products in table with search and filters
     - Add filter by category, availability, stock level
     - Add create/edit/delete actions
