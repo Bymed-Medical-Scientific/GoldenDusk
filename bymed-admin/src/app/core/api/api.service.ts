@@ -20,6 +20,10 @@ export class ApiService {
     return this.httpClient.post<TResponse>(this.buildUrl(path), payload);
   }
 
+  public postFormData<TResponse>(path: string, formData: FormData): Observable<TResponse> {
+    return this.httpClient.post<TResponse>(this.buildUrl(path), formData);
+  }
+
   public put<TRequest, TResponse>(path: string, payload: TRequest): Observable<TResponse> {
     return this.httpClient.put<TResponse>(this.buildUrl(path), payload);
   }

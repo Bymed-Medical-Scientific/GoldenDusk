@@ -10,6 +10,7 @@ import {
   OrderSummaryDto,
   PagedResultDto,
   ProductDto,
+  ProductImageDto,
   UpdateCategoryRequestDto,
   UpdateProductRequestDto,
   UserSummaryDto
@@ -60,12 +61,25 @@ export class AdminApiService {
     });
   }
 
+  public getProductById(productId: string): Observable<ProductDto> {
+    return this.apiService.get<ProductDto>(`products/${productId}`);
+  }
+
   public createProduct(request: CreateProductRequestDto): Observable<ProductDto> {
     return this.apiService.post<CreateProductRequestDto, ProductDto>('products', request);
   }
 
   public updateProduct(productId: string, request: UpdateProductRequestDto): Observable<ProductDto> {
     return this.apiService.put<UpdateProductRequestDto, ProductDto>(`products/${productId}`, request);
+  }
+
+  public uploadProductImage(productId: string, file: File, altText?: string): Observable<ProductImageDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormData<ProductImageDto>(`products/${productId}/images`, formData);
   }
 
   public deleteProduct(productId: string): Observable<void> {
