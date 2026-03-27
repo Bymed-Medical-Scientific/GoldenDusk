@@ -1,0 +1,145 @@
+@if (isLoading()) {
+  <app-page-loading label="Loading analytics..." />
+} @else {
+  @if (errorMessage()) {
+    <app-global-error [message]="errorMessage() ?? ''" />
+  } @else if (analytics(); as a) {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Order analytics</h1>
+        <p class="page-subtitle">Revenue and orders for the selected period.</p>
+      </div>
+      <a mat-stroked-button routerLink="/orders">
+        <mat-icon>arrow_back</mat-icon>
+        Back to orders
+      </a>
+    </div>
+
+    <mat-card class="filters-card">
+      <mat-card-content class="filters-row">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>From</mat-label>
+          <input matInput type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>To</mat-label>
+          <input matInput type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" />
+        </mat-form-field>
+        <div class="filter-actions">
+          <button mat-flat-button color="primary" type="button" (click)="applyDateRange()">Apply range</button>
+          <button mat-stroked-button type="button" (click)="resetToLast30Days()">Last 30 days</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="kpi-grid">
+      <mat-card class="kpi">
+        <mat-card-content>
+          <p class="kpi-label">Total revenue</p>
+          <p class="kpi-value">{{ a.totalRevenue | currency: 'USD':'symbol':'1.2-2' }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi">
+        <mat-card-content>
+          <p class="kpi-label">Orders</p>
+          <p class="kpi-value">{{ a.totalOrderCount | number }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi">
+        <mat-card-content>
+          <p class="kpi-label">Average order value</p>
+          <p class="kpi-value">{{ a.averageOrderValue | currency: 'USD':'symbol':'1.2-2' }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Sales</mat-card-title>
+        <mat-card-subtitle>Revenue by period (toggle day, week, or month).</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-button-toggle-group
+          class="granularity-toggle"
+          [ngModel]="chartGranularity()"
+          (ngModelChange)="chartGranularity.set($event)"
+          aria-label="Chart granularity"
+        >
+          <mat-button-toggle value="day">Day</mat-button-toggle>
+          <mat-button-toggle value="week">Week</mat-button-toggle>
+          <mat-button-toggle value="month">Month</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @if (chartBars().length === 0) {
+          <p class="empty-hint">No orders in this date range.</p>
+        } @else {
+          <div class="chart" role="img" [attr.aria-label]="'Revenue by ' + chartGranularity()">
+            @for (bar of chartBars(); track $index) {
+              <div class="chart-col">
+                <div
+                  class="chart-bar"
+                  [style.height.%]="maxChartRevenue() > 0 ? (bar.revenue / maxChartRevenue()) * 100 : 0"
+                ></div>
+                <div class="chart-meta">
+                  <span class="chart-label">{{ bar.label }}</span>
+                  <span class="chart-value">{{ bar.revenue | currency: 'USD':'symbol':'1.0-0' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <div class="lower-grid">
+      <mat-card class="status-card">
+        <mat-card-header>
+          <mat-card-title>Orders by status</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="status-list">
+            @for (row of statusEntries(); track row.status) {
+              <li class="status-row">
+                <span class="chip" [ngClass]="orderStatusChipClass(row.status)">
+                  {{ orderStatusLabel(row.status) }}
+                </span>
+                <span class="status-count">{{ row.count | number }}</span>
+              </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="top-products-card">
+        <mat-card-header>
+          <mat-card-title>Top products</mat-card-title>
+          <mat-card-subtitle>By line revenue in this period.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (a.topProducts.length === 0) {
+            <p class="empty-hint">No line items in this period.</p>
+          } @else {
+            <table class="top-table">
+              <thead>
+                <tr>
+                  <th scope="col">Product</th>
+                  <th scope="col" class="num">Qty</th>
+                  <th scope="col" class="num">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of a.topProducts; track p.productId) {
+                  <tr>
+                    <td>{{ p.productName }}</td>
+                    <td class="num">{{ p.quantitySold | number }}</td>
+                    <td class="num">{{ p.revenue | currency: 'USD':'symbol':'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+}

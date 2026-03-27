@@ -44,10 +44,20 @@
           mat-list-item
           routerLink="/orders"
           routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
           (click)="isHandset() && sidebar.close()"
         >
           <mat-icon matListItemIcon aria-hidden="true">receipt_long</mat-icon>
           <span matListItemTitle>Orders</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/orders/analytics"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">bar_chart</mat-icon>
+          <span matListItemTitle>Sales analytics</span>
         </a>
       </mat-nav-list>
     </nav>

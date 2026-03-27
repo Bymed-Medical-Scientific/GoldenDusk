@@ -60,3 +60,25 @@ export interface UpdateOrderStatusRequestDto {
   readonly trackingNumber?: string | null;
   readonly notes?: string | null;
 }
+
+export interface SalesByDayPointDto {
+  readonly date: string;
+  readonly revenue: number;
+  readonly orderCount: number;
+}
+
+export interface TopProductRowDto {
+  readonly productId: string;
+  readonly productName: string;
+  readonly quantitySold: number;
+  readonly revenue: number;
+}
+
+export interface OrderAnalyticsDto {
+  readonly totalOrderCount: number;
+  readonly totalRevenue: number;
+  readonly averageOrderValue: number;
+  readonly countByStatus: Record<string, number>;
+  readonly revenueByDay: SalesByDayPointDto[];
+  readonly topProducts: TopProductRowDto[];
+}

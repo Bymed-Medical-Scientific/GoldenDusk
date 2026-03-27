@@ -67,10 +67,25 @@ export type UpdateOrderStatusRequest = {
   notes?: string | null;
 };
 
+export type SalesByDayPoint = {
+  date: string;
+  revenue: number;
+  orderCount: number;
+};
+
+export type TopProductRow = {
+  productId: string;
+  productName: string;
+  quantitySold: number;
+  revenue: number;
+};
+
 /** `countByStatus` keys are numeric order status values as strings when serialized from .NET. */
 export type OrderAnalyticsResult = {
   totalOrderCount: number;
   totalRevenue: number;
   averageOrderValue: number;
   countByStatus: Record<string, number>;
+  revenueByDay: SalesByDayPoint[];
+  topProducts: TopProductRow[];
 };

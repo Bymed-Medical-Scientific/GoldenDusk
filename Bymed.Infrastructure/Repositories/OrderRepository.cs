@@ -107,12 +107,17 @@ public class OrderRepository : IOrderRepository
     {
         var query = _context.Orders.AsNoTracking().AsQueryable();
         if (dateFrom.HasValue)
-            query = query.Where(o => o.CreationTime >= dateFrom.Value);
+            query = query.Where(o => o.CreationTime >= dateFrom.Value.Date);
         if (dateTo.HasValue)
-            query = query.Where(o => o.CreationTime <= dateTo.Value);
+        {
+            var endExclusive = dateTo.Value.Date.AddDays(1);
+            query = query.Where(o => o.CreationTime < endExclusive);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
-        var totalRevenue = await query.SumAsync(o => o.Total, cancellationToken).ConfigureAwait(false);
+        var totalRevenue = totalCount > 0
+            ? await query.SumAsync(o => o.Total, cancellationToken).ConfigureAwait(false)
+            : 0m;
         var avgOrderValue = totalCount > 0 ? totalRevenue / totalCount : 0m;
 
         var countByStatus = await query
@@ -128,12 +133,55 @@ public class OrderRepository : IOrderRepository
                 dict[status] = 0;
         }
 
+        var byDayRows = await query
+            .GroupBy(o => o.CreationTime.Date)
+            .Select(g => new { Date = g.Key, Revenue = g.Sum(x => x.Total), OrderCount = g.Count() })
+            .OrderBy(x => x.Date)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var revenueByDay = byDayRows
+            .Select(x => new SalesByDayPoint
+            {
+                Date = DateOnly.FromDateTime(x.Date),
+                Revenue = x.Revenue,
+                OrderCount = x.OrderCount
+            })
+            .ToList();
+
+        IReadOnlyList<TopProductRow> topProducts;
+        if (totalCount == 0)
+        {
+            topProducts = [];
+        }
+        else
+        {
+            var orderIdsInRange = query.Select(o => o.Id);
+            topProducts = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => orderIdsInRange.Contains(oi.OrderId))
+                .GroupBy(oi => new { oi.ProductId, oi.ProductName })
+                .Select(g => new TopProductRow
+                {
+                    ProductId = g.Key.ProductId,
+                    ProductName = g.Key.ProductName,
+                    QuantitySold = g.Sum(x => x.Quantity),
+                    Revenue = g.Sum(x => x.Subtotal)
+                })
+                .OrderByDescending(x => x.Revenue)
+                .Take(10)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         return new OrderAnalyticsResult
         {
             TotalOrderCount = totalCount,
             TotalRevenue = totalRevenue,
             AverageOrderValue = avgOrderValue,
-            CountByStatus = dict
+            CountByStatus = dict,
+            RevenueByDay = revenueByDay,
+            TopProducts = topProducts
         };
     }
 

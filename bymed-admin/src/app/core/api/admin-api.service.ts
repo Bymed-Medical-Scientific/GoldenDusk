@@ -10,6 +10,7 @@ import {
   CreateProductRequestDto,
   ImportProductsResultDto,
   InventoryItemDto,
+  OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
   UpdateOrderStatusRequestDto,
@@ -138,6 +139,16 @@ export class AdminApiService {
 
   public getOrderById(orderId: string): Observable<OrderDetailDto> {
     return this.apiService.get<OrderDetailDto>(`orders/${orderId}`);
+  }
+
+  public getOrderAnalytics(query?: {
+    readonly dateFrom?: string | null;
+    readonly dateTo?: string | null;
+  }): Observable<OrderAnalyticsDto> {
+    return this.apiService.get<OrderAnalyticsDto>('orders/analytics', {
+      dateFrom: query?.dateFrom,
+      dateTo: query?.dateTo
+    });
   }
 
   public updateOrderStatus(

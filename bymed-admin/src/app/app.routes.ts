@@ -73,6 +73,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'orders/analytics',
+        loadComponent: () =>
+          import('@features/orders/order-analytics/order-analytics-page.component').then(
+            (m) => m.OrderAnalyticsPageComponent
+          )
+      },
+      {
         path: 'orders',
         loadComponent: () =>
           import('@features/orders/order-list/order-list.component').then((m) => m.OrderListComponent)
