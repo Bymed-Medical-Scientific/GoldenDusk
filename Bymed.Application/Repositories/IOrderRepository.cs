@@ -19,7 +19,12 @@ public interface IOrderRepository
         string? search = null,
         CancellationToken cancellationToken = default);
     Task<OrderAnalyticsResult> GetAnalyticsAsync(DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken = default);
-    IAsyncEnumerable<Order> GetOrdersForExportAsync(OrderStatus? status, DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Order> GetOrdersForExportAsync(
+        OrderStatus? status,
+        DateTime? dateFrom,
+        DateTime? dateTo,
+        string? search = null,
+        CancellationToken cancellationToken = default);
     void Add(Order order);
     void Update(Order order);
 }

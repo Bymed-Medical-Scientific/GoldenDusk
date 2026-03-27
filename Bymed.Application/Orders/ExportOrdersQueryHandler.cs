@@ -19,7 +19,12 @@ public sealed class ExportOrdersQueryHandler : IRequestHandler<ExportOrdersQuery
 
     public Task<IAsyncEnumerable<string>> Handle(ExportOrdersQuery request, CancellationToken cancellationToken)
     {
-        var lines = ExportOrdersAsync(request.Status, request.DateFrom, request.DateTo, cancellationToken);
+        var lines = ExportOrdersAsync(
+            request.Status,
+            request.DateFrom,
+            request.DateTo,
+            request.Search,
+            cancellationToken);
         return Task.FromResult(lines);
     }
 
@@ -27,6 +32,7 @@ public sealed class ExportOrdersQueryHandler : IRequestHandler<ExportOrdersQuery
         OrderStatus? status,
         DateTime? dateFrom,
         DateTime? dateTo,
+        string? search,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var header = "Id,OrderNumber,IdempotencyKey,UserId,Status,CustomerEmail,CustomerName," +
@@ -36,7 +42,7 @@ public sealed class ExportOrdersQueryHandler : IRequestHandler<ExportOrdersQuery
                      "OrderItemId,ProductId,ProductName,ProductImageUrl,Quantity,PricePerUnit,ItemSubtotal";
         yield return header;
 
-        await foreach (var order in _orderRepository.GetOrdersForExportAsync(status, dateFrom, dateTo, cancellationToken))
+        await foreach (var order in _orderRepository.GetOrdersForExportAsync(status, dateFrom, dateTo, search, cancellationToken))
         {
             var sa = order.ShippingAddress;
             var orderPrefix = string.Join(",",

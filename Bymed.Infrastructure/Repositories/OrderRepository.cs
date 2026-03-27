@@ -185,7 +185,12 @@ public class OrderRepository : IOrderRepository
         };
     }
 
-    public async IAsyncEnumerable<Order> GetOrdersForExportAsync(OrderStatus? status, DateTime? dateFrom, DateTime? dateTo, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<Order> GetOrdersForExportAsync(
+        OrderStatus? status,
+        DateTime? dateFrom,
+        DateTime? dateTo,
+        string? search = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var query = _context.Orders
             .AsNoTracking()
@@ -195,9 +200,21 @@ public class OrderRepository : IOrderRepository
         if (status.HasValue)
             query = query.Where(o => o.Status == status.Value);
         if (dateFrom.HasValue)
-            query = query.Where(o => o.CreationTime >= dateFrom.Value);
+            query = query.Where(o => o.CreationTime >= dateFrom.Value.Date);
         if (dateTo.HasValue)
-            query = query.Where(o => o.CreationTime <= dateTo.Value);
+        {
+            var endExclusive = dateTo.Value.Date.AddDays(1);
+            query = query.Where(o => o.CreationTime < endExclusive);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLowerInvariant();
+            query = query.Where(o =>
+                o.OrderNumber.ToLower().Contains(term) ||
+                o.CustomerEmail.ToLower().Contains(term) ||
+                o.CustomerName.ToLower().Contains(term));
+        }
 
         await foreach (var order in query.OrderByDescending(o => o.CreationTime).AsAsyncEnumerable().WithCancellation(cancellationToken))
         {

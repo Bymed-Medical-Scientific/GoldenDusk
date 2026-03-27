@@ -70,6 +70,17 @@
       </mat-form-field>
 
       <div class="filter-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="exportToCsv()"
+          [disabled]="isExporting()"
+          aria-label="Export orders to CSV using current filters"
+        >
+          <mat-icon>download</mat-icon>
+          {{ isExporting() ? 'Exporting…' : 'Export CSV' }}
+        </button>
         <button mat-stroked-button type="button" (click)="clearFilters()">Clear filters</button>
       </div>
     </div>

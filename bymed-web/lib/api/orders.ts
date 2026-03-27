@@ -102,6 +102,7 @@ export type ExportOrdersParams = {
   status?: OrderStatus;
   dateFrom?: string;
   dateTo?: string;
+  search?: string;
 };
 
 /** Returns raw CSV text (admin). */
@@ -112,6 +113,7 @@ export async function exportOrdersCsv(
   if (params.status != null) q.set("status", String(params.status));
   if (params.dateFrom) q.set("dateFrom", params.dateFrom);
   if (params.dateTo) q.set("dateTo", params.dateTo);
+  if (params.search?.trim()) q.set("search", params.search.trim());
   const qs = q.toString();
   const res = await apiFetch(
     apiPath(`/Orders/export${qs ? `?${qs}` : ""}`),

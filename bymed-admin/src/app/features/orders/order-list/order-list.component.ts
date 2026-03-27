@@ -7,11 +7,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { OrderSummaryDto } from '@shared/models';
@@ -34,6 +36,7 @@ type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
     MatInputModule,
     MatPaginatorModule,
     MatSelectModule,
+    MatSnackBarModule,
     MatSortModule,
     MatTableModule,
     PageLoadingComponent,
@@ -44,8 +47,10 @@ type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
 })
 export class OrderListComponent implements OnInit, AfterViewInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly isLoading = signal(true);
+  protected readonly isExporting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
@@ -133,6 +138,42 @@ export class OrderListComponent implements OnInit, AfterViewInit {
     this.dateTo.set('');
     this.pageNumber.set(1);
     this.loadPage();
+  }
+
+  protected exportToCsv(): void {
+    const parsedStatus =
+      this.statusFilter() === 'all' ? null : Number.parseInt(this.statusFilter(), 10);
+    const statusParam =
+      parsedStatus === null || Number.isNaN(parsedStatus) ? null : parsedStatus;
+    const dateFrom = this.dateFrom().trim() || null;
+    const dateTo = this.dateTo().trim() || null;
+    const search = this.searchQuery().trim() || null;
+
+    this.isExporting.set(true);
+    this.adminApi
+      .exportOrders({
+        status: statusParam,
+        dateFrom,
+        dateTo,
+        search
+      })
+      .pipe(
+        catchError((err: unknown) => {
+          const message = err instanceof ApiError ? err.message : 'Could not export orders.';
+          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          return EMPTY;
+        }),
+        finalize(() => this.isExporting.set(false))
+      )
+      .subscribe((blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        this.snackBar.open('Export completed.', 'Dismiss', { duration: 3500 });
+      });
   }
 
   protected onPageChange(event: PageEvent): void {

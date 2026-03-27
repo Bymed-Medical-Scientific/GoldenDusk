@@ -161,6 +161,21 @@ export class AdminApiService {
     );
   }
 
+  /** CSV export; uses the same filters as the order list (admin). */
+  public exportOrders(query?: {
+    readonly status?: number | null;
+    readonly dateFrom?: string | null;
+    readonly dateTo?: string | null;
+    readonly search?: string | null;
+  }): Observable<Blob> {
+    return this.apiService.getBlob('orders/export', {
+      status: query?.status,
+      dateFrom: query?.dateFrom,
+      dateTo: query?.dateTo,
+      search: query?.search
+    });
+  }
+
   public getInventory(): Observable<InventoryItemDto[]> {
     return this.apiService.get<InventoryItemDto[]>('inventory');
   }
