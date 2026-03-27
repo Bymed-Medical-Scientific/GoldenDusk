@@ -103,6 +103,11 @@ public class Product : FullAuditedEntity
         IsAvailable = false;
     }
 
+    public void SetAvailability(bool isAvailable)
+    {
+        IsAvailable = isAvailable;
+    }
+
     private void SetName(string name)
     {
         ArgumentNullException.ThrowIfNull(name);

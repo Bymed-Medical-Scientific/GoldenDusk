@@ -3,6 +3,7 @@ import { AfterViewInit, Component, OnInit, ViewChild, inject, signal } from '@an
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,6 +33,7 @@ type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
     FormsModule,
     GlobalErrorComponent,
     MatButtonModule,
+    MatCheckboxModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -62,6 +64,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly dataSource = new MatTableDataSource<ProductDto>([]);
   protected readonly displayedColumns: string[] = [
+    'select',
     'name',
     'sku',
     'category',
@@ -71,6 +74,8 @@ export class ProductListComponent implements OnInit, AfterViewInit {
     'actions'
   ];
   protected readonly deletingId = signal<string | null>(null);
+  protected readonly isBulkProcessing = signal(false);
+  protected readonly selectedProductIds = signal<Set<string>>(new Set<string>());
   protected readonly totalCount = signal(0);
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);
@@ -197,6 +202,178 @@ export class ProductListComponent implements OnInit, AfterViewInit {
       });
   }
 
+  protected isSelected(productId: string): boolean {
+    return this.selectedProductIds().has(productId);
+  }
+
+  protected isAllRowsSelected(): boolean {
+    const rows = this.dataSource.filteredData;
+    if (rows.length === 0) {
+      return false;
+    }
+
+    const selected = this.selectedProductIds();
+    return rows.every((row) => selected.has(row.id));
+  }
+
+  protected toggleRowSelection(productId: string, checked: boolean): void {
+    const current = new Set(this.selectedProductIds());
+    if (checked) {
+      current.add(productId);
+    } else {
+      current.delete(productId);
+    }
+
+    this.selectedProductIds.set(current);
+  }
+
+  protected toggleAllRowsSelection(checked: boolean): void {
+    if (!checked) {
+      this.selectedProductIds.set(new Set<string>());
+      return;
+    }
+
+    const allIds = this.dataSource.filteredData.map((row) => row.id);
+    this.selectedProductIds.set(new Set(allIds));
+  }
+
+  protected clearSelection(): void {
+    this.selectedProductIds.set(new Set<string>());
+  }
+
+  protected bulkDeleteSelected(): void {
+    const selectedIds = Array.from(this.selectedProductIds());
+    if (selectedIds.length === 0) {
+      this.snackBar.open('Select at least one product.', 'Dismiss', { duration: 4000 });
+      return;
+    }
+
+    const data: ConfirmDialogData = {
+      title: 'Bulk delete products',
+      message: `Delete ${selectedIds.length} selected product(s)? This action deactivates them from the catalog.`,
+      confirmLabel: 'Delete all',
+      confirmColor: 'warn'
+    };
+
+    this.dialog
+      .open(ConfirmDialogComponent, { data, width: 'min(480px, 92vw)' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed !== true) {
+          return;
+        }
+
+        this.isBulkProcessing.set(true);
+        this.adminApi
+          .bulkDeleteProducts({ productIds: selectedIds })
+          .pipe(
+            catchError((err: unknown) => {
+              const message = err instanceof ApiError ? err.message : 'Could not bulk delete products.';
+              this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+              return EMPTY;
+            }),
+            finalize(() => this.isBulkProcessing.set(false))
+          )
+          .subscribe((result) => {
+            this.snackBar.open(
+              `Processed ${result.processedCount}/${result.requestedCount} product(s).`,
+              'Dismiss',
+              { duration: 5000 }
+            );
+            this.clearSelection();
+            this.loadPage();
+          });
+      });
+  }
+
+  protected bulkSetAvailability(isAvailable: boolean): void {
+    const selectedIds = Array.from(this.selectedProductIds());
+    if (selectedIds.length === 0) {
+      this.snackBar.open('Select at least one product.', 'Dismiss', { duration: 4000 });
+      return;
+    }
+
+    this.isBulkProcessing.set(true);
+    this.adminApi
+      .bulkSetProductAvailability({ productIds: selectedIds, isAvailable })
+      .pipe(
+        catchError((err: unknown) => {
+          const message = err instanceof ApiError ? err.message : 'Could not update availability.';
+          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          return EMPTY;
+        }),
+        finalize(() => this.isBulkProcessing.set(false))
+      )
+      .subscribe((result) => {
+        const label = isAvailable ? 'available' : 'unavailable';
+        this.snackBar.open(
+          `Marked ${result.processedCount}/${result.requestedCount} product(s) as ${label}.`,
+          'Dismiss',
+          { duration: 5000 }
+        );
+        this.clearSelection();
+        this.loadPage();
+      });
+  }
+
+  protected exportSelected(): void {
+    const selectedIds = Array.from(this.selectedProductIds());
+
+    this.adminApi
+      .exportProducts(selectedIds.length > 0 ? selectedIds : undefined)
+      .pipe(
+        catchError((err: unknown) => {
+          const message = err instanceof ApiError ? err.message : 'Could not export products.';
+          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          return EMPTY;
+        })
+      )
+      .subscribe((blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'products-export.csv';
+        anchor.click();
+        URL.revokeObjectURL(url);
+
+        this.snackBar.open('Export completed.', 'Dismiss', { duration: 3500 });
+      });
+  }
+
+  protected importProducts(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.isBulkProcessing.set(true);
+    this.adminApi
+      .importProducts(file)
+      .pipe(
+        catchError((err: unknown) => {
+          const message = err instanceof ApiError ? err.message : 'Could not import products.';
+          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.isBulkProcessing.set(false);
+          if (input) {
+            input.value = '';
+          }
+        })
+      )
+      .subscribe((result) => {
+        this.snackBar.open(
+          `Import complete: ${result.importedCount} added, ${result.updatedCount} updated, ${result.failedCount} failed.`,
+          'Dismiss',
+          { duration: 8000 }
+        );
+        this.clearSelection();
+        this.loadPage();
+      });
+  }
+
   private loadPage(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
@@ -230,6 +407,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
         this.dataSource.data = products.items;
         this.dataSource.sort = this.sort ?? null;
         this.applyClientFilter();
+        this.clearSelection();
 
         if (this.paginator) {
           this.paginator.pageIndex = Math.max(products.pageNumber - 1, 0);

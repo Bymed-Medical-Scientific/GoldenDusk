@@ -46,3 +46,25 @@ export interface UpdateProductRequestDto {
   readonly sku?: string | null;
   readonly specifications?: Record<string, string> | null;
 }
+
+export interface BulkDeleteProductsRequestDto {
+  readonly productIds: string[];
+}
+
+export interface BulkSetProductAvailabilityRequestDto {
+  readonly productIds: string[];
+  readonly isAvailable: boolean;
+}
+
+export interface BulkOperationResultDto {
+  readonly requestedCount: number;
+  readonly processedCount: number;
+  readonly notFoundCount: number;
+}
+
+export interface ImportProductsResultDto {
+  readonly importedCount: number;
+  readonly updatedCount: number;
+  readonly failedCount: number;
+  readonly errors: string[];
+}

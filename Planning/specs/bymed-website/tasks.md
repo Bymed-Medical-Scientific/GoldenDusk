@@ -797,10 +797,13 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Display validation errors
     - _Requirements: 6.2, 6.3, 6.4_
   
-  - [ ] 32.3 Implement bulk operations
-    - Add bulk delete functionality
-    - Add bulk availability toggle
-    - Add import/export functionality
+  - [x] 32.3 Implement bulk operations
+    - [x] Add table row selection and select-all support in admin product list
+    - [x] Add bulk delete functionality (UI action + API endpoint + application handler)
+    - [x] Add bulk availability toggle (UI action + API endpoint + application handler)
+    - [x] Add export functionality (CSV endpoint + admin download action)
+    - [x] Add import functionality (CSV upload endpoint + admin upload action)
+    - [x] Add operation result feedback and selection reset behavior in UI
     - _Requirements: 6.2, 6.6_
   
   - [ ]* 32.4 Write unit tests for product management

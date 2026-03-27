@@ -30,7 +30,18 @@ public class ProductRepository : IProductRepository
 
         return await _context.Products
             .AsNoTracking()
+            .Include(p => p.Category)
             .Where(p => ids.Contains(p.Id))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }

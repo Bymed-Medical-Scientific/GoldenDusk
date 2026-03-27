@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using System.Text;
 
 namespace Bymed.API.Controllers;
 
@@ -134,6 +135,110 @@ public sealed class ProductsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>Bulk deactivate products (admin only).</summary>
+    [HttpPost("bulk-delete")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(BulkOperationResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> BulkDelete([FromBody] BulkDeleteProductsRequest request, CancellationToken cancellationToken)
+    {
+        if (request is null || request.ProductIds.Count == 0)
+            return BadRequest(new { error = "At least one product id is required." });
+
+        var result = await _mediator
+            .Send(new BulkDeleteProductsCommand(request.ProductIds), cancellationToken)
+            .ConfigureAwait(false);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(new { error = result.Error });
+    }
+
+    /// <summary>Bulk set availability for products (admin only).</summary>
+    [HttpPatch("bulk-availability")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(BulkOperationResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> BulkAvailability([FromBody] BulkSetProductAvailabilityRequest request, CancellationToken cancellationToken)
+    {
+        if (request is null || request.ProductIds.Count == 0)
+            return BadRequest(new { error = "At least one product id is required." });
+
+        var result = await _mediator
+            .Send(new BulkSetProductAvailabilityCommand(request.ProductIds, request.IsAvailable), cancellationToken)
+            .ConfigureAwait(false);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(new { error = result.Error });
+    }
+
+    /// <summary>Export products as CSV (admin only).</summary>
+    [HttpGet("export")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Export([FromQuery] string? ids, CancellationToken cancellationToken)
+    {
+        IReadOnlyCollection<Guid>? productIds = null;
+        if (!string.IsNullOrWhiteSpace(ids))
+        {
+            var rawIds = ids
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToArray();
+
+            var parsedIds = new List<Guid>(rawIds.Length);
+            foreach (var rawId in rawIds)
+            {
+                if (!Guid.TryParse(rawId, out var id))
+                    return BadRequest(new { error = $"Invalid product id: {rawId}" });
+
+                parsedIds.Add(id);
+            }
+
+            productIds = parsedIds;
+        }
+
+        var result = await _mediator
+            .Send(new ExportProductsCsvQuery(productIds), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.Error });
+
+        var bytes = Encoding.UTF8.GetBytes(result.Value ?? string.Empty);
+        return File(bytes, "text/csv", $"products-export-{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
+    }
+
+    /// <summary>Import products from CSV (admin only).</summary>
+    [HttpPost("import")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(ImportProductsResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Import(IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "CSV file is required." });
+
+        await using var memory = new MemoryStream();
+        await file.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+
+        var result = await _mediator
+            .Send(new ImportProductsCsvCommand(memory.ToArray()), cancellationToken)
+            .ConfigureAwait(false);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(new { error = result.Error });
     }
 
     /// <summary>Upload an image for a product (admin only).</summary>

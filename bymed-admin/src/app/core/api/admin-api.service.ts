@@ -3,8 +3,12 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   CategoryDto,
+  BulkOperationResultDto,
+  BulkDeleteProductsRequestDto,
+  BulkSetProductAvailabilityRequestDto,
   CreateCategoryRequestDto,
   CreateProductRequestDto,
+  ImportProductsResultDto,
   InventoryItemDto,
   OrderDetailDto,
   OrderSummaryDto,
@@ -84,6 +88,31 @@ export class AdminApiService {
 
   public deleteProduct(productId: string): Observable<void> {
     return this.apiService.delete<void>(`products/${productId}`);
+  }
+
+  public bulkDeleteProducts(request: BulkDeleteProductsRequestDto): Observable<BulkOperationResultDto> {
+    return this.apiService.post<BulkDeleteProductsRequestDto, BulkOperationResultDto>('products/bulk-delete', request);
+  }
+
+  public bulkSetProductAvailability(
+    request: BulkSetProductAvailabilityRequestDto
+  ): Observable<BulkOperationResultDto> {
+    return this.apiService.patch<BulkSetProductAvailabilityRequestDto, BulkOperationResultDto>(
+      'products/bulk-availability',
+      request
+    );
+  }
+
+  public exportProducts(productIds?: string[]): Observable<Blob> {
+    return this.apiService.getBlob('products/export', {
+      ids: productIds && productIds.length > 0 ? productIds.join(',') : undefined
+    });
+  }
+
+  public importProducts(file: File): Observable<ImportProductsResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormData<ImportProductsResultDto>('products/import', formData);
   }
 
   public getOrders(pageNumber: number, pageSize: number): Observable<PagedResultDto<OrderSummaryDto>> {

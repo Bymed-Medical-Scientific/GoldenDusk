@@ -69,8 +69,50 @@
       </mat-form-field>
     </div>
 
+    <div class="bulk-actions">
+      <div class="bulk-meta">
+        {{ selectedProductIds().size }} selected
+      </div>
+      <div class="bulk-buttons">
+        <button mat-stroked-button type="button" (click)="bulkSetAvailability(true)" [disabled]="isBulkProcessing()">
+          Mark available
+        </button>
+        <button mat-stroked-button type="button" (click)="bulkSetAvailability(false)" [disabled]="isBulkProcessing()">
+          Mark unavailable
+        </button>
+        <button mat-stroked-button type="button" color="warn" (click)="bulkDeleteSelected()" [disabled]="isBulkProcessing()">
+          Bulk delete
+        </button>
+        <button mat-stroked-button type="button" (click)="exportSelected()">Export CSV</button>
+        <button mat-stroked-button type="button" (click)="importFileInput.click()" [disabled]="isBulkProcessing()">
+          Import CSV
+        </button>
+        <input #importFileInput class="import-input" type="file" accept=".csv,text/csv" (change)="importProducts($event)" />
+        <button mat-button type="button" (click)="clearSelection()" [disabled]="selectedProductIds().size === 0">
+          Clear
+        </button>
+      </div>
+    </div>
+
     <div class="table-wrap mat-elevation-z1">
       <table mat-table [dataSource]="dataSource" matSort class="product-table">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef scope="col">
+            <mat-checkbox
+              [checked]="isAllRowsSelected()"
+              (change)="toggleAllRowsSelection($event.checked)"
+              [aria-label]="'Select all visible products'"
+            />
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="isSelected(row.id)"
+              (change)="toggleRowSelection(row.id, $event.checked)"
+              [attr.aria-label]="'Select product ' + row.name"
+            />
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Product</th>
           <td mat-cell *matCellDef="let row">
