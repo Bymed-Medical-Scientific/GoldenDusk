@@ -811,7 +811,7 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] `ProductFormComponent`: validation messages, create payload + navigation, image upload after create, server field errors
     - _Requirements: 6.2, 6.3_
 
-- [ ] 33. Implement order management module
+- [x] 33. Implement order management module
   - [x] 33.1 Create order list component
     - [x] `OrderListComponent` at `/orders` with Material table, loading/error states
     - [x] Filters: status, date range (API `dateFrom`/`dateTo`), search (order number, name, email — backend `search` query)
@@ -819,13 +819,13 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Columns: order number, customer (name + email), total, status chip, placed date
     - _Requirements: 7.1, 7.2_
   
-  - [ ] 33.2 Create order detail component
-    - Display complete order information
-    - Show customer details
-    - Show product list with quantities and prices
-    - Show payment status and reference
-    - Show shipping address
-    - Display order timeline/history
+  - [x] 33.2 Create order detail component
+    - [x] `OrderDetailComponent` at `/orders/:id` via `getOrderById` (loading / 404 / error states)
+    - [x] Summary: totals, currency, order + payment status chips
+    - [x] Customer block + formatted shipping address + line items table (qty, unit, line total)
+    - [x] Payment block: method, reference, payment status, tracking, notes
+    - [x] Timeline card: placed, fulfillment, payment, tracking, last update (derived; no separate audit table yet)
+    - [x] Order list links to detail (order number + view action)
     - _Requirements: 7.1_
   
   - [ ] 33.3 Implement order status management

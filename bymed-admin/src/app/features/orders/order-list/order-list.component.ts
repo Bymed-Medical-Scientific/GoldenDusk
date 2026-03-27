@@ -9,6 +9,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
@@ -35,7 +36,8 @@ type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
     MatSelectModule,
     MatSortModule,
     MatTableModule,
-    PageLoadingComponent
+    PageLoadingComponent,
+    RouterLink
   ],
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.scss'
@@ -50,7 +52,14 @@ export class OrderListComponent implements OnInit, AfterViewInit {
   protected readonly dateFrom = signal<string>('');
   protected readonly dateTo = signal<string>('');
   protected readonly dataSource = new MatTableDataSource<OrderSummaryDto>([]);
-  protected readonly displayedColumns: string[] = ['orderNumber', 'customer', 'total', 'status', 'created'];
+  protected readonly displayedColumns: string[] = [
+    'orderNumber',
+    'customer',
+    'total',
+    'status',
+    'created',
+    'actions'
+  ];
   protected readonly totalCount = signal(0);
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);

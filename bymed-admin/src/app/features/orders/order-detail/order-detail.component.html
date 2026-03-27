@@ -1,0 +1,223 @@
+@if (isLoading()) {
+  <app-page-loading label="Loading order..." />
+} @else if (notFoundMessage()) {
+  <app-global-error [message]="notFoundMessage() ?? ''" />
+  <p class="actions-row">
+    <a mat-stroked-button routerLink="/orders">
+      <mat-icon>arrow_back</mat-icon>
+      Back to orders
+    </a>
+  </p>
+} @else if (loadError()) {
+  <app-global-error [message]="loadError() ?? ''" />
+  <p class="actions-row">
+    <a mat-stroked-button routerLink="/orders">
+      <mat-icon>arrow_back</mat-icon>
+      Back to orders
+    </a>
+  </p>
+} @else if (order(); as o) {
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Order {{ o.orderNumber }}</h1>
+      <p class="page-subtitle">Placed {{ o.creationTime | date: 'medium' }}</p>
+    </div>
+    <a mat-stroked-button routerLink="/orders">
+      <mat-icon>arrow_back</mat-icon>
+      Back to list
+    </a>
+  </div>
+
+  <div class="detail-grid">
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Summary</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="summary-content">
+        <div class="chip-row">
+          <span class="chip" [ngClass]="orderStatusChipClass(o.status)">
+            {{ orderStatusLabel(o.status) }}
+          </span>
+          <span class="chip chip-payment">{{ paymentStatusLabel(o.paymentStatus) }}</span>
+        </div>
+        <dl class="def-list">
+          <div>
+            <dt>Currency</dt>
+            <dd>{{ o.currency }}</dd>
+          </div>
+          <div>
+            <dt>Subtotal</dt>
+            <dd>{{ o.subtotal | currency: o.currency:'symbol':'1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Tax</dt>
+            <dd>{{ o.tax | currency: o.currency:'symbol':'1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Shipping</dt>
+            <dd>{{ o.shippingCost | currency: o.currency:'symbol':'1.2-2' }}</dd>
+          </div>
+          <mat-divider />
+          <div class="total-row">
+            <dt>Total</dt>
+            <dd>{{ o.total | currency: o.currency:'symbol':'1.2-2' }}</dd>
+          </div>
+          @if (o.exchangeRate && o.exchangeRate !== 1) {
+            <div>
+              <dt>Exchange rate</dt>
+              <dd>{{ o.exchangeRate }}</dd>
+            </div>
+          }
+        </dl>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Customer</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="strong">{{ o.customerName }}</p>
+        <p class="subtext">
+          <a [href]="'mailto:' + o.customerEmail">{{ o.customerEmail }}</a>
+        </p>
+        @if (o.userId) {
+          <p class="subtext">User ID: {{ o.userId }}</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Shipping address</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="strong">{{ o.shippingAddress.name }}</p>
+        @for (line of formatAddress(o); track line) {
+          <p class="addr-line">{{ line }}</p>
+        }
+        <p class="addr-line">{{ o.shippingAddress.phone }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card card-wide">
+      <mat-card-header>
+        <mat-card-title>Line items</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="table-wrap">
+        <table mat-table [dataSource]="o.items" class="lines-table">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef scope="col">Product</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="strong">{{ row.productName }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef scope="col" class="col-num">Qty</th>
+            <td mat-cell *matCellDef="let row" class="col-num">{{ row.quantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="unitPrice">
+            <th mat-header-cell *matHeaderCellDef scope="col" class="col-num">Unit price</th>
+            <td mat-cell *matCellDef="let row" class="col-num">
+              {{ row.pricePerUnit | currency: o.currency:'symbol':'1.2-2' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="lineTotal">
+            <th mat-header-cell *matHeaderCellDef scope="col" class="col-num">Line total</th>
+            <td mat-cell *matCellDef="let row" class="col-num">
+              {{ row.subtotal | currency: o.currency:'symbol':'1.2-2' }}
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="lineColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: lineColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Payment</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="def-list">
+          <div>
+            <dt>Status</dt>
+            <dd>{{ paymentStatusLabel(o.paymentStatus) }}</dd>
+          </div>
+          <div>
+            <dt>Method</dt>
+            <dd>{{ o.paymentMethod }}</dd>
+          </div>
+          <div>
+            <dt>Reference</dt>
+            <dd class="mono">{{ o.paymentReference }}</dd>
+          </div>
+          @if (o.trackingNumber) {
+            <div>
+              <dt>Tracking</dt>
+              <dd>{{ o.trackingNumber }}</dd>
+            </div>
+          }
+          @if (o.notes) {
+            <div>
+              <dt>Notes</dt>
+              <dd class="notes">{{ o.notes }}</dd>
+            </div>
+          }
+        </dl>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card card-wide">
+      <mat-card-header>
+        <mat-card-title>Timeline</mat-card-title>
+        <mat-card-subtitle>Key events for this order (no separate audit log is stored yet).</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="timeline">
+          <li class="timeline-item">
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div>
+              <strong>Order placed</strong>
+              <p class="timeline-meta">{{ o.creationTime | date: 'full' }}</p>
+            </div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div>
+              <strong>Fulfillment status</strong>
+              <p class="timeline-meta">{{ orderStatusLabel(o.status) }}</p>
+            </div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div>
+              <strong>Payment</strong>
+              <p class="timeline-meta">
+                {{ paymentStatusLabel(o.paymentStatus) }} — ref. {{ o.paymentReference }}
+              </p>
+            </div>
+          </li>
+          @if (o.trackingNumber) {
+            <li class="timeline-item">
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <div>
+                <strong>Shipment tracking</strong>
+                <p class="timeline-meta">{{ o.trackingNumber }}</p>
+              </div>
+            </li>
+          }
+          @if (hasMeaningfulLastUpdate(o)) {
+            <li class="timeline-item">
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <div>
+                <strong>Last record update</strong>
+                <p class="timeline-meta">{{ o.lastModificationTime | date: 'full' }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

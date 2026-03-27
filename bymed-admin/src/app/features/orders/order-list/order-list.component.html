@@ -79,7 +79,7 @@
         <ng-container matColumnDef="orderNumber">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
           <td mat-cell *matCellDef="let row">
-            <div class="cell-strong">{{ row.orderNumber }}</div>
+            <a class="order-link cell-strong" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a>
           </td>
         </ng-container>
 
@@ -110,6 +110,15 @@
         <ng-container matColumnDef="created">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Placed</th>
           <td mat-cell *matCellDef="let row">{{ row.creationTime | date: 'medium' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <a mat-icon-button [routerLink]="['/orders', row.id]" aria-label="View order">
+              <mat-icon>visibility</mat-icon>
+            </a>
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
