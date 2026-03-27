@@ -54,3 +54,9 @@ export interface OrderDto {
 export type OrderSummaryDto = OrderDto;
 
 export type OrderDetailDto = OrderDto;
+
+export interface UpdateOrderStatusRequestDto {
+  readonly status: number;
+  readonly trackingNumber?: string | null;
+  readonly notes?: string | null;
+}

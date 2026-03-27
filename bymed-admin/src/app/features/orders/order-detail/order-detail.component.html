@@ -29,6 +29,76 @@
   </div>
 
   <div class="detail-grid">
+    @if (allowedNextOrderStatuses(o.status).length > 0) {
+      <mat-card class="card card-wide">
+        <mat-card-header>
+          <mat-card-title>Update status</mat-card-title>
+          <mat-card-subtitle>Valid transitions follow the fulfillment workflow.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="status-form">
+          <div class="status-form-row">
+            <mat-form-field appearance="outline" class="status-select" subscriptSizing="dynamic">
+              <mat-label>New status</mat-label>
+              <mat-select
+                [ngModel]="selectedNextStatus()"
+                (ngModelChange)="onNextStatusPick($event)"
+                aria-label="Select next order status"
+              >
+                <mat-option [value]="null">Choose next status…</mat-option>
+                @for (s of allowedNextOrderStatuses(o.status); track s) {
+                  <mat-option [value]="s">{{ orderStatusLabel(s) }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            @if (requiresTrackingForShippedSelection()) {
+              <mat-form-field appearance="outline" class="tracking-field" subscriptSizing="dynamic">
+                <mat-label>Tracking number</mat-label>
+                <input
+                  matInput
+                  [ngModel]="trackingDraft()"
+                  (ngModelChange)="trackingDraft.set($event)"
+                  autocomplete="off"
+                  placeholder="Carrier tracking ID"
+                />
+              </mat-form-field>
+            }
+          </div>
+
+          <mat-form-field appearance="outline" class="notes-field full-width" subscriptSizing="dynamic">
+            <mat-label>Notes (optional)</mat-label>
+            <textarea
+              matInput
+              rows="2"
+              [ngModel]="notesDraft()"
+              (ngModelChange)="notesDraft.set($event)"
+              placeholder="Internal notes saved on the order"
+            ></textarea>
+          </mat-form-field>
+
+          @if (statusFormError()) {
+            <p class="status-error" role="alert">{{ statusFormError() }}</p>
+          }
+
+          <div class="status-actions">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="promptApplyStatus(o)"
+              [disabled]="!canApplyStatus()"
+            >
+              @if (isSavingStatus()) {
+                Updating…
+              } @else {
+                Apply status change
+              }
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
     <mat-card class="card">
       <mat-card-header>
         <mat-card-title>Summary</mat-card-title>

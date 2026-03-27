@@ -828,11 +828,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Order list links to detail (order number + view action)
     - _Requirements: 7.1_
   
-  - [ ] 33.3 Implement order status management
-    - Add status update dropdown
-    - Implement status change workflow
-    - Add tracking number input for shipped status
-    - Display confirmation dialog for status changes
+  - [x] 33.3 Implement order status management
+    - [x] Status dropdown on order detail (allowed transitions aligned with backend workflow)
+    - [x] `PUT orders/{id}/status` via `AdminApiService.updateOrderStatus` + optional notes
+    - [x] Tracking number required when moving to **Shipped**; confirmation dialog before apply
+    - [x] Stronger confirm + warn styling when cancelling an order
     - _Requirements: 7.3, 7.4_
   
   - [ ] 33.4 Create order analytics page

@@ -12,6 +12,7 @@ import {
   InventoryItemDto,
   OrderDetailDto,
   OrderSummaryDto,
+  UpdateOrderStatusRequestDto,
   PagedResultDto,
   ProductDto,
   ProductImageDto,
@@ -137,6 +138,16 @@ export class AdminApiService {
 
   public getOrderById(orderId: string): Observable<OrderDetailDto> {
     return this.apiService.get<OrderDetailDto>(`orders/${orderId}`);
+  }
+
+  public updateOrderStatus(
+    orderId: string,
+    request: UpdateOrderStatusRequestDto
+  ): Observable<OrderDetailDto> {
+    return this.apiService.put<UpdateOrderStatusRequestDto, OrderDetailDto>(
+      `orders/${orderId}/status`,
+      request
+    );
   }
 
   public getInventory(): Observable<InventoryItemDto[]> {
