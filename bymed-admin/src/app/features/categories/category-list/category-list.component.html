@@ -1,0 +1,126 @@
+@if (isLoading()) {
+  <app-page-loading label="Loading categories..." />
+} @else {
+  @if (errorMessage()) {
+    <app-global-error [message]="errorMessage() ?? ''" />
+  } @else {
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1 class="page-title">Categories</h1>
+        <p class="page-subtitle">Manage product categories, display order, and visibility.</p>
+      </div>
+      <a mat-flat-button color="primary" routerLink="/categories/new">
+        <mat-icon>add</mat-icon>
+        New category
+      </a>
+    </div>
+
+    <div class="toolbar-filters">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Name, slug, or description"
+          aria-label="Search categories"
+        />
+        @if (searchQuery()) {
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="status-field" subscriptSizing="dynamic">
+        <mat-label>Status</mat-label>
+        <mat-select
+          [ngModel]="statusFilter()"
+          (ngModelChange)="onStatusChange($event)"
+          aria-label="Filter by active status"
+        >
+          <mat-option value="all">All</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="table-wrap mat-elevation-z1">
+      <table mat-table [dataSource]="dataSource" matSort class="category-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Name</th>
+          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="slug">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Slug</th>
+          <td mat-cell *matCellDef="let row">
+            <code class="slug">{{ row.slug }}</code>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="displayOrder">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
+          <td mat-cell *matCellDef="let row">{{ row.displayOrder }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="isActive">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="status-pill" [class.inactive]="!row.isActive">
+              {{ row.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/categories', row.id, 'edit']"
+              matTooltip="Edit category"
+              [attr.aria-label]="'Edit category ' + row.name"
+            >
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button
+              mat-icon-button
+              type="button"
+              color="warn"
+              (click)="deleteCategory(row)"
+              [disabled]="deletingId() === row.id"
+              matTooltip="Delete category"
+              [attr.aria-label]="'Delete category ' + row.name"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+            No categories to display. Adjust filters or create a category.
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        showFirstLastButtons
+        aria-label="Select page of categories"
+      />
+    </div>
+  }
+}

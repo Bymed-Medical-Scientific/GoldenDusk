@@ -29,6 +29,27 @@ export const routes: Routes = [
           import('@features/dashboard/pages/dashboard-page.component').then(
             (m) => m.DashboardPageComponent
           )
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('@features/categories/category-list/category-list.component').then(
+            (m) => m.CategoryListComponent
+          )
+      },
+      {
+        path: 'categories/new',
+        loadComponent: () =>
+          import('@features/categories/category-form-placeholder/category-form-placeholder.component').then(
+            (m) => m.CategoryFormPlaceholderComponent
+          )
+      },
+      {
+        path: 'categories/:id/edit',
+        loadComponent: () =>
+          import('@features/categories/category-form-placeholder/category-form-placeholder.component').then(
+            (m) => m.CategoryFormPlaceholderComponent
+          )
       }
     ]
   },

@@ -1,0 +1,79 @@
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.toolbar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.search-field {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.status-field {
+  flex: 0 1 180px;
+  min-width: 160px;
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.category-table {
+  width: 100%;
+}
+
+.slug {
+  font-size: 0.8125rem;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(63, 81, 181, 0.12);
+  color: #3f51b5;
+
+  &.inactive {
+    background: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.65);
+  }
+}
+
+.col-actions {
+  width: 7rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty-cell {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+}

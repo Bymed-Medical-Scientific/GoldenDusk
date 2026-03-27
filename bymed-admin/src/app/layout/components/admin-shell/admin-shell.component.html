@@ -22,6 +22,15 @@
           <mat-icon matListItemIcon aria-hidden="true">dashboard</mat-icon>
           <span matListItemTitle>Dashboard</span>
         </a>
+        <a
+          mat-list-item
+          routerLink="/categories"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">category</mat-icon>
+          <span matListItemTitle>Categories</span>
+        </a>
       </mat-nav-list>
     </nav>
   </mat-sidenav>

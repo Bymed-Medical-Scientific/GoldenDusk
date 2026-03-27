@@ -21,8 +21,9 @@ import {
 export class AdminApiService {
   public constructor(private readonly apiService: ApiService) {}
 
-  public getCategories(page: number, pageSize: number): Observable<PagedResultDto<CategoryDto>> {
-    return this.apiService.get<PagedResultDto<CategoryDto>>('categories', { page, pageSize });
+  /** Returns all categories (ordered by display order on the server). */
+  public getCategories(): Observable<CategoryDto[]> {
+    return this.apiService.get<CategoryDto[]>('categories');
   }
 
   public createCategory(request: CreateCategoryRequestDto): Observable<CategoryDto> {
