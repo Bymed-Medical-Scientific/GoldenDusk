@@ -848,11 +848,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Generate CSV with all order data
     - _Requirements: 7.6_
   
-  - [ ]* 33.6 Write unit tests for order management
-    - Test order list display
-    - Test filtering
-    - Test status updates
-    - Test analytics calculations
+  - [x]* 33.6 Write unit tests for order management
+    - [x] Test order list display
+    - [x] Test filtering
+    - [x] Test status updates
+    - [x] Test analytics calculations
     - _Requirements: 7.1, 7.2, 7.3, 7.5_
 
 

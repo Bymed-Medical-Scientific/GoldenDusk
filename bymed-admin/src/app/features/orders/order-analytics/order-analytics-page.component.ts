@@ -136,7 +136,8 @@ export class OrderAnalyticsPageComponent implements OnInit {
   }
 }
 
-function aggregateSalesForChart(points: readonly SalesByDayPointDto[], g: ChartGranularity): ChartBar[] {
+/** Exported for unit tests (client-side chart bucketing). */
+export function aggregateSalesForChart(points: readonly SalesByDayPointDto[], g: ChartGranularity): ChartBar[] {
   if (!points.length) {
     return [];
   }
