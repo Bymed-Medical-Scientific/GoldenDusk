@@ -806,11 +806,9 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Add operation result feedback and selection reset behavior in UI
     - _Requirements: 6.2, 6.6_
   
-  - [ ]* 32.4 Write unit tests for product management
-    - Test product list display
-    - Test form validation
-    - Test image upload
-    - Test bulk operations
+  - [x] 32.4 Write unit tests for product management
+    - [x] `ProductListComponent`: load/render, search filter, bulk availability/delete, export/import, error paths
+    - [x] `ProductFormComponent`: validation messages, create payload + navigation, image upload after create, server field errors
     - _Requirements: 6.2, 6.3_
 
 - [ ] 33. Implement order management module
