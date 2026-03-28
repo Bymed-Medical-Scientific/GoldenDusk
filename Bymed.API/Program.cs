@@ -490,7 +490,17 @@ else
 
 
 
-app.UseHttpsRedirection();
+// In Development, skip HTTP→HTTPS redirect so server-side callers (e.g. Next.js SSR to
+// http://127.0.0.1:5084) are not 307'd to HTTPS where Node rejects the dev certificate.
+if (!app.Environment.IsDevelopment())
+
+{
+
+    app.UseHttpsRedirection();
+
+}
+
+
 
 app.UseRequestTimeouts();
 
