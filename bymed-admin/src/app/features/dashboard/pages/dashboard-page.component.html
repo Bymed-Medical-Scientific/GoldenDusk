@@ -75,9 +75,12 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="widget">
+    <mat-card class="widget widget-low-stock" [class.widget-low-stock--active]="lowStockItems().length > 0">
       <mat-card-header>
-        <mat-card-title>Low Stock Alerts</mat-card-title>
+        <mat-card-title>Low stock alerts</mat-card-title>
+        <mat-card-subtitle>
+          Products at or below their threshold. Adjust thresholds on each product edit page.
+        </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         @if (lowStockItems().length) {
@@ -99,6 +102,11 @@
           <p class="empty-text">No low stock alerts.</p>
         }
       </mat-card-content>
+      <mat-card-actions align="end">
+        <a mat-button color="warn" routerLink="/inventory" [queryParams]="{ lowStock: '1' }">
+          View inventory (low stock)
+        </a>
+      </mat-card-actions>
     </mat-card>
 
     <mat-card class="widget">

@@ -23,6 +23,7 @@ import {
   switchMap
 } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { ApiError } from '@core/api/api-error';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
@@ -56,6 +57,7 @@ const GUID_LIKE =
 export class InventoryAdjustPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly adminApi = inject(AdminApiService);
+  private readonly lowStockAlerts = inject(LowStockAlertsService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
@@ -214,6 +216,7 @@ export class InventoryAdjustPageComponent implements OnInit {
         finalize(() => this.isSubmitting.set(false))
       )
       .subscribe((updated) => {
+        this.lowStockAlerts.refresh();
         const prev = this.selectedProduct();
         if (prev && prev.id === updated.productId) {
           this.selectedProduct.set({

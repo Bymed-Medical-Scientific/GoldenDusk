@@ -128,6 +128,7 @@
           <mat-form-field appearance="outline" class="grid-span-2" subscriptSizing="dynamic">
             <mat-label>Low stock threshold</mat-label>
             <input matInput type="number" formControlName="lowStockThreshold" min="0" step="1" />
+            <mat-hint>When on-hand count is at or below this value, the product appears in low-stock alerts.</mat-hint>
             @if (fieldError('lowStockThreshold')) {
               <mat-error>{{ fieldError('lowStockThreshold') }}</mat-error>
             }

@@ -3,6 +3,7 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { InventoryItemDto, OrderSummaryDto, ProductDto } from '@shared/models';
@@ -57,7 +58,10 @@ export class DashboardPageComponent implements OnInit {
       this.popularProducts().length > 0
   );
 
-  public constructor(private readonly adminApiService: AdminApiService) {}
+  public constructor(
+    private readonly adminApiService: AdminApiService,
+    private readonly lowStockAlerts: LowStockAlertsService
+  ) {}
 
   public ngOnInit(): void {
     this.loadDashboardOverview();
@@ -90,11 +94,11 @@ export class DashboardPageComponent implements OnInit {
 
         this.salesSummary.set(this.buildSalesSummary(orderItems));
         this.recentOrders.set(orderItems.slice(0, 5));
-        this.lowStockItems.set(
-          [...inventory]
-            .sort((left, right) => left.inventoryCount - right.inventoryCount)
-            .slice(0, 5)
+        const sortedLow = [...inventory].sort(
+          (left, right) => left.inventoryCount - right.inventoryCount
         );
+        this.lowStockAlerts.items.set(sortedLow);
+        this.lowStockItems.set(sortedLow.slice(0, 5));
         this.popularProducts.set(
           [...products.items]
             .sort((left, right) => right.inventoryCount - left.inventoryCount)

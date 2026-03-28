@@ -20,6 +20,7 @@ import { QuillEditorComponent } from 'ngx-quill';
 import { catchError, EMPTY, finalize, mergeMap, of } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { ApiError, ApiValidationErrorItem } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
@@ -91,6 +92,7 @@ function mapServerPropertyToFormKey(propertyName: string): string {
 export class ProductFormComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly adminApi = inject(AdminApiService);
+  private readonly lowStockAlerts = inject(LowStockAlertsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
@@ -188,7 +190,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
           }),
           finalize(() => this.isSubmitting.set(false))
         )
-        .subscribe(() => void this.router.navigate(['/products']));
+        .subscribe(() => {
+          this.lowStockAlerts.refresh();
+          void this.router.navigate(['/products']);
+        });
       return;
     }
 
@@ -203,7 +208,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         }),
         finalize(() => this.isSubmitting.set(false))
       )
-      .subscribe(() => void this.router.navigate(['/products']));
+      .subscribe(() => {
+        this.lowStockAlerts.refresh();
+        void this.router.navigate(['/products']);
+      });
   }
 
   protected fieldError(controlName: string): string | null {

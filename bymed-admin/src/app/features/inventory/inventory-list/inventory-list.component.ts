@@ -1,7 +1,7 @@
 import { NgClass } from '@angular/common';
 import { AfterViewInit, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,6 +41,7 @@ type StockScopeFilter = 'all' | 'low';
 })
 export class InventoryListComponent implements OnInit, AfterViewInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
@@ -83,6 +84,11 @@ export class InventoryListComponent implements OnInit, AfterViewInit {
           return '';
       }
     };
+
+    const low = this.route.snapshot.queryParamMap.get('lowStock');
+    if (low === '1' || low?.toLowerCase() === 'true') {
+      this.stockScope.set('low');
+    }
 
     this.loadPage();
   }
