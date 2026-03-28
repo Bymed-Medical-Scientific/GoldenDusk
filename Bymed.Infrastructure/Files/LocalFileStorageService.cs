@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Bymed.Application.Common;
 using Bymed.Application.Files;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
@@ -13,6 +14,8 @@ namespace Bymed.Infrastructure.Files;
 
 public sealed class LocalFileStorageService : IFileStorageService
 {
+    private static volatile bool _warnedPublicBaseFallback;
+
     private static readonly (int Width, string Name)[] ImageVariants =
     [
         (150, "thumb"),
@@ -20,13 +23,16 @@ public sealed class LocalFileStorageService : IFileStorageService
     ];
 
     private readonly FileStorageOptions _options;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly ILogger<LocalFileStorageService> _logger;
 
     public LocalFileStorageService(
         IOptions<FileStorageOptions> options,
+        IHostEnvironment hostEnvironment,
         ILogger<LocalFileStorageService> logger)
     {
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -158,7 +164,8 @@ public sealed class LocalFileStorageService : IFileStorageService
 
         if (!Path.IsPathRooted(root))
         {
-            root = Path.GetFullPath(root, AppContext.BaseDirectory);
+            // Must match WebRoot used by UseStaticFiles (content root), not bin/Debug output.
+            root = Path.GetFullPath(root, _hostEnvironment.ContentRootPath);
         }
 
         Directory.CreateDirectory(root);
@@ -187,12 +194,40 @@ public sealed class LocalFileStorageService : IFileStorageService
 
     private string BuildPublicUrl(string folder, string fileName)
     {
-        var baseUrl = NormalizeBaseUrl(_options.PublicBaseUrl);
+        var baseUrl = GetEffectivePublicBaseUrl();
         var relative = $"{folder}/{fileName}";
 
         return string.IsNullOrWhiteSpace(baseUrl)
             ? relative.Replace('\\', '/')
             : $"{baseUrl}{relative}";
+    }
+
+    /// <summary>
+    /// Empty or "/" PublicBaseUrl would emit /original/... while static files live under wwwroot/uploads/.
+    /// </summary>
+    private string GetEffectivePublicBaseUrl()
+    {
+        var raw = _options.PublicBaseUrl?.Trim() ?? string.Empty;
+        var normalized = string.IsNullOrWhiteSpace(raw) ? string.Empty : NormalizeBaseUrl(raw);
+
+        if (!string.IsNullOrEmpty(normalized) && !normalized.Equals("/", StringComparison.Ordinal))
+            return normalized;
+
+        var root = (_options.RootPath ?? string.Empty).Replace('\\', '/').TrimEnd('/');
+        if (root.EndsWith("uploads", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!_warnedPublicBaseFallback)
+            {
+                _warnedPublicBaseFallback = true;
+                _logger.LogWarning(
+                    "FileStorage:PublicBaseUrl is missing or '/'; using '/uploads/' so URLs match RootPath ({RootPath}). Set FileStorage:PublicBaseUrl explicitly.",
+                    _options.RootPath);
+            }
+
+            return "/uploads/";
+        }
+
+        return normalized;
     }
 
     [SuppressMessage("Design", "CA1055:Uri return values should not be strings", Justification = "Public URLs are simple strings for API clients.")]

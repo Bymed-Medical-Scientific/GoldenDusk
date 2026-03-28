@@ -2,6 +2,7 @@ using Bymed.Application.Common;
 using Bymed.Application.Files;
 using Bymed.Infrastructure.Files;
 using FluentAssertions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -28,7 +29,8 @@ public class ImageUploadRoundTripPropertyTests : IDisposable
         });
 
         var logger = Substitute.For<ILogger<LocalFileStorageService>>();
-        IFileStorageService storage = new LocalFileStorageService(options, logger);
+        var hostEnv = Substitute.For<IHostEnvironment>();
+        IFileStorageService storage = new LocalFileStorageService(options, hostEnv, logger);
 
         await using var imageStream = CreateTestPngImage(width: 800, height: 600);
 
