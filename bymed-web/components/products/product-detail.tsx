@@ -1,3 +1,4 @@
+import { ProductDescription } from "@/components/products/product-description";
 import type { ProductCardProduct } from "@/components/products/product-card";
 import { FormattedPrice } from "@/components/price/formatted-price";
 import type { GalleryImage } from "@/lib/catalog/product-gallery-images";
@@ -136,9 +137,7 @@ export function ProductDetail({
 
           <div className="mt-10">
             <h2 className="text-lg font-semibold text-foreground">Description</h2>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-              {product.description}
-            </p>
+            <ProductDescription html={product.description} />
           </div>
 
           {specEntries.length > 0 ? (
