@@ -1,0 +1,29 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=BymedDB;Username=postgres;Password=root123"
+  },
+  "Database": {
+    "ApplyMigrations": true,
+    "SeedDemoData": true
+  },
+  "Email": {
+    "FromAddress": "dev@localhost",
+    "FromName": "Bymed Dev",
+    "Host": "localhost",
+    "Port": 587,
+    "UseSsl": false,
+    "Username": "dev",
+    "Password": "dev",
+    "ContactFormRecipient": "dev@localhost",
+    "PasswordResetBaseUrl": "http://localhost:3000/reset-password"
+  },
+  "Jwt": {
+    "SecretKey": "DEV_ONLY_CHANGE_ME_USE_32_PLUS_CHARS!!"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft.AspNetCore": "Information"
+    }
+  }
+}

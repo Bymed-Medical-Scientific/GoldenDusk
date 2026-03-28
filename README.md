@@ -13,3 +13,7 @@ Set these via environment variables or a secured `appsettings.Production.json` (
 | `Hangfire__DashboardEnabled` | `false` unless you intentionally expose `/hangfire` (Admin JWT/cookie still required by `HangfireAdminAuthorizationFilter`) |
 
 Health probe: `GET /health` (excluded from strict rate limits via `EndpointWhitelist` in `IpRateLimiting`).
+
+## Local API development
+
+`appsettings.json` keeps `ConnectionStrings:DefaultConnection` empty by design. For local runs, copy `Bymed.API/appsettings.Development.json.example` to `Bymed.API/appsettings.Development.json` (gitignored) and set your PostgreSQL connection string, or set the environment variable `ConnectionStrings__DefaultConnection`. Use `ASPNETCORE_ENVIRONMENT=Development` so the Development file is loaded (`dotnet run` from `Bymed.API` does this via `launchSettings.json`).
