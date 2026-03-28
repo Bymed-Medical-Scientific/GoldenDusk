@@ -1,5 +1,5 @@
 import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   AbstractControl,
@@ -79,6 +79,12 @@ export class ContentEditorPageComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Route param slug (for links while editing). */
+  protected readonly routeSlug = toSignal(
+    this.route.paramMap.pipe(map((p) => p.get('slug') ?? '')),
+    { initialValue: '' }
+  );
 
   @ViewChild('quillImageInput') private quillImageInput?: ElementRef<HTMLInputElement>;
   @ViewChild('ogImageInput') private ogImageInput?: ElementRef<HTMLInputElement>;

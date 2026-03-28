@@ -13,4 +13,14 @@ public interface IPageContentRepository
     void Add(PageContentEntity pageContent);
     void Update(PageContentEntity pageContent);
     void AddVersion(ContentVersion version);
+
+    Task<PagedResult<ContentVersion>> GetVersionsForPageAsync(
+        Guid pageContentId,
+        PaginationParams pagination,
+        CancellationToken cancellationToken = default);
+
+    Task<ContentVersion?> GetVersionByIdForPageAsync(
+        Guid versionId,
+        Guid pageContentId,
+        CancellationToken cancellationToken = default);
 }

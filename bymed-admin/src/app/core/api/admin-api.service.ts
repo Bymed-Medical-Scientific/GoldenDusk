@@ -16,6 +16,8 @@ import {
   OrderDetailDto,
   OrderSummaryDto,
   ContentImageUploadDto,
+  ContentVersionDetailDto,
+  ContentVersionSummaryDto,
   PageContentSummaryDto,
   UpdateOrderStatusRequestDto,
   UpdatePageContentRequestDto,
@@ -258,5 +260,30 @@ export class AdminApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.apiService.postFormData<ContentImageUploadDto>('content/images', formData);
+  }
+
+  public getContentVersionHistory(
+    slug: string,
+    pageNumber: number,
+    pageSize: number
+  ): Observable<PagedResultDto<ContentVersionSummaryDto>> {
+    const enc = encodeURIComponent(slug);
+    return this.apiService.get<PagedResultDto<ContentVersionSummaryDto>>(`content/${enc}/versions`, {
+      pageNumber,
+      pageSize
+    });
+  }
+
+  public getContentVersionDetail(slug: string, versionId: string): Observable<ContentVersionDetailDto> {
+    const enc = encodeURIComponent(slug);
+    return this.apiService.get<ContentVersionDetailDto>(`content/${enc}/versions/${versionId}`);
+  }
+
+  public revertContentToVersion(slug: string, versionId: string): Observable<PageContentSummaryDto> {
+    const enc = encodeURIComponent(slug);
+    return this.apiService.post<Record<string, never>, PageContentSummaryDto>(
+      `content/${enc}/versions/${versionId}/revert`,
+      {}
+    );
   }
 }

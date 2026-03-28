@@ -79,4 +79,38 @@ public class PageContentRepository : IPageContentRepository
         ArgumentNullException.ThrowIfNull(version);
         _context.ContentVersions.Add(version);
     }
+
+    public async Task<PagedResult<ContentVersion>> GetVersionsForPageAsync(
+        Guid pageContentId,
+        PaginationParams pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.ContentVersions
+            .AsNoTracking()
+            .Where(v => v.PageContentId == pageContentId)
+            .OrderByDescending(v => v.CreatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+
+        var items = await query
+            .Skip(pagination.Skip)
+            .Take(pagination.PageSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResult<ContentVersion>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+    }
+
+    public async Task<ContentVersion?> GetVersionByIdForPageAsync(
+        Guid versionId,
+        Guid pageContentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.ContentVersions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                v => v.Id == versionId && v.PageContentId == pageContentId,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
 }

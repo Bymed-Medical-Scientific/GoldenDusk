@@ -907,11 +907,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Implement publish/draft workflow
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
   
-  - [ ] 35.3 Implement version history
-    - Display list of previous versions
-    - Show timestamp and author for each version
-    - Allow viewing previous versions
-    - Allow reverting to previous version
+  - [x] 35.3 Implement version history
+    - [x] Display list of previous versions
+    - [x] Show timestamp and author for each version
+    - [x] Allow viewing previous versions
+    - [x] Allow reverting to previous version
     - _Requirements: 8.4_
   
   - [ ]* 35.4 Write unit tests for content management

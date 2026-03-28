@@ -20,6 +20,10 @@
           <mat-icon>arrow_back</mat-icon>
           Back to list
         </a>
+        <a mat-stroked-button [routerLink]="['/content', routeSlug(), 'history']">
+          <mat-icon>history</mat-icon>
+          Version history
+        </a>
         <button mat-stroked-button type="button" (click)="discardChanges()" [disabled]="isSubmitting()">
           Discard changes
         </button>

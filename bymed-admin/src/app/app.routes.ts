@@ -31,6 +31,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'content/:slug/history',
+        loadComponent: () =>
+          import('@features/content/content-history-page/content-history-page.component').then(
+            (m) => m.ContentHistoryPageComponent
+          )
+      },
+      {
         path: 'content/:slug/edit',
         loadComponent: () =>
           import('@features/content/content-editor-page/content-editor-page.component').then(

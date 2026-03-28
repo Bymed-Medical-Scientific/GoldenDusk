@@ -30,3 +30,13 @@ export interface ContentImageUploadDto {
   readonly url: string;
   readonly fileName: string;
 }
+
+export interface ContentVersionSummaryDto {
+  readonly id: string;
+  readonly createdAt: string;
+  readonly createdBy: string;
+}
+
+export interface ContentVersionDetailDto extends ContentVersionSummaryDto {
+  readonly content: string;
+}
