@@ -1,12 +1,13 @@
 import type { NextResponse } from "next/server";
 import { backendApiUrl } from "@/lib/server/backend-url";
 import { applyTokenCookies } from "@/lib/server/apply-auth-cookies";
+import { nodeFetchBymedApi } from "@/lib/server/node-api-fetch";
 import type { RefreshTokenResponse } from "@/types/auth";
 
 export async function refreshTokensWithBackend(
   refreshToken: string,
 ): Promise<RefreshTokenResponse | null> {
-  const res = await fetch(backendApiUrl("/Auth/refresh"), {
+  const res = await nodeFetchBymedApi(backendApiUrl("/Auth/refresh"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),

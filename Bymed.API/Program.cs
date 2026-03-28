@@ -18,6 +18,8 @@ using Bymed.Infrastructure.Email;
 
 using Bymed.Infrastructure.Identity;
 
+using Bymed.Infrastructure.Persistence;
+
 using Hangfire;
 
 using Hangfire.Dashboard;
@@ -28,11 +30,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 using Asp.Versioning;
 
-using Microsoft.AspNetCore.Http.Timeouts;
-
 using Microsoft.AspNetCore.OpenApi;
 
 using Microsoft.AspNetCore.Identity;
+
+using Microsoft.EntityFrameworkCore;
+
+using Microsoft.Extensions.Logging;
 
 using Microsoft.IdentityModel.Tokens;
 
@@ -43,6 +47,8 @@ using Scalar.AspNetCore;
 using Serilog;
 
 using System.Text;
+
+using System.Text.Json.Serialization;
 
 
 
@@ -72,31 +78,21 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 
 
-builder.Services.AddRequestTimeouts(options =>
-
-{
-
-    options.DefaultPolicy = new RequestTimeoutPolicy
-
-    {
-
-        Timeout = TimeSpan.FromSeconds(30),
-
-        TimeoutStatusCode = StatusCodes.Status504GatewayTimeout
-
-    };
-
-});
-
-
-
 builder.Host.UseSerilog((context, configuration) =>
 
     configuration.ReadFrom.Configuration(context.Configuration));
 
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+
+    .AddJsonOptions(options =>
+
+    {
+
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+    });
 
 
 
@@ -112,11 +108,23 @@ var frontendCorsOrigins = builder.Configuration
 
 
 
-// In development, allow localhost if no origins configured
+// In development, allow common local dev servers if no origins configured (Next.js :3000, Angular :4200)
 
 if (builder.Environment.IsDevelopment() && frontendCorsOrigins.Length == 0)
 
-    frontendCorsOrigins = ["http://localhost:3000"];
+    frontendCorsOrigins =
+
+    [
+
+        "http://localhost:3000",
+
+        "https://localhost:3000",
+
+        "http://localhost:4200",
+
+        "https://localhost:4200"
+
+    ];
 
 
 
@@ -438,6 +446,12 @@ using (var scope = app.Services.CreateScope())
 
     await ipPolicyStore.SeedAsync();
 
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var pageLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("PageContentSeeder");
+
+    await PageContentSeeder.SeedAsync(db, pageLogger);
+
 }
 
 
@@ -468,9 +482,17 @@ else
 
 
 
-app.UseHttpsRedirection();
+// In Development, skip HTTP→HTTPS redirect so server-side callers (e.g. Next.js SSR to
+// http://127.0.0.1:5084) are not 307'd to HTTPS where Node rejects the dev certificate.
+if (!app.Environment.IsDevelopment())
 
-app.UseRequestTimeouts();
+{
+
+    app.UseHttpsRedirection();
+
+}
+
+
 
 app.UseIpRateLimiting();
 

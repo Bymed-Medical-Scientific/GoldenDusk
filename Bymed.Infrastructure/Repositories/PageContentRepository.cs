@@ -34,9 +34,12 @@ public class PageContentRepository : IPageContentRepository
 
     public async Task<PagedResult<PageContent>> GetPagedAsync(
         PaginationParams pagination,
+        bool publishedOnly = false,
         CancellationToken cancellationToken = default)
     {
         var query = _context.PageContents.AsNoTracking().AsQueryable();
+        if (publishedOnly)
+            query = query.Where(p => p.PublishedAt != null);
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
@@ -72,6 +75,12 @@ public class PageContentRepository : IPageContentRepository
     {
         ArgumentNullException.ThrowIfNull(pageContent);
         _context.PageContents.Update(pageContent);
+    }
+
+    public void Remove(PageContent pageContent)
+    {
+        ArgumentNullException.ThrowIfNull(pageContent);
+        _context.PageContents.Remove(pageContent);
     }
 
     public void AddVersion(ContentVersion version)

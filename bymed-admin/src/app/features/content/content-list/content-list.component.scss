@@ -69,9 +69,14 @@
 }
 
 .col-actions {
-  width: 7rem;
+  width: 10.5rem;
   text-align: right;
   white-space: nowrap;
+}
+
+.empty-cta {
+  margin-left: 0.5rem;
+  vertical-align: middle;
 }
 
 .empty-cell {

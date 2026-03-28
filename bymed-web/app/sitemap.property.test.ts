@@ -40,7 +40,7 @@ describe("Property 31: sitemap completeness", () => {
           const totalCount = productIds.length;
 
           listProductsMock.mockImplementation(async (params) => {
-            const pageNumber = params.pageNumber ?? 1;
+            const pageNumber = params?.pageNumber ?? 1;
             const pageItems = pages[pageNumber - 1] ?? [];
 
             return {

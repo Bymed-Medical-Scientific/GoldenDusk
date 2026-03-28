@@ -18,7 +18,7 @@ public sealed class GetAllPagesQueryHandler : IRequestHandler<GetAllPagesQuery, 
         var pagination = new PaginationParams(request.PageNumber, request.PageSize);
 
         var paged = await _pageContentRepository
-            .GetPagedAsync(pagination, cancellationToken)
+            .GetPagedAsync(pagination, request.PublishedOnly, cancellationToken)
             .ConfigureAwait(false);
 
         var dtos = paged.Items

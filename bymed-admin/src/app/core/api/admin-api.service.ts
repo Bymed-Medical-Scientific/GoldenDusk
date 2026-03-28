@@ -21,6 +21,7 @@ import {
   ContentVersionSummaryDto,
   PageContentSummaryDto,
   UpdateOrderStatusRequestDto,
+  CreatePageContentRequestDto,
   UpdatePageContentRequestDto,
   PagedResultDto,
   ProductDto,
@@ -254,16 +255,26 @@ export class AdminApiService {
     return this.apiService.get<PagedResultDto<UserSummaryDto>>('users', { pageNumber, pageSize });
   }
 
-  /** CMS pages (About, Services, Contact, etc.), paged. */
+  /** CMS pages including drafts (admin). */
   public getContentPages(pageNumber: number, pageSize: number): Observable<PagedResultDto<PageContentSummaryDto>> {
-    return this.apiService.get<PagedResultDto<PageContentSummaryDto>>('content', {
+    return this.apiService.get<PagedResultDto<PageContentSummaryDto>>('content/manage', {
       pageNumber,
       pageSize
     });
   }
 
   public getPageContentBySlug(slug: string): Observable<PageContentSummaryDto> {
-    return this.apiService.get<PageContentSummaryDto>(`content/${encodeURIComponent(slug)}`);
+    const enc = encodeURIComponent(slug);
+    return this.apiService.get<PageContentSummaryDto>(`content/${enc}/manage`);
+  }
+
+  public createPageContent(request: CreatePageContentRequestDto): Observable<PageContentSummaryDto> {
+    return this.apiService.post<CreatePageContentRequestDto, PageContentSummaryDto>('content', request);
+  }
+
+  public deletePageContent(slug: string): Observable<void> {
+    const enc = encodeURIComponent(slug);
+    return this.apiService.delete<void>(`content/${enc}`);
   }
 
   public updatePageContent(

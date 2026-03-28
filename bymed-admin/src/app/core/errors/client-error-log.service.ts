@@ -31,7 +31,7 @@ export class ClientErrorLogService {
       return EMPTY;
     }
 
-    const url = `${this.apiBaseUrl.replace(/\/+$/, '')}/v1.0/admin/client-errors`;
+    const url = `${this.apiBaseUrl.replace(/\/+$/, '')}/admin/client-errors`;
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`

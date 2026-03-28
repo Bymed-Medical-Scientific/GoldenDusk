@@ -66,7 +66,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     const message =
       e instanceof ApiError
         ? e.message
-        : "We could not load products. Please try again shortly.";
+        : process.env.NODE_ENV === "development" && e instanceof Error
+          ? `We could not load products. ${e.message}`
+          : "We could not load products. Please try again shortly.";
     return (
       <div className="mx-auto max-w-6xl px-4 py-12">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">

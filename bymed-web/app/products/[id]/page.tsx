@@ -4,6 +4,7 @@ import type { ProductCardProduct } from "@/components/products/product-card";
 import { buildProductGalleryImages } from "@/lib/catalog/product-gallery-images";
 import { buildProductJsonLd } from "@/lib/catalog/product-json-ld";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
+import { plainTextFromHtml } from "@/lib/html/plain-text-from-html";
 import { getProductById, listProducts } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/http";
 import { absoluteUrl } from "@/lib/site-url";
@@ -25,10 +26,11 @@ export async function generateMetadata({
   }
   try {
     const product = await getProductById(params.id);
+    const plainDescription = plainTextFromHtml(product.description);
     const description =
-      product.description.length > 160
-        ? `${product.description.slice(0, 157)}…`
-        : product.description;
+      plainDescription.length > 160
+        ? `${plainDescription.slice(0, 157)}…`
+        : plainDescription;
     const gallery = buildProductGalleryImages(product);
     const ogImage = gallery[0]?.url;
 

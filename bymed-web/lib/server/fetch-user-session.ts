@@ -1,4 +1,5 @@
 import { backendApiUrl } from "@/lib/server/backend-url";
+import { nodeFetchBymedApi } from "@/lib/server/node-api-fetch";
 import {
   decodeJwtPayloadJson,
   isJwtExpiredOrMissingSlack,
@@ -11,7 +12,7 @@ import type { UserProfileDto } from "@/types/user";
 export async function fetchProfileWithAccessToken(
   accessToken: string,
 ): Promise<UserProfileDto | null> {
-  const res = await fetch(backendApiUrl("/Users/profile"), {
+  const res = await nodeFetchBymedApi(backendApiUrl("/Users/profile"), {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) return null;

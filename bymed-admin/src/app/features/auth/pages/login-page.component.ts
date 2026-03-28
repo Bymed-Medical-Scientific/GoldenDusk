@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login-page',
@@ -46,15 +47,23 @@ export class LoginPageComponent {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.login(this.loginForm.getRawValue()).subscribe({
-      next: () => {
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
-        void this.router.navigateByUrl(returnUrl);
-      },
-      error: (error: { message?: string }) => {
-        this.errorMessage.set(error.message ?? 'Login failed. Please check your credentials.');
-        this.isSubmitting.set(false);
-      }
-    });
+    this.authService
+      .login(this.loginForm.getRawValue())
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: () => {
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+          void this.router.navigateByUrl(returnUrl).then((navigated) => {
+            if (!navigated) {
+              this.errorMessage.set(
+                'Signed in but access was denied. Ensure this account has the Admin role.'
+              );
+            }
+          });
+        },
+        error: (error: { message?: string }) => {
+          this.errorMessage.set(error.message ?? 'Login failed. Please check your credentials.');
+        }
+      });
   }
 }

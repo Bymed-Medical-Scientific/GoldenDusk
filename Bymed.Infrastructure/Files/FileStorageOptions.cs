@@ -5,6 +5,7 @@ public sealed class FileStorageOptions
     public const string SectionName = "FileStorage";
 
     // Root directory on disk where files will be stored, e.g. "wwwroot/uploads".
+    // Relative paths resolve against IHostEnvironment.ContentRootPath (API project dir), not AppContext.BaseDirectory (bin/).
     public string RootPath { get; set; } = "wwwroot/uploads";
 
     // Base URL used to construct public file URLs, e.g. "https://api.example.com/uploads".

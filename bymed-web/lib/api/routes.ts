@@ -1,6 +1,15 @@
-/** URL prefix; override if the API uses e.g. `/api/v1.0`. */
-export const API_BASE_PATH =
-  process.env.NEXT_PUBLIC_API_BASE_PATH?.replace(/\/$/, "") ?? "/api/v1";
+/** URL prefix for Bymed.API versioned routes (see `Bymed.API` controllers). */
+function normalizeApiBasePath(raw: string | undefined): string {
+  const trimmed = raw?.replace(/\/$/, "").trim();
+  if (!trimmed) return "/api/v1";
+  // `/api` alone would hit unversioned 404s; default to the same version segment as the backend.
+  if (trimmed === "/api") return "/api/v1";
+  return trimmed;
+}
+
+export const API_BASE_PATH = normalizeApiBasePath(
+  process.env.NEXT_PUBLIC_API_BASE_PATH,
+);
 
 export function apiPath(segment: string): string {
   const s = segment.startsWith("/") ? segment : `/${segment}`;

@@ -1,3 +1,4 @@
+import { plainTextFromHtml } from "@/lib/html/plain-text-from-html";
 import type { ProductDto } from "@/types/product";
 
 type ProductJsonLdInput = {
@@ -38,7 +39,7 @@ export function buildProductJsonLd({
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description,
+    description: plainTextFromHtml(product.description),
     offers: offer,
   };
 

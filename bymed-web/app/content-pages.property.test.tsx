@@ -10,24 +10,22 @@ jest.mock("@/lib/api/content", () => ({
   getPageBySlug: jest.fn(async (slug: string) => ({
     id: `${slug}-id`,
     slug,
-    title: slug === "about" ? "About ByMed" : "Services",
-    content: JSON.stringify({
-      introduction: ["Intro"],
-      overview: ["Overview"],
-      mission: ["Mission"],
-      technicalTraining: ["Training"],
-      supportServices: ["Support"],
-      medicalEquipmentRepairs: ["Repairs"],
-      services: ["Service"],
-    }),
+    title: slug,
+    content: "{}",
     metadata: {},
     isPublished: true,
     creationTime: new Date().toISOString(),
   })),
 }));
 
-const AboutPage = require("@/app/about/page").default as () => Promise<JSX.Element>;
-const ServicesPage = require("@/app/services/page").default as () => Promise<JSX.Element>;
+jest.mock("@/lib/site-url", () => ({
+  absoluteUrl: jest.fn((path: string) => `https://bymed.example${path}`),
+}));
+
+const HomePage = require("@/app/page").default as () => Promise<JSX.Element>;
+const CmsBySlugPage = require("@/app/[slug]/page").default as (props: {
+  params: { slug: string };
+}) => Promise<JSX.Element>;
 const ContactPage = require("@/app/contact/page").default as () => JSX.Element;
 
 // Feature: bymed-website, Property 29: HTML Semantic Structure
@@ -35,18 +33,21 @@ describe("Property 29: HTML semantic structure", () => {
   it("for representative content pages, semantic landmarks are present (100 runs)", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom<"about" | "services" | "contact">(
+        fc.constantFrom<"home" | "about" | "services" | "contact">(
+          "home",
           "about",
           "services",
           "contact",
         ),
         async (pageName) => {
           const ui =
-            pageName === "about"
-              ? await AboutPage()
-              : pageName === "services"
-                ? await ServicesPage()
-                : <ContactPage />;
+            pageName === "home"
+              ? await HomePage()
+              : pageName === "about"
+                ? await CmsBySlugPage({ params: { slug: "about" } })
+                : pageName === "services"
+                  ? await CmsBySlugPage({ params: { slug: "services" } })
+                  : <ContactPage />;
           const { container } = render(ui);
 
           expect(container.querySelector("h1")).not.toBeNull();

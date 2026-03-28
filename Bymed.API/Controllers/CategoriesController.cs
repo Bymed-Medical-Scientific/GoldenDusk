@@ -5,6 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace Bymed.API.Controllers;
 
@@ -17,33 +18,39 @@ public sealed class CategoriesController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IValidator<CreateCategoryRequest> _createValidator;
     private readonly IValidator<UpdateCategoryRequest> _updateValidator;
+    private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
     public CategoriesController(
         IMediator mediator,
         IValidator<CreateCategoryRequest> createValidator,
-        IValidator<UpdateCategoryRequest> updateValidator)
+        IValidator<UpdateCategoryRequest> updateValidator,
+        IHostApplicationLifetime hostApplicationLifetime)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
+        _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
     }
 
     /// <summary>List all categories ordered by display order.</summary>
+    /// <remarks>See <see cref="ProductsController.GetAll"/> for why MediatR uses <see cref="IHostApplicationLifetime.ApplicationStopping"/>.</remarks>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IReadOnlyList<CategoryDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll()
     {
-        var list = await _mediator.Send(new GetCategoriesQuery(), cancellationToken).ConfigureAwait(false);
+        var list = await _mediator.Send(new GetCategoriesQuery(), _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         return Ok(list);
     }
 
     /// <summary>Get a category by id.</summary>
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _mediator.Send(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
+        var result = await _mediator.Send(new GetCategoryByIdQuery(id), _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         if (!result.IsSuccess)
             return NotFound(new { error = result.Error });
         return Ok(result.Value);

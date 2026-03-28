@@ -25,6 +25,9 @@ public sealed class GetPageBySlugQueryHandler : IRequestHandler<GetPageBySlugQue
         if (page is null)
             return Result<PageContentDto>.Failure("Page not found.");
 
+        if (!request.AllowUnpublished && !page.IsPublished)
+            return Result<PageContentDto>.Failure("Page not found.");
+
         var dto = new PageContentDto
         {
             Id = page.Id,

@@ -3,4 +3,6 @@ using MediatR;
 
 namespace Bymed.Application.PageContent;
 
-public sealed record GetPageBySlugQuery(string Slug) : IRequest<Result<PageContentDto>>;
+/// <param name="AllowUnpublished">When false, draft pages return not found (public storefront).</param>
+public sealed record GetPageBySlugQuery(string Slug, bool AllowUnpublished = false)
+    : IRequest<Result<PageContentDto>>;

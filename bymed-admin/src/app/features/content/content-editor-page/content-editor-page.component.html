@@ -12,20 +12,28 @@
   } @else {
     <div class="page-header">
       <div>
-        <h1 class="page-title">Edit page</h1>
-        <p class="page-subtitle">Update copy, SEO metadata, and publication status.</p>
+        <h1 class="page-title">{{ isCreateMode() ? 'New page' : 'Edit page' }}</h1>
+        <p class="page-subtitle">
+          @if (isCreateMode()) {
+            Choose a URL slug, add content, then publish when ready. For structured home-style pages, you can paste JSON in the body.
+          } @else {
+            Update copy, SEO metadata, and publication status.
+          }
+        </p>
       </div>
       <div class="header-actions">
         <a mat-stroked-button routerLink="/content">
           <mat-icon>arrow_back</mat-icon>
           Back to list
         </a>
-        <a mat-stroked-button [routerLink]="['/content', routeSlug(), 'history']">
-          <mat-icon>history</mat-icon>
-          Version history
-        </a>
+        @if (!isCreateMode()) {
+          <a mat-stroked-button [routerLink]="['/content', routeSlug(), 'history']">
+            <mat-icon>history</mat-icon>
+            Version history
+          </a>
+        }
         <button mat-stroked-button type="button" (click)="discardChanges()" [disabled]="isSubmitting()">
-          Discard changes
+          {{ isCreateMode() ? 'Reset form' : 'Discard changes' }}
         </button>
         <button
           mat-flat-button
@@ -37,7 +45,7 @@
           @if (isSubmitting()) {
             <mat-spinner diameter="20" />
           } @else {
-            Save
+            {{ isCreateMode() ? 'Create page' : 'Save' }}
           }
         </button>
       </div>

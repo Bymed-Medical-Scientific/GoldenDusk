@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { BYMED_ACCESS_COOKIE } from "@/lib/auth/cookie-names";
 import { requireApiBaseUrl } from "@/lib/server/backend-url";
+import { nodeFetchBymedApi } from "@/lib/server/node-api-fetch";
 import { joinUrl } from "@/lib/url";
 
 export const runtime = "nodejs";
@@ -41,7 +42,7 @@ async function proxy(request: NextRequest, segments: string[] | undefined) {
   const hasBody = !["GET", "HEAD"].includes(method);
   const body = hasBody ? await request.arrayBuffer() : undefined;
 
-  const upstream = await fetch(target, {
+  const upstream = await nodeFetchBymedApi(target, {
     method,
     headers,
     body: body && body.byteLength > 0 ? body : undefined,

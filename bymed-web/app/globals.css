@@ -4,7 +4,7 @@
 
 /*
   Brand palette: primary blue #0000CC, on-primary #FFFFFF, depth #000000.
-  Dark theme uses a slightly lifted blue for contrast on dark surfaces.
+  Same brand primary in dark mode (header and brand surfaces stay #0000CC).
 */
 :root {
   --background: #ffffff;
@@ -24,10 +24,10 @@
   --muted: #18181b;
   --muted-foreground: #a1a1aa;
   --border: #27272a;
-  --brand-primary: #5c5cff;
-  --brand-primary-hover: #7a7aff;
+  --brand-primary: #0000cc;
+  --brand-primary-hover: #0000a8;
   --brand-on-primary: #ffffff;
-  --ring: #818cf8;
+  --ring: #0000cc;
 }
 
 body {

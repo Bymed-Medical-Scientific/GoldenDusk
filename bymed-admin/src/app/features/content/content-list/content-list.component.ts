@@ -9,9 +9,13 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { ApiError } from '@core/api/api-error';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { PageContentSummaryDto } from '@shared/models';
@@ -27,12 +31,14 @@ const CONTENT_LIST_PAGE_SIZE = 100;
     FormsModule,
     GlobalErrorComponent,
     MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
     MatSortModule,
     MatTableModule,
+    MatSnackBarModule,
     MatTooltipModule,
     NgClass,
     TableSkeletonComponent,
@@ -43,6 +49,8 @@ const CONTENT_LIST_PAGE_SIZE = 100;
 })
 export class ContentListComponent implements OnInit, AfterViewInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
@@ -97,6 +105,38 @@ export class ContentListComponent implements OnInit, AfterViewInit {
 
   protected lastActivityIso(row: PageContentSummaryDto): string {
     return row.publishedAt ?? row.creationTime;
+  }
+
+  protected confirmDelete(row: PageContentSummaryDto): void {
+    const data: ConfirmDialogData = {
+      title: 'Delete this page?',
+      message: `Permanently delete “${row.title}” (${row.slug})? Version history will be removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      confirmColor: 'warn'
+    };
+
+    this.dialog
+      .open(ConfirmDialogComponent, { data, width: 'min(440px, 92vw)' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed !== true) {
+          return;
+        }
+        this.adminApi
+          .deletePageContent(row.slug)
+          .pipe(
+            catchError((err: unknown) => {
+              const msg = err instanceof ApiError ? err.message : 'Could not delete the page.';
+              this.snackBar.open(msg, 'Dismiss', { duration: 8000 });
+              return EMPTY;
+            })
+          )
+          .subscribe(() => {
+            this.snackBar.open('Page deleted.', 'Dismiss', { duration: 4000 });
+            this.loadPages();
+          });
+      });
   }
 
   private loadPages(): void {
