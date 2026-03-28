@@ -22,7 +22,7 @@ export class AuthService {
 
   public login(request: LoginRequestDto): Observable<LoginResponseDto> {
     return this.apiService
-      .post<LoginRequestDto, LoginResponseDto>('v1/auth/login', request)
+      .post<LoginRequestDto, LoginResponseDto>('auth/login', request)
       .pipe(tap((response) => this.persistLogin(response)));
   }
 
@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     return this.apiService
-      .post<RefreshTokenRequestDto, void>('v1/auth/logout', { refreshToken })
+      .post<RefreshTokenRequestDto, void>('auth/logout', { refreshToken })
       .pipe(
         catchError(() => of(void 0)),
         tap(() => {
@@ -66,7 +66,7 @@ export class AuthService {
     }
 
     return this.apiService
-      .post<RefreshTokenRequestDto, RefreshTokenResponseDto>('v1/auth/refresh', { refreshToken })
+      .post<RefreshTokenRequestDto, RefreshTokenResponseDto>('auth/refresh', { refreshToken })
       .pipe(
         tap((response) => {
           this.tokenStorage.setAccessToken(response.token);
