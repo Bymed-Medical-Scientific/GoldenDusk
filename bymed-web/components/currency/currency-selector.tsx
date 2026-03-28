@@ -7,9 +7,30 @@ import {
 } from "@/lib/supported-currencies";
 import { useCurrency } from "./currency-context";
 
+function IconCurrency({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+      <path d="M12 18V6" />
+    </svg>
+  );
+}
+
 type CurrencySelectorProps = {
-  /** Header bar: light text on brand. Drawer: dark text on light bg. */
-  variant?: "header" | "drawer";
+  /** Header bar: light text on brand. Drawer: dark text on light bg. headerIcon: icon-only overlay select on brand. */
+  variant?: "header" | "headerIcon" | "drawer";
   className?: string;
   selectId?: string;
 };
@@ -20,6 +41,37 @@ export function CurrencySelector({
   selectId,
 }: CurrencySelectorProps) {
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
+
+  if (variant === "headerIcon") {
+    return (
+      <div className={`relative inline-flex h-10 w-10 shrink-0 ${className}`}>
+        <label htmlFor={selectId} className="sr-only">
+          Currency
+        </label>
+        <div
+          className="pointer-events-none flex h-full w-full items-center justify-center rounded-md border border-white/25 bg-white/10 text-white"
+          aria-hidden
+        >
+          <IconCurrency />
+        </div>
+        <select
+          id={selectId}
+          aria-label="Display currency"
+          value={selectedCurrency}
+          onChange={(e) =>
+            setSelectedCurrency(e.target.value as SupportedCurrencyCode)
+          }
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        >
+          {SUPPORTED_CURRENCY_CODES.map((code) => (
+            <option key={code} value={code}>
+              {code}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
 
   const selectClass =
     variant === "header"
