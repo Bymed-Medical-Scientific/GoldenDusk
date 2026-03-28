@@ -885,11 +885,11 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - [x] Allow setting custom thresholds per product
     - _Requirements: 9.4_
   
-  - [ ]* 34.5 Write unit tests for inventory management
-    - Test inventory list display
-    - Test adjustment form validation
-    - Test history display
-    - Test low stock alerts
+  - [x]* 34.5 Write unit tests for inventory management
+    - [x] Test inventory list display
+    - [x] Test adjustment form validation
+    - [x] Test history display
+    - [x] Test low stock alerts
     - _Requirements: 9.1, 9.4, 9.5_
 
 - [ ] 35. Implement content management module
