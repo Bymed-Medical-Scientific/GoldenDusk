@@ -1,7 +1,10 @@
+/** Mirrors API `InventoryDto` (camelCase JSON). */
 export interface InventoryItemDto {
   readonly productId: string;
-  readonly sku: string;
   readonly productName: string;
-  readonly currentStock: number;
+  readonly sku?: string | null;
+  readonly inventoryCount: number;
   readonly lowStockThreshold: number;
+  readonly isAvailable: boolean;
+  readonly isLowStock: boolean;
 }

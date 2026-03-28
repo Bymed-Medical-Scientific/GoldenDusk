@@ -17,7 +17,7 @@ public sealed class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery
     {
         var pagination = new PaginationParams(request.PageNumber, request.PageSize);
         var pagedProducts = await _productRepository
-            .GetInventoryPagedAsync(pagination, request.LowStockOnly, cancellationToken)
+            .GetInventoryPagedAsync(pagination, request.LowStockOnly, request.Search, cancellationToken)
             .ConfigureAwait(false);
 
         var items = pagedProducts.Items

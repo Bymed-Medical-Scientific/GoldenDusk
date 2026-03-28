@@ -69,7 +69,7 @@ export class DashboardPageComponent implements OnInit {
 
     forkJoin({
       orders: this.adminApiService.getOrders(1, 12),
-      inventory: this.adminApiService.getInventory(),
+      inventory: this.adminApiService.getLowStockInventory(),
       products: this.adminApiService.getProducts(1, 12)
     })
       .pipe(
@@ -91,9 +91,8 @@ export class DashboardPageComponent implements OnInit {
         this.salesSummary.set(this.buildSalesSummary(orderItems));
         this.recentOrders.set(orderItems.slice(0, 5));
         this.lowStockItems.set(
-          inventory
-            .filter((item) => item.currentStock <= item.lowStockThreshold)
-            .sort((left, right) => left.currentStock - right.currentStock)
+          [...inventory]
+            .sort((left, right) => left.inventoryCount - right.inventoryCount)
             .slice(0, 5)
         );
         this.popularProducts.set(

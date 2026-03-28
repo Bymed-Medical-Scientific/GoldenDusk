@@ -176,8 +176,23 @@ export class AdminApiService {
     });
   }
 
-  public getInventory(): Observable<InventoryItemDto[]> {
-    return this.apiService.get<InventoryItemDto[]>('inventory');
+  /** Paged inventory grid (admin). */
+  public getInventory(
+    pageNumber: number,
+    pageSize: number,
+    query?: { readonly lowStockOnly?: boolean; readonly search?: string | null }
+  ): Observable<PagedResultDto<InventoryItemDto>> {
+    return this.apiService.get<PagedResultDto<InventoryItemDto>>('inventory', {
+      pageNumber,
+      pageSize,
+      lowStockOnly: query?.lowStockOnly === true ? true : undefined,
+      search: query?.search?.trim() ? query.search.trim() : undefined
+    });
+  }
+
+  /** All products at or below low-stock threshold (admin). */
+  public getLowStockInventory(): Observable<InventoryItemDto[]> {
+    return this.apiService.get<InventoryItemDto[]>('inventory/low-stock');
   }
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {

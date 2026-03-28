@@ -42,6 +42,15 @@
         </a>
         <a
           mat-list-item
+          routerLink="/inventory"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">warehouse</mat-icon>
+          <span matListItemTitle>Inventory</span>
+        </a>
+        <a
+          mat-list-item
           routerLink="/orders"
           routerLinkActive="active-link"
           [routerLinkActiveOptions]="{ exact: true }"

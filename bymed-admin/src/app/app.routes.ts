@@ -73,6 +73,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'inventory',
+        loadComponent: () =>
+          import('@features/inventory/inventory-list/inventory-list.component').then(
+            (m) => m.InventoryListComponent
+          )
+      },
+      {
         path: 'orders/analytics',
         loadComponent: () =>
           import('@features/orders/order-analytics/order-analytics-page.component').then(

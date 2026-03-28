@@ -32,10 +32,11 @@ public sealed class InventoryController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] bool lowStockOnly = false,
+        [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator
-            .Send(new GetInventoryQuery(pageNumber, pageSize, lowStockOnly), cancellationToken)
+            .Send(new GetInventoryQuery(pageNumber, pageSize, lowStockOnly, search), cancellationToken)
             .ConfigureAwait(false);
         return Ok(result);
     }

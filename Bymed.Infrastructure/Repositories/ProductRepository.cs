@@ -78,11 +78,22 @@ public class ProductRepository : IProductRepository
         return new PagedResult<Product>(items, pagination.PageNumber, pagination.PageSize, totalCount);
     }
 
-    public async Task<PagedResult<Product>> GetInventoryPagedAsync(PaginationParams pagination, bool lowStockOnly = false, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Product>> GetInventoryPagedAsync(
+        PaginationParams pagination,
+        bool lowStockOnly = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Products.AsNoTracking().AsQueryable();
         if (lowStockOnly)
             query = query.Where(p => p.InventoryCount <= p.LowStockThreshold);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLowerInvariant();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                (p.Sku != null && p.Sku.ToLower().Contains(term)));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
         var items = await query
