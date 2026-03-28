@@ -8,6 +8,7 @@ import {
   BulkSetProductAvailabilityRequestDto,
   CreateCategoryRequestDto,
   CreateProductRequestDto,
+  AdjustInventoryRequestDto,
   ImportProductsResultDto,
   InventoryItemDto,
   OrderAnalyticsDto,
@@ -193,6 +194,17 @@ export class AdminApiService {
   /** All products at or below low-stock threshold (admin). */
   public getLowStockInventory(): Observable<InventoryItemDto[]> {
     return this.apiService.get<InventoryItemDto[]>('inventory/low-stock');
+  }
+
+  public adjustInventory(
+    productId: string,
+    request: AdjustInventoryRequestDto
+  ): Observable<InventoryItemDto> {
+    return this.apiService.postWithQuery<AdjustInventoryRequestDto, InventoryItemDto>(
+      'inventory/adjust',
+      request,
+      { productId }
+    );
   }
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {

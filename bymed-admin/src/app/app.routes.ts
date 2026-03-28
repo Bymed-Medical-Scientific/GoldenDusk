@@ -73,6 +73,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'inventory/adjust',
+        loadComponent: () =>
+          import('@features/inventory/inventory-adjust/inventory-adjust-page.component').then(
+            (m) => m.InventoryAdjustPageComponent
+          )
+      },
+      {
         path: 'inventory',
         loadComponent: () =>
           import('@features/inventory/inventory-list/inventory-list.component').then(

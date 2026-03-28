@@ -1,3 +1,8 @@
+export interface AdjustInventoryRequestDto {
+  readonly adjustment: number;
+  readonly reason: string;
+}
+
 /** Mirrors API `InventoryDto` (camelCase JSON). */
 export interface InventoryItemDto {
   readonly productId: string;

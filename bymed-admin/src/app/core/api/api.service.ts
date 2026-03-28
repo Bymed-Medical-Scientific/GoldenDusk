@@ -27,6 +27,16 @@ export class ApiService {
     return this.httpClient.post<TResponse>(this.buildUrl(path), payload);
   }
 
+  public postWithQuery<TRequest, TResponse>(
+    path: string,
+    payload: TRequest,
+    query?: Record<string, string | number | boolean | null | undefined>
+  ): Observable<TResponse> {
+    return this.httpClient.post<TResponse>(this.buildUrl(path), payload, {
+      params: this.toHttpParams(query)
+    });
+  }
+
   public postFormData<TResponse>(path: string, formData: FormData): Observable<TResponse> {
     return this.httpClient.post<TResponse>(this.buildUrl(path), formData);
   }
