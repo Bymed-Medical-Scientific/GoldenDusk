@@ -15,6 +15,7 @@ import {
   OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
+  PageContentSummaryDto,
   UpdateOrderStatusRequestDto,
   PagedResultDto,
   ProductDto,
@@ -227,5 +228,13 @@ export class AdminApiService {
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {
     return this.apiService.get<PagedResultDto<UserSummaryDto>>('users', { pageNumber, pageSize });
+  }
+
+  /** CMS pages (About, Services, Contact, etc.), paged. */
+  public getContentPages(pageNumber: number, pageSize: number): Observable<PagedResultDto<PageContentSummaryDto>> {
+    return this.apiService.get<PagedResultDto<PageContentSummaryDto>>('content', {
+      pageNumber,
+      pageSize
+    });
   }
 }

@@ -1,0 +1,102 @@
+@if (isLoading()) {
+  <app-page-loading label="Loading content pages..." />
+} @else {
+  @if (errorMessage()) {
+    <app-global-error [message]="errorMessage() ?? ''" />
+  } @else {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Website content</h1>
+        <p class="page-subtitle">About, Services, Contact, and other public pages.</p>
+      </div>
+    </div>
+
+    <div class="toolbar-filters">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Title or slug"
+          aria-label="Search content pages"
+        />
+        @if (searchQuery()) {
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="table-wrap mat-elevation-z1">
+      <table mat-table [dataSource]="dataSource" matSort class="content-table">
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Title</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-strong">{{ row.title }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="slug">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Slug</th>
+          <td mat-cell *matCellDef="let row">
+            <code class="slug">{{ row.slug }}</code>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastUpdated">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Last updated</th>
+          <td mat-cell *matCellDef="let row">
+            {{ lastActivityIso(row) | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="chip" [ngClass]="row.isPublished ? 'published' : 'draft'">
+              {{ row.isPublished ? 'Published' : 'Draft' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/content', row.slug, 'edit']"
+              matTooltip="Edit page"
+              [attr.aria-label]="'Edit page ' + row.title"
+            >
+              <mat-icon>edit</mat-icon>
+            </a>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+            No pages match your search.
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        showFirstLastButtons
+        aria-label="Select page of content"
+      />
+    </div>
+  }
+}

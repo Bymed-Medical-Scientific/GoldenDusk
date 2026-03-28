@@ -31,6 +31,20 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'content/:slug/edit',
+        loadComponent: () =>
+          import('@features/content/content-editor-stub/content-editor-stub.component').then(
+            (m) => m.ContentEditorStubComponent
+          )
+      },
+      {
+        path: 'content',
+        loadComponent: () =>
+          import('@features/content/content-list/content-list.component').then(
+            (m) => m.ContentListComponent
+          )
+      },
+      {
         path: 'categories',
         loadComponent: () =>
           import('@features/categories/category-list/category-list.component').then(

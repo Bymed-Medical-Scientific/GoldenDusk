@@ -24,6 +24,16 @@
         </a>
         <a
           mat-list-item
+          routerLink="/content"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">article</mat-icon>
+          <span matListItemTitle>Content</span>
+        </a>
+        <a
+          mat-list-item
           routerLink="/categories"
           routerLinkActive="active-link"
           (click)="isHandset() && sidebar.close()"
