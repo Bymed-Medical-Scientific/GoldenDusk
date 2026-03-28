@@ -1,0 +1,110 @@
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.card-block {
+  margin-bottom: 1.25rem;
+}
+
+.card-content {
+  padding-top: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.option-title {
+  font-weight: 500;
+}
+
+.option-meta {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.selected-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cell-strong {
+  font-weight: 500;
+}
+
+.cell-sub {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.history-table {
+  width: 100%;
+}
+
+.reason-cell {
+  max-width: 280px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.positive {
+  color: #1b5e20;
+  font-weight: 500;
+}
+
+.negative {
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.empty-cell {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.hint {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9375rem;
+}
+
+mat-spinner {
+  display: inline-block;
+  vertical-align: middle;
+}

@@ -18,11 +18,21 @@ public sealed class InventoryLogRepository : IInventoryLogRepository
     public async Task<PagedResult<InventoryLog>> GetPagedByProductIdAsync(
         Guid productId,
         PaginationParams pagination,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.InventoryLogs
             .AsNoTracking()
             .Where(log => log.ProductId == productId);
+
+        if (dateFrom.HasValue)
+            query = query.Where(log => log.CreatedAt >= dateFrom.Value.Date);
+        if (dateTo.HasValue)
+        {
+            var endExclusive = dateTo.Value.Date.AddDays(1);
+            query = query.Where(log => log.CreatedAt < endExclusive);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
         var items = await query

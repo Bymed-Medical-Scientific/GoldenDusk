@@ -11,6 +11,7 @@ import {
   AdjustInventoryRequestDto,
   ImportProductsResultDto,
   InventoryItemDto,
+  InventoryLogEntryDto,
   OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
@@ -204,6 +205,23 @@ export class AdminApiService {
       'inventory/adjust',
       request,
       { productId }
+    );
+  }
+
+  public getInventoryHistory(
+    productId: string,
+    pageNumber: number,
+    pageSize: number,
+    query?: { readonly dateFrom?: string | null; readonly dateTo?: string | null }
+  ): Observable<PagedResultDto<InventoryLogEntryDto>> {
+    return this.apiService.get<PagedResultDto<InventoryLogEntryDto>>(
+      `inventory/history/${productId}`,
+      {
+        pageNumber,
+        pageSize,
+        dateFrom: query?.dateFrom?.trim() ? query.dateFrom.trim() : undefined,
+        dateTo: query?.dateTo?.trim() ? query.dateTo.trim() : undefined
+      }
     );
   }
 

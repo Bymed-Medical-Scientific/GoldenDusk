@@ -17,7 +17,12 @@ public sealed class GetInventoryHistoryQueryHandler : IRequestHandler<GetInvento
     {
         var pagination = new PaginationParams(request.PageNumber, request.PageSize);
         var pagedLogs = await _inventoryLogRepository
-            .GetPagedByProductIdAsync(request.ProductId, pagination, cancellationToken)
+            .GetPagedByProductIdAsync(
+                request.ProductId,
+                pagination,
+                request.DateFrom,
+                request.DateTo,
+                cancellationToken)
             .ConfigureAwait(false);
 
         var dtoItems = pagedLogs.Items

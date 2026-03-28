@@ -80,6 +80,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'inventory/history',
+        loadComponent: () =>
+          import('@features/inventory/inventory-history/inventory-history-page.component').then(
+            (m) => m.InventoryHistoryPageComponent
+          )
+      },
+      {
         path: 'inventory',
         loadComponent: () =>
           import('@features/inventory/inventory-list/inventory-list.component').then(

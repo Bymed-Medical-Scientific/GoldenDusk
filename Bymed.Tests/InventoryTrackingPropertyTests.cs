@@ -160,7 +160,7 @@ public class InventoryTrackingPropertyTests
             result.Value!.InventoryCount.Should().Be(s.Initial + s.Delta);
 
             var logs = sp.GetRequiredService<IInventoryLogRepository>()
-                .GetPagedByProductIdAsync(productId, new PaginationParams(1, 20), CancellationToken.None)
+                .GetPagedByProductIdAsync(productId, new PaginationParams(1, 20), null, null, CancellationToken.None)
                 .GetAwaiter().GetResult();
 
             logs.Items.Should().ContainSingle(log =>
