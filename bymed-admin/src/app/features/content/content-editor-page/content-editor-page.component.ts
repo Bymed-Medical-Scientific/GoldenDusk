@@ -8,7 +8,7 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Data, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -23,7 +23,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
 import Quill from 'quill';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { catchError, distinctUntilChanged, EMPTY, filter, finalize, map, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  EMPTY,
+  filter,
+  finalize,
+  map,
+  startWith,
+  switchMap,
+  tap
+} from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -93,6 +103,18 @@ export class ContentEditorPageComponent implements OnInit {
     { initialValue: '' }
   );
 
+  protected readonly editorMode = toSignal(
+    this.route.data.pipe(
+      map((d: Data) => d['contentEditorMode'] as 'create' | 'edit' | undefined),
+      startWith(this.route.snapshot.data['contentEditorMode'] as 'create' | 'edit' | undefined)
+    ),
+    { initialValue: this.route.snapshot.data['contentEditorMode'] as 'create' | 'edit' | undefined }
+  );
+
+  protected isCreateMode(): boolean {
+    return this.editorMode() === 'create';
+  }
+
   @ViewChild('quillImageInput') private quillImageInput?: ElementRef<HTMLInputElement>;
   @ViewChild('ogImageInput') private ogImageInput?: ElementRef<HTMLInputElement>;
 
@@ -133,6 +155,25 @@ export class ContentEditorPageComponent implements OnInit {
   });
 
   public ngOnInit(): void {
+    if (this.isCreateMode()) {
+      this.lookupSlug = '';
+      this.initError.set(null);
+      this.pageError.set(null);
+      this.isInitializing.set(false);
+      this.isPreview.set(false);
+      this.pageForm.reset({
+        title: '',
+        slug: '',
+        content: '<p></p>',
+        metaTitle: '',
+        metaDescription: '',
+        ogImage: '',
+        isPublished: false
+      });
+      this.pageForm.markAsPristine();
+      return;
+    }
+
     this.route.paramMap
       .pipe(
         map((p) => p.get('slug')),
@@ -270,6 +311,37 @@ export class ContentEditorPageComponent implements OnInit {
   }
 
   protected discardChanges(): void {
+    if (this.isCreateMode()) {
+      if (!this.pageForm.dirty) {
+        return;
+      }
+      const data: ConfirmDialogData = {
+        title: 'Reset new page?',
+        message: 'Clear the form and start over.',
+        confirmLabel: 'Reset',
+        cancelLabel: 'Keep editing',
+        confirmColor: 'warn'
+      };
+      this.dialog
+        .open(ConfirmDialogComponent, { data, width: 'min(440px, 92vw)' })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed === true) {
+            this.pageForm.reset({
+              title: '',
+              slug: '',
+              content: '<p></p>',
+              metaTitle: '',
+              metaDescription: '',
+              ogImage: '',
+              isPublished: false
+            });
+            this.pageForm.markAsPristine();
+          }
+        });
+      return;
+    }
+
     if (!this.lookupSlug) {
       return;
     }
@@ -319,21 +391,63 @@ export class ContentEditorPageComponent implements OnInit {
   protected save(): void {
     this.pageError.set(null);
 
-    if (this.pageForm.invalid || this.isSubmitting() || !this.lookupSlug) {
+    if (this.pageForm.invalid || this.isSubmitting()) {
       this.pageForm.markAllAsTouched();
       return;
     }
 
     const raw = this.pageForm.getRawValue();
+    const metadata = {
+      metaTitle: raw.metaTitle.trim() ? raw.metaTitle.trim() : null,
+      metaDescription: raw.metaDescription.trim() ? raw.metaDescription.trim() : null,
+      ogImage: raw.ogImage.trim() ? raw.ogImage.trim() : null
+    };
+
+    if (this.isCreateMode()) {
+      const createBody = {
+        slug: raw.slug.trim(),
+        title: raw.title.trim(),
+        content: raw.content,
+        metadata,
+        publish: raw.isPublished
+      };
+      this.isSubmitting.set(true);
+      this.adminApi
+        .createPageContent(createBody)
+        .pipe(
+          catchError((err: unknown) => {
+            if (err instanceof ApiError) {
+              if (err.validationErrors?.length) {
+                this.pageError.set(err.validationErrors.map((e) => e.errorMessage).join(' '));
+              } else {
+                this.pageError.set(err.message);
+              }
+              this.snackBar.open(err.message, 'Dismiss', { duration: 8000 });
+            } else {
+              this.pageError.set('Could not create the page. Please try again.');
+              this.snackBar.open('Could not create the page.', 'Dismiss', { duration: 8000 });
+            }
+            return EMPTY;
+          }),
+          finalize(() => this.isSubmitting.set(false))
+        )
+        .subscribe((created) => {
+          this.snackBar.open('Page created.', 'Dismiss', { duration: 4000 });
+          void this.router.navigate(['/content', created.slug, 'edit']);
+        });
+      return;
+    }
+
+    if (!this.lookupSlug) {
+      this.pageForm.markAllAsTouched();
+      return;
+    }
+
     const body = {
       slug: raw.slug.trim(),
       title: raw.title.trim(),
       content: raw.content,
-      metadata: {
-        metaTitle: raw.metaTitle.trim() ? raw.metaTitle.trim() : null,
-        metaDescription: raw.metaDescription.trim() ? raw.metaDescription.trim() : null,
-        ogImage: raw.ogImage.trim() ? raw.ogImage.trim() : null
-      },
+      metadata,
       publishState: raw.isPublished
     };
 

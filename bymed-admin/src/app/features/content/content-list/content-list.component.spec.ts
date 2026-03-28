@@ -31,7 +31,10 @@ describe('ContentListComponent', () => {
   };
 
   beforeEach(async () => {
-    adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', ['getContentPages']);
+    adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', [
+      'getContentPages',
+      'deletePageContent'
+    ]);
     adminApiSpy.getContentPages.and.returnValue(of(paged));
 
     await TestBed.configureTestingModule({

@@ -4,8 +4,12 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Website content</h1>
-        <p class="page-subtitle">About, Services, Contact, and other public pages.</p>
+        <p class="page-subtitle">About, Services, and other public pages. Published pages are served by the storefront with ISR.</p>
       </div>
+      <a mat-flat-button color="primary" routerLink="/content/new">
+        <mat-icon>add</mat-icon>
+        New page
+      </a>
     </div>
 
     <div class="toolbar-filters">
@@ -91,6 +95,15 @@
             >
               <mat-icon>history</mat-icon>
             </a>
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Delete page"
+              [attr.aria-label]="'Delete page ' + row.title"
+              (click)="confirmDelete(row)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           </td>
         </ng-container>
 
@@ -99,7 +112,12 @@
 
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
-            No pages match your search.
+            @if (searchQuery().trim()) {
+              No pages match your search.
+            } @else {
+              <span>No pages yet. Create one to manage storefront content.</span>
+              <a class="empty-cta" mat-button color="primary" routerLink="/content/new">New page</a>
+            }
           </td>
         </tr>
       </table>

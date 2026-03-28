@@ -31,6 +31,14 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'content/new',
+        loadComponent: () =>
+          import('@features/content/content-editor-page/content-editor-page.component').then(
+            (m) => m.ContentEditorPageComponent
+          ),
+        data: { contentEditorMode: 'create' as const }
+      },
+      {
         path: 'content/:slug/history',
         loadComponent: () =>
           import('@features/content/content-history-page/content-history-page.component').then(
@@ -42,7 +50,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@features/content/content-editor-page/content-editor-page.component').then(
             (m) => m.ContentEditorPageComponent
-          )
+          ),
+        data: { contentEditorMode: 'edit' as const }
       },
       {
         path: 'content',

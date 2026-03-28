@@ -16,6 +16,15 @@ export interface PageContentSummaryDto {
   readonly creationTime: string;
 }
 
+/** Request body for `POST /api/v1/content`. */
+export interface CreatePageContentRequestDto {
+  readonly slug: string;
+  readonly title: string;
+  readonly content: string;
+  readonly metadata?: PageMetadataDto | null;
+  readonly publish: boolean;
+}
+
 /** Request body for `PUT /api/v1/content/{slug}`. */
 export interface UpdatePageContentRequestDto {
   readonly slug?: string | null;

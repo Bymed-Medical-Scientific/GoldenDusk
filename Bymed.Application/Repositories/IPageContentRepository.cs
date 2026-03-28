@@ -8,10 +8,14 @@ public interface IPageContentRepository
 {
     Task<PageContentEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<PageContentEntity?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
-    Task<PagedResult<PageContentEntity>> GetPagedAsync(PaginationParams pagination, CancellationToken cancellationToken = default);
+    Task<PagedResult<PageContentEntity>> GetPagedAsync(
+        PaginationParams pagination,
+        bool publishedOnly = false,
+        CancellationToken cancellationToken = default);
     Task<bool> ExistsSlugAsync(string slug, Guid? excludePageId = null, CancellationToken cancellationToken = default);
     void Add(PageContentEntity pageContent);
     void Update(PageContentEntity pageContent);
+    void Remove(PageContentEntity pageContent);
     void AddVersion(ContentVersion version);
 
     Task<PagedResult<ContentVersion>> GetVersionsForPageAsync(

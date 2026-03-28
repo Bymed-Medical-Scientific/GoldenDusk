@@ -596,7 +596,7 @@ export function parseServicesMarketingContent(
         p.supportSectionIntro,
         defaults.supportSectionIntro,
       ),
-      supportPillars: mergedPillars,
+      supportPillars,
       repairSectionTitle: asString(
         p.repairSectionTitle,
         defaults.repairSectionTitle,

@@ -18,6 +18,8 @@ using Bymed.Infrastructure.Email;
 
 using Bymed.Infrastructure.Identity;
 
+using Bymed.Infrastructure.Persistence;
+
 using Hangfire;
 
 using Hangfire.Dashboard;
@@ -31,6 +33,10 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.OpenApi;
 
 using Microsoft.AspNetCore.Identity;
+
+using Microsoft.EntityFrameworkCore;
+
+using Microsoft.Extensions.Logging;
 
 using Microsoft.IdentityModel.Tokens;
 
@@ -439,6 +445,12 @@ using (var scope = app.Services.CreateScope())
     var ipPolicyStore = scope.ServiceProvider.GetRequiredService<IIpPolicyStore>();
 
     await ipPolicyStore.SeedAsync();
+
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var pageLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("PageContentSeeder");
+
+    await PageContentSeeder.SeedAsync(db, pageLogger);
 
 }
 

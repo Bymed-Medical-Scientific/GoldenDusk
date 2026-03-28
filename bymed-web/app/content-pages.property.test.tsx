@@ -23,8 +23,9 @@ jest.mock("@/lib/site-url", () => ({
 }));
 
 const HomePage = require("@/app/page").default as () => Promise<JSX.Element>;
-const AboutPage = require("@/app/about/page").default as () => Promise<JSX.Element>;
-const ServicesPage = require("@/app/services/page").default as () => Promise<JSX.Element>;
+const CmsBySlugPage = require("@/app/[slug]/page").default as (props: {
+  params: { slug: string };
+}) => Promise<JSX.Element>;
 const ContactPage = require("@/app/contact/page").default as () => JSX.Element;
 
 // Feature: bymed-website, Property 29: HTML Semantic Structure
@@ -43,9 +44,9 @@ describe("Property 29: HTML semantic structure", () => {
             pageName === "home"
               ? await HomePage()
               : pageName === "about"
-                ? await AboutPage()
+                ? await CmsBySlugPage({ params: { slug: "about" } })
                 : pageName === "services"
-                  ? await ServicesPage()
+                  ? await CmsBySlugPage({ params: { slug: "services" } })
                   : <ContactPage />;
           const { container } = render(ui);
 

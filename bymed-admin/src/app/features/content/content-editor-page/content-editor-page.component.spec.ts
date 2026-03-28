@@ -48,7 +48,14 @@ describe('ContentEditorPageComponent', () => {
         { provide: AdminApiService, useValue: adminApiSpy },
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: paramMap$.asObservable() }
+          useValue: {
+            paramMap: paramMap$.asObservable(),
+            data: of({ contentEditorMode: 'edit' as const }),
+            snapshot: {
+              data: { contentEditorMode: 'edit' },
+              paramMap: convertToParamMap({ slug: 'about' })
+            }
+          }
         }
       ]
     }).compileComponents();
@@ -161,7 +168,14 @@ describe('ContentEditorPageComponent (not found)', () => {
         { provide: AdminApiService, useValue: adminApiSpy },
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: paramMap$.asObservable() }
+          useValue: {
+            paramMap: paramMap$.asObservable(),
+            data: of({ contentEditorMode: 'edit' as const }),
+            snapshot: {
+              data: { contentEditorMode: 'edit' },
+              paramMap: convertToParamMap({ slug: 'missing' })
+            }
+          }
         }
       ]
     }).compileComponents();

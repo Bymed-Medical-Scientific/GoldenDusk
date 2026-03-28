@@ -21,13 +21,9 @@ const generateHomeMetadata = require("@/app/page").generateMetadata as () => Pro
   description?: unknown;
   openGraph?: { title?: unknown; description?: unknown };
 }>;
-const generateAboutMetadata = require("@/app/about/page").generateMetadata as () => Promise<{
-  title?: unknown;
-  description?: unknown;
-  openGraph?: { title?: unknown; description?: unknown };
-}>;
-const generateServicesMetadata = require("@/app/services/page")
-  .generateMetadata as () => Promise<{
+const generateCmsSlugMetadata = require("@/app/[slug]/page").generateMetadata as (opts: {
+  params: { slug: string };
+}) => Promise<{
   title?: unknown;
   description?: unknown;
   openGraph?: { title?: unknown; description?: unknown };
@@ -72,9 +68,9 @@ describe("Property 30: Page metadata completeness", () => {
           const metadata =
             slug === "home"
               ? await generateHomeMetadata()
-              : slug === "about"
-                ? await generateAboutMetadata()
-                : await generateServicesMetadata();
+              : await generateCmsSlugMetadata({
+                  params: { slug: slug === "about" ? "about" : "services" },
+                });
 
           const title =
             typeof metadata.title === "string"
