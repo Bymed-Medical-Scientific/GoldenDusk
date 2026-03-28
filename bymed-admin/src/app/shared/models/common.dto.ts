@@ -1,6 +1,6 @@
 export interface PagedResultDto<TItem> {
   readonly items: TItem[];
-  readonly page: number;
+  readonly pageNumber: number;
   readonly pageSize: number;
   readonly totalCount: number;
   readonly totalPages: number;

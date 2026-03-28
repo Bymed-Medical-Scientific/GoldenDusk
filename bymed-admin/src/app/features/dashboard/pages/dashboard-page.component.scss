@@ -5,6 +5,11 @@
   margin-bottom: 1rem;
 }
 
+.quick-actions--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -17,6 +22,11 @@
 
 .widget-sales {
   min-height: auto;
+}
+
+.widget-low-stock--active {
+  border: 1px solid rgba(180, 83, 9, 0.45);
+  box-shadow: 0 2px 10px rgba(180, 83, 9, 0.12);
 }
 
 .summary-grid {

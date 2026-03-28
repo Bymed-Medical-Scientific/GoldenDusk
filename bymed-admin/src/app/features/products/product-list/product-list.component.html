@@ -1,0 +1,217 @@
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Products</h1>
+        <p class="page-subtitle">Manage catalog products, inventory, and availability.</p>
+      </div>
+      <a mat-flat-button color="primary" routerLink="/products/new">
+        <mat-icon>add</mat-icon>
+        New product
+      </a>
+    </div>
+
+    <div class="toolbar-filters">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Name, SKU, or category"
+          aria-label="Search products"
+        />
+        @if (searchQuery()) {
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Category</mat-label>
+        <mat-select [ngModel]="selectedCategoryId()" (ngModelChange)="onCategoryChange($event)">
+          <mat-option value="all">All categories</mat-option>
+          @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Availability</mat-label>
+        <mat-select [ngModel]="availabilityFilter()" (ngModelChange)="onAvailabilityChange($event)">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="available">Available</mat-option>
+          <mat-option value="unavailable">Unavailable</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Stock level</mat-label>
+        <mat-select [ngModel]="stockFilter()" (ngModelChange)="onStockFilterChange($event)">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="in-stock">In stock</mat-option>
+          <mat-option value="out-of-stock">Out of stock</mat-option>
+          <mat-option value="low-stock">Low stock</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (importUploadProgress() !== null) {
+      <div class="import-progress mat-elevation-z1">
+        <span class="import-progress-label">Uploading import file…</span>
+        <mat-progress-bar mode="determinate" [value]="importUploadProgress()!" />
+      </div>
+    }
+
+    <div class="bulk-actions">
+      <div class="bulk-meta">
+        {{ selectedProductIds().size }} selected
+      </div>
+      <div class="bulk-buttons">
+        <button mat-stroked-button type="button" (click)="bulkSetAvailability(true)" [disabled]="isBulkProcessing()">
+          Mark available
+        </button>
+        <button mat-stroked-button type="button" (click)="bulkSetAvailability(false)" [disabled]="isBulkProcessing()">
+          Mark unavailable
+        </button>
+        <button mat-stroked-button type="button" color="warn" (click)="bulkDeleteSelected()" [disabled]="isBulkProcessing()">
+          Bulk delete
+        </button>
+        <button mat-stroked-button type="button" (click)="exportSelected()">Export CSV</button>
+        <button mat-stroked-button type="button" (click)="importFileInput.click()" [disabled]="isBulkProcessing()">
+          Import CSV
+        </button>
+        <input #importFileInput class="import-input" type="file" accept=".csv,text/csv" (change)="importProducts($event)" />
+        <button mat-button type="button" (click)="clearSelection()" [disabled]="selectedProductIds().size === 0">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="pageSize()"
+          ariaLabel="Loading products"
+        />
+      } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="product-table">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef scope="col">
+            <mat-checkbox
+              [checked]="isAllRowsSelected()"
+              (change)="toggleAllRowsSelection($event.checked)"
+              [aria-label]="'Select all visible products'"
+            />
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="isSelected(row.id)"
+              (change)="toggleRowSelection(row.id, $event.checked)"
+              [attr.aria-label]="'Select product ' + row.name"
+            />
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Product</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-strong">{{ row.name }}</div>
+            @if (row.slug) {
+              <div class="cell-subtext">/{{ row.slug }}</div>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="sku">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">SKU</th>
+          <td mat-cell *matCellDef="let row">{{ row.sku ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Category</th>
+          <td mat-cell *matCellDef="let row">{{ row.categoryName ?? resolveCategoryName(row.categoryId) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Price</th>
+          <td mat-cell *matCellDef="let row">{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="inventory">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Stock</th>
+          <td mat-cell *matCellDef="let row">
+            <span>{{ row.inventoryCount }}</span>
+            @if (row.inventoryCount > 0 && row.inventoryCount <= row.lowStockThreshold) {
+              <span class="chip chip-warn">Low</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="availability">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Availability</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="chip" [class.chip-muted]="!row.isAvailable">
+              {{ row.isAvailable ? 'Available' : 'Unavailable' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <a
+              mat-icon-button
+              [routerLink]="['/products', row.id, 'edit']"
+              matTooltip="Edit product"
+              [attr.aria-label]="'Edit product ' + row.name"
+            >
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button
+              mat-icon-button
+              type="button"
+              color="warn"
+              (click)="deleteProduct(row)"
+              [disabled]="deletingId() === row.id"
+              matTooltip="Delete product"
+              [attr.aria-label]="'Delete product ' + row.name"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+            No products match your filters.
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalCount()"
+        [pageIndex]="pageNumber() - 1"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        showFirstLastButtons
+        aria-label="Select page of products"
+        (page)="onPageChange($event)"
+      />
+      }
+    </div>
+}

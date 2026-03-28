@@ -1,5 +1,10 @@
 @if (isLoading()) {
-  <app-page-loading label="Loading dashboard overview..." />
+  <section class="quick-actions quick-actions--disabled" aria-hidden="true">
+    <button mat-raised-button disabled type="button">New Product</button>
+    <button mat-stroked-button disabled type="button">New Category</button>
+    <button mat-stroked-button disabled type="button">View Orders</button>
+  </section>
+  <app-dashboard-skeleton />
 } @else {
   @if (errorMessage()) {
     <app-global-error [message]="errorMessage() ?? ''" />
@@ -58,11 +63,13 @@
               <li class="list-row">
                 <div>
                   <strong>{{ order.orderNumber }}</strong>
-                  <p class="list-subtext">{{ order.createdAtUtc | date: 'medium' }}</p>
+                  <p class="list-subtext">{{ order.creationTime | date: 'medium' }}</p>
                 </div>
                 <div class="row-right">
-                  <span>{{ order.totalAmount | currency: order.currency:'symbol':'1.2-2' }}</span>
-                  <span class="chip" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+                  <span>{{ order.total | currency: order.currency:'symbol':'1.2-2' }}</span>
+                  <span class="chip" [ngClass]="orderStatusChipClass(order.status)">{{
+                    orderStatusLabel(order.status)
+                  }}</span>
                 </div>
               </li>
             }
@@ -73,9 +80,12 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="widget">
+    <mat-card class="widget widget-low-stock" [class.widget-low-stock--active]="lowStockItems().length > 0">
       <mat-card-header>
-        <mat-card-title>Low Stock Alerts</mat-card-title>
+        <mat-card-title>Low stock alerts</mat-card-title>
+        <mat-card-subtitle>
+          Products at or below their threshold. Adjust thresholds on each product edit page.
+        </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         @if (lowStockItems().length) {
@@ -87,7 +97,7 @@
                   <p class="list-subtext">SKU: {{ item.sku }}</p>
                 </div>
                 <div class="row-right">
-                  <span>{{ item.currentStock }} left</span>
+                  <span>{{ item.inventoryCount }} left</span>
                   <span class="list-subtext">Threshold: {{ item.lowStockThreshold }}</span>
                 </div>
               </li>
@@ -97,6 +107,11 @@
           <p class="empty-text">No low stock alerts.</p>
         }
       </mat-card-content>
+      <mat-card-actions align="end">
+        <a mat-button color="warn" routerLink="/inventory" [queryParams]="{ lowStock: '1' }">
+          View inventory (low stock)
+        </a>
+      </mat-card-actions>
     </mat-card>
 
     <mat-card class="widget">
@@ -114,7 +129,7 @@
                 </div>
                 <div class="row-right">
                   <span>{{ product.price | currency: product.currency:'symbol':'1.2-2' }}</span>
-                  <span class="list-subtext">Stock: {{ product.stockQuantity }}</span>
+                  <span class="list-subtext">Stock: {{ product.inventoryCount }}</span>
                 </div>
               </li>
             }

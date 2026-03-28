@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
@@ -16,8 +16,37 @@ export class ApiService {
     return this.httpClient.get<TResponse>(this.buildUrl(path), { params: this.toHttpParams(query) });
   }
 
+  public getBlob(path: string, query?: Record<string, string | number | boolean | null | undefined>): Observable<Blob> {
+    return this.httpClient.get(this.buildUrl(path), {
+      params: this.toHttpParams(query),
+      responseType: 'blob'
+    });
+  }
+
   public post<TRequest, TResponse>(path: string, payload: TRequest): Observable<TResponse> {
     return this.httpClient.post<TResponse>(this.buildUrl(path), payload);
+  }
+
+  public postWithQuery<TRequest, TResponse>(
+    path: string,
+    payload: TRequest,
+    query?: Record<string, string | number | boolean | null | undefined>
+  ): Observable<TResponse> {
+    return this.httpClient.post<TResponse>(this.buildUrl(path), payload, {
+      params: this.toHttpParams(query)
+    });
+  }
+
+  public postFormData<TResponse>(path: string, formData: FormData): Observable<TResponse> {
+    return this.httpClient.post<TResponse>(this.buildUrl(path), formData);
+  }
+
+  /** Multipart POST with upload progress events (for large files). */
+  public postFormDataWithProgress<TResponse>(path: string, formData: FormData): Observable<HttpEvent<TResponse>> {
+    return this.httpClient.post<TResponse>(this.buildUrl(path), formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 
   public put<TRequest, TResponse>(path: string, payload: TRequest): Observable<TResponse> {

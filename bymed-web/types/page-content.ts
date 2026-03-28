@@ -20,6 +20,8 @@ export type UpdatePageContentRequest = {
   title?: string | null;
   content?: string | null;
   metadata?: PageMetadataDto | null;
+  /** Admin: publish or unpublish when combined with save. */
+  publishState?: boolean | null;
 };
 
 export type ContentImageUploadDto = {

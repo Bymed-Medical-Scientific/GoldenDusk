@@ -23,6 +23,7 @@ public sealed class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery
                 status: request.Status,
                 dateFrom: request.DateFrom,
                 dateTo: request.DateTo,
+                search: request.Search,
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 

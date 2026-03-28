@@ -18,3 +18,7 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
   background: #f7f8fc;
 }
+
+.admin-error-snackbar .mdc-snackbar__surface {
+  background-color: #5f2120 !important;
+}

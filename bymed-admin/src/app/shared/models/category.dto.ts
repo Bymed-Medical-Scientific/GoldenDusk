@@ -4,7 +4,6 @@ export interface CategoryDto {
   readonly slug: string;
   readonly description?: string;
   readonly displayOrder: number;
-  readonly isActive: boolean;
 }
 
 export interface CreateCategoryRequestDto {
@@ -19,5 +18,4 @@ export interface UpdateCategoryRequestDto {
   readonly slug: string;
   readonly description?: string;
   readonly displayOrder: number;
-  readonly isActive: boolean;
 }

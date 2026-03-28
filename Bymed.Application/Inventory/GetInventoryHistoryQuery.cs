@@ -6,4 +6,6 @@ namespace Bymed.Application.Inventory;
 public sealed record GetInventoryHistoryQuery(
     Guid ProductId,
     int PageNumber,
-    int PageSize) : IRequest<PagedResult<InventoryLogDto>>;
+    int PageSize,
+    DateTime? DateFrom = null,
+    DateTime? DateTo = null) : IRequest<PagedResult<InventoryLogDto>>;

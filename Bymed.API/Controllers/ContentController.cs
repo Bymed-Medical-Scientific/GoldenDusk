@@ -70,6 +70,87 @@ public sealed class ContentController : ControllerBase
         return Created(string.Empty, result.Value);
     }
 
+    /// <summary>List saved content snapshots for a page (admin only).</summary>
+    [HttpGet("{slug}/versions")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(PagedResult<ContentVersionSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetVersions(
+        string slug,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator
+            .Send(new GetPageContentVersionsQuery(slug ?? string.Empty, pageNumber, pageSize), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error is "Page not found.")
+                return NotFound(new { error = result.Error });
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>Get one version including HTML body (admin only).</summary>
+    [HttpGet("{slug}/versions/{versionId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(ContentVersionDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetVersionDetail(
+        string slug,
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator
+            .Send(new GetPageContentVersionDetailQuery(slug ?? string.Empty, versionId), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error is "Page not found." or "Version not found.")
+                return NotFound(new { error = result.Error });
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>Restore page body from a snapshot; records a new version first (admin only).</summary>
+    [HttpPost("{slug}/versions/{versionId:guid}/revert")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    [ProducesResponseType(typeof(PageContentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> RevertToVersion(
+        string slug,
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        var modifiedBy = ResolveModifiedBy();
+        var result = await _mediator
+            .Send(new RevertPageContentToVersionCommand(slug ?? string.Empty, versionId, modifiedBy), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error is "Page not found." or "Version not found.")
+                return NotFound(new { error = result.Error });
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
     /// <summary>Get page content by slug.</summary>
     [HttpGet("{slug}")]
     [ProducesResponseType(typeof(PageContentDto), StatusCodes.Status200OK)]

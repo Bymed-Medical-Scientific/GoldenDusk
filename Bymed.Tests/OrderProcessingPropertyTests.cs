@@ -204,13 +204,13 @@ public class OrderProcessingPropertyTests
             var handler = new GetAllOrdersQueryHandler(sp.GetRequiredService<IOrderRepository>());
             var now = DateTime.UtcNow;
             var filtered = handler.Handle(
-                new GetAllOrdersQuery(1, 100, OrderStatus.Processing, now.AddDays(-1), now.AddDays(1)),
+                new GetAllOrdersQuery(1, 100, OrderStatus.Processing, now.AddDays(-1), now.AddDays(1), null),
                 CancellationToken.None).GetAwaiter().GetResult();
             filtered.Items.Should().OnlyContain(o => o.Status == OrderStatus.Processing);
             filtered.Items.Should().ContainSingle(o => o.Id == orderA.Id);
 
             var future = handler.Handle(
-                new GetAllOrdersQuery(1, 100, null, now.AddDays(10), now.AddDays(11)),
+                new GetAllOrdersQuery(1, 100, null, now.AddDays(10), now.AddDays(11), null),
                 CancellationToken.None).GetAwaiter().GetResult();
             future.Items.Should().BeEmpty();
             return true;

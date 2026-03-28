@@ -144,10 +144,11 @@ public sealed class OrdersController : ControllerBase
         [FromQuery] OrderStatus? status = null,
         [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null,
+        [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator
-            .Send(new GetAllOrdersQuery(pageNumber, pageSize, status, dateFrom, dateTo), cancellationToken)
+            .Send(new GetAllOrdersQuery(pageNumber, pageSize, status, dateFrom, dateTo, search), cancellationToken)
             .ConfigureAwait(false);
         return Ok(result);
     }
@@ -176,10 +177,11 @@ public sealed class OrdersController : ControllerBase
         [FromQuery] OrderStatus? status = null,
         [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null,
+        [FromQuery] string? search = null,
         CancellationToken cancellationToken = default)
     {
         var lines = await _mediator
-            .Send(new ExportOrdersQuery(status, dateFrom, dateTo), cancellationToken)
+            .Send(new ExportOrdersQuery(status, dateFrom, dateTo, search), cancellationToken)
             .ConfigureAwait(false);
 
         return new StreamWriterResult(lines, cancellationToken);

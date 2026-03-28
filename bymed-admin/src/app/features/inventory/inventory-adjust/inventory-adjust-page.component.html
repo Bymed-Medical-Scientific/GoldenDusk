@@ -1,0 +1,124 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Adjust inventory</h1>
+    <p class="page-subtitle">Search for a product, set the new stock count, and record a reason.</p>
+  </div>
+  <a mat-stroked-button routerLink="/inventory">
+    <mat-icon>arrow_back</mat-icon>
+    Back to inventory
+  </a>
+</div>
+
+@if (pageError()) {
+  <app-global-error [message]="pageError() ?? ''" />
+}
+
+<mat-card class="card-block">
+  <mat-card-header>
+    <mat-card-title>Product</mat-card-title>
+    <mat-card-subtitle>Type at least two characters to search by name or SKU.</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content class="card-content">
+    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+      <mat-label>Find product</mat-label>
+      <input
+        matInput
+        type="search"
+        [formControl]="productSearch"
+        [matAutocomplete]="productAuto"
+        aria-label="Search products for inventory adjustment"
+      />
+      @if (isSearchingProducts()) {
+        <mat-spinner matSuffix diameter="20" />
+      }
+      <mat-autocomplete #productAuto="matAutocomplete" (optionSelected)="onProductOptionSelected($event)">
+        @for (p of searchResults(); track p.id) {
+          <mat-option [value]="p.id">
+            <span class="option-title">{{ p.name }}</span>
+            <span class="option-meta"> · SKU {{ p.sku }} · {{ p.inventoryCount }} in stock</span>
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    @if (selectedProduct(); as p) {
+      <div class="selected-summary mat-elevation-z1">
+        <div class="summary-row">
+          <span class="summary-label">Current stock</span>
+          <span class="summary-value">{{ p.inventoryCount }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Low stock at</span>
+          <span class="summary-value">{{ p.lowStockThreshold }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Available for sale</span>
+          <span class="summary-value">{{ p.isAvailable ? 'Yes' : 'No' }}</span>
+        </div>
+        <button mat-button type="button" (click)="clearProductSelection()">
+          Clear product
+        </button>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="card-block" [class.disabled-card]="!selectedProduct()">
+  <mat-card-header>
+    <mat-card-title>Adjustment</mat-card-title>
+    <mat-card-subtitle>New total on-hand count after this change (not a delta).</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content class="card-content" [formGroup]="adjustForm">
+    <mat-form-field appearance="outline" class="half-width" subscriptSizing="dynamic">
+      <mat-label>New stock count</mat-label>
+      <input
+        matInput
+        type="number"
+        min="0"
+        formControlName="newStockCount"
+        [disabled]="!selectedProduct()"
+      />
+      @if (adjustForm.controls.newStockCount.hasError('required') && adjustForm.controls.newStockCount.touched) {
+        <mat-error>Required</mat-error>
+      }
+      @if (adjustForm.controls.newStockCount.hasError('min')) {
+        <mat-error>Cannot be negative</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+      <mat-label>Reason</mat-label>
+      <textarea
+        matInput
+        formControlName="reason"
+        rows="3"
+        [maxlength]="reasonMaxLength"
+        [disabled]="!selectedProduct()"
+        placeholder="e.g. Stock count, damaged goods, return from customer"
+      ></textarea>
+      <mat-hint align="end">{{ reasonLength() }} / {{ reasonMaxLength }}</mat-hint>
+      @if (adjustForm.controls.reason.hasError('required') && adjustForm.controls.reason.touched) {
+        <mat-error>Reason is required</mat-error>
+      }
+      @if (adjustForm.controls.reason.hasError('maxlength')) {
+        <mat-error>Reason is too long</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="promptSubmit()"
+        [disabled]="!selectedProduct() || adjustForm.invalid || isSubmitting()"
+      >
+        @if (isSubmitting()) {
+          <mat-spinner diameter="22" />
+        } @else {
+          Review and apply
+        }
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -61,6 +61,17 @@ public sealed class UpdatePageContentCommandHandler : IRequestHandler<UpdatePage
 
         page.Update(newSlug, newTitle, newContent, newMetadata);
 
+        if (req.PublishState == true)
+        {
+            if (!page.IsPublished)
+                page.Publish();
+        }
+        else if (req.PublishState == false)
+        {
+            if (page.IsPublished)
+                page.Unpublish();
+        }
+
         _pageContentRepository.AddVersion(version);
         _pageContentRepository.Update(page);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

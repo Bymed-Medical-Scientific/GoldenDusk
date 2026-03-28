@@ -760,35 +760,35 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Add quick action buttons
     - _Requirements: 7.5, 9.4_
 
-- [ ] 31. Implement category management module
-  - [ ] 31.1 Create category list component
+- [x] 31. Implement category management module
+  - [x] 31.1 Create category list component
     - Display all categories in table/grid
     - Add search and filter functionality
     - Add create/edit/delete actions
     - Implement sorting and pagination
     - _Requirements: 6.2_
   
-  - [ ] 31.2 Create category form component
+  - [x] 31.2 Create category form component
     - Implement create/edit form with validation
     - Add name, slug, description, display order fields
     - Display validation errors
     - _Requirements: 6.2_
   
-  - [ ]* 31.3 Write unit tests for category management
+  - [x]* 31.3 Write unit tests for category management
     - Test category list display
     - Test form validation
     - Test CRUD operations
     - _Requirements: 6.2_
 
-- [ ] 32. Implement product management module
-  - [ ] 32.1 Create product list component
+- [x] 32. Implement product management module
+  - [x] 32.1 Create product list component
     - Display products in table with search and filters
     - Add filter by category, availability, stock level
     - Add create/edit/delete actions
     - Implement pagination
     - _Requirements: 6.1, 6.2, 6.3, 6.6_
   
-  - [ ] 32.2 Create product form component
+  - [x] 32.2 Create product form component
     - Implement create/edit form with validation
     - Add rich text editor for description
     - Add image upload with preview
@@ -797,150 +797,150 @@ This implementation plan breaks down the Bymed e-commerce platform into discrete
     - Display validation errors
     - _Requirements: 6.2, 6.3, 6.4_
   
-  - [ ] 32.3 Implement bulk operations
-    - Add bulk delete functionality
-    - Add bulk availability toggle
-    - Add import/export functionality
+  - [x] 32.3 Implement bulk operations
+    - [x] Add table row selection and select-all support in admin product list
+    - [x] Add bulk delete functionality (UI action + API endpoint + application handler)
+    - [x] Add bulk availability toggle (UI action + API endpoint + application handler)
+    - [x] Add export functionality (CSV endpoint + admin download action)
+    - [x] Add import functionality (CSV upload endpoint + admin upload action)
+    - [x] Add operation result feedback and selection reset behavior in UI
     - _Requirements: 6.2, 6.6_
   
-  - [ ]* 32.4 Write unit tests for product management
-    - Test product list display
-    - Test form validation
-    - Test image upload
-    - Test bulk operations
+  - [x] 32.4 Write unit tests for product management
+    - [x] `ProductListComponent`: load/render, search filter, bulk availability/delete, export/import, error paths
+    - [x] `ProductFormComponent`: validation messages, create payload + navigation, image upload after create, server field errors
     - _Requirements: 6.2, 6.3_
 
-- [ ] 33. Implement order management module
-  - [ ] 33.1 Create order list component
-    - Display orders in table with filters
-    - Add filter by date range, status, customer
-    - Add search functionality
-    - Implement pagination
-    - Display order summary (number, customer, total, status)
+- [x] 33. Implement order management module
+  - [x] 33.1 Create order list component
+    - [x] `OrderListComponent` at `/orders` with Material table, loading/error states
+    - [x] Filters: status, date range (API `dateFrom`/`dateTo`), search (order number, name, email — backend `search` query)
+    - [x] Pagination via `MatPaginator` + `getOrders` query params
+    - [x] Columns: order number, customer (name + email), total, status chip, placed date
     - _Requirements: 7.1, 7.2_
   
-  - [ ] 33.2 Create order detail component
-    - Display complete order information
-    - Show customer details
-    - Show product list with quantities and prices
-    - Show payment status and reference
-    - Show shipping address
-    - Display order timeline/history
+  - [x] 33.2 Create order detail component
+    - [x] `OrderDetailComponent` at `/orders/:id` via `getOrderById` (loading / 404 / error states)
+    - [x] Summary: totals, currency, order + payment status chips
+    - [x] Customer block + formatted shipping address + line items table (qty, unit, line total)
+    - [x] Payment block: method, reference, payment status, tracking, notes
+    - [x] Timeline card: placed, fulfillment, payment, tracking, last update (derived; no separate audit table yet)
+    - [x] Order list links to detail (order number + view action)
     - _Requirements: 7.1_
   
-  - [ ] 33.3 Implement order status management
-    - Add status update dropdown
-    - Implement status change workflow
-    - Add tracking number input for shipped status
-    - Display confirmation dialog for status changes
+  - [x] 33.3 Implement order status management
+    - [x] Status dropdown on order detail (allowed transitions aligned with backend workflow)
+    - [x] `PUT orders/{id}/status` via `AdminApiService.updateOrderStatus` + optional notes
+    - [x] Tracking number required when moving to **Shipped**; confirmation dialog before apply
+    - [x] Stronger confirm + warn styling when cancelling an order
     - _Requirements: 7.3, 7.4_
   
-  - [ ] 33.4 Create order analytics page
-    - Display sales charts (by day, week, month)
-    - Show total revenue, order count, average order value
-    - Add date range selector
-    - Display top products
+  - [x] 33.4 Create order analytics page
+    - [x] Display sales charts (by day, week, month)
+    - [x] Show total revenue, order count, average order value
+    - [x] Add date range selector
+    - [x] Display top products
     - _Requirements: 7.5_
   
-  - [ ] 33.5 Implement order export functionality
-    - Add export to CSV button
-    - Allow filtering before export
-    - Generate CSV with all order data
+  - [x] 33.5 Implement order export functionality
+    - [x] Add export to CSV button
+    - [x] Allow filtering before export
+    - [x] Generate CSV with all order data
     - _Requirements: 7.6_
   
-  - [ ]* 33.6 Write unit tests for order management
-    - Test order list display
-    - Test filtering
-    - Test status updates
-    - Test analytics calculations
+  - [x]* 33.6 Write unit tests for order management
+    - [x] Test order list display
+    - [x] Test filtering
+    - [x] Test status updates
+    - [x] Test analytics calculations
     - _Requirements: 7.1, 7.2, 7.3, 7.5_
 
 
-- [ ] 34. Implement inventory management module
-  - [ ] 34.1 Create inventory list component
-    - Display products with inventory levels
-    - Add filter for low stock items
-    - Show inventory count, low stock threshold, availability
-    - Add search functionality
-    - Implement pagination
+- [x] 34. Implement inventory management module
+  - [x] 34.1 Create inventory list component
+    - [x] Display products with inventory levels
+    - [x] Add filter for low stock items
+    - [x] Show inventory count, low stock threshold, availability
+    - [x] Add search functionality
+    - [x] Implement pagination
     - _Requirements: 9.1, 9.4_
   
-  - [ ] 34.2 Create inventory adjustment component
-    - Implement adjustment form with product selector
-    - Add new count input and reason field
-    - Display current inventory level
-    - Show confirmation dialog
+  - [x] 34.2 Create inventory adjustment component
+    - [x] Implement adjustment form with product selector
+    - [x] Add new count input and reason field
+    - [x] Display current inventory level
+    - [x] Show confirmation dialog
     - _Requirements: 9.5_
   
-  - [ ] 34.3 Create inventory history component
-    - Display inventory change log for selected product
-    - Show previous count, new count, change amount, reason, user, timestamp
-    - Add date range filter
-    - Implement pagination
+  - [x] 34.3 Create inventory history component
+    - [x] Display inventory change log for selected product
+    - [x] Show previous count, new count, change amount, reason, user, timestamp
+    - [x] Add date range filter
+    - [x] Implement pagination
     - _Requirements: 9.5_
   
-  - [ ] 34.4 Implement low stock alerts
-    - Display prominent alerts for low stock products
-    - Add notification badge in navigation
-    - Allow setting custom thresholds per product
+  - [x] 34.4 Implement low stock alerts
+    - [x] Display prominent alerts for low stock products
+    - [x] Add notification badge in navigation
+    - [x] Allow setting custom thresholds per product
     - _Requirements: 9.4_
   
-  - [ ]* 34.5 Write unit tests for inventory management
-    - Test inventory list display
-    - Test adjustment form validation
-    - Test history display
-    - Test low stock alerts
+  - [x]* 34.5 Write unit tests for inventory management
+    - [x] Test inventory list display
+    - [x] Test adjustment form validation
+    - [x] Test history display
+    - [x] Test low stock alerts
     - _Requirements: 9.1, 9.4, 9.5_
 
-- [ ] 35. Implement content management module
-  - [ ] 35.1 Create content list component
-    - Display all pages (About, Services, Contact)
-    - Show page title, slug, last updated
-    - Add edit action
+- [x] 35. Implement content management module
+  - [x] 35.1 Create content list component
+    - [x] Display all pages (About, Services, Contact)
+    - [x] Show page title, slug, last updated
+    - [x] Add edit action
     - _Requirements: 8.1_
   
-  - [ ] 35.2 Create content editor component
-    - Implement rich text editor (TinyMCE or CKEditor)
-    - Add image upload functionality
-    - Add meta title and description fields
-    - Add preview mode
-    - Implement publish/draft workflow
+  - [x] 35.2 Create content editor component
+    - [x] Implement rich text editor (Quill via ngx-quill, same stack as product descriptions)
+    - [x] Add image upload functionality
+    - [x] Add meta title and description fields
+    - [x] Add preview mode
+    - [x] Implement publish/draft workflow
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
   
-  - [ ] 35.3 Implement version history
-    - Display list of previous versions
-    - Show timestamp and author for each version
-    - Allow viewing previous versions
-    - Allow reverting to previous version
+  - [x] 35.3 Implement version history
+    - [x] Display list of previous versions
+    - [x] Show timestamp and author for each version
+    - [x] Allow viewing previous versions
+    - [x] Allow reverting to previous version
     - _Requirements: 8.4_
   
-  - [ ]* 35.4 Write unit tests for content management
-    - Test content list display
-    - Test editor functionality
-    - Test version history
+  - [x]* 35.4 Write unit tests for content management
+    - [x] Test content list display
+    - [x] Test editor functionality
+    - [x] Test version history
     - _Requirements: 8.1, 8.3, 8.4_
 
-- [ ] 36. Implement admin panel error handling and UX
-  - [ ] 36.1 Add global error handler
-    - Implement custom ErrorHandler
-    - Display user-friendly error messages
-    - Log errors to backend
-    - Add retry options
+- [x] 36. Implement admin panel error handling and UX
+  - [x] 36.1 Add global error handler
+    - [x] Implement custom ErrorHandler
+    - [x] Display user-friendly error messages
+    - [x] Log errors to backend
+    - [x] Add retry options
     - _Requirements: All admin requirements_
   
-  - [ ] 36.2 Add loading states and progress indicators
-    - Add loading spinners for async operations
-    - Add progress bars for file uploads
-    - Add skeleton loaders for data tables
+  - [x] 36.2 Add loading states and progress indicators
+    - [x] Add loading spinners for async operations
+    - [x] Add progress bars for file uploads
+    - [x] Add skeleton loaders for data tables
     - _Requirements: All admin requirements_
   
-  - [ ] 36.3 Add confirmation dialogs
-    - Implement confirmation for delete operations
-    - Add confirmation for status changes
-    - Add confirmation for bulk operations
+  - [x] 36.3 Add confirmation dialogs
+    - [x] Implement confirmation for delete operations
+    - [x] Add confirmation for status changes
+    - [x] Add confirmation for bulk operations
     - _Requirements: 6.6, 7.3_
 
-- [ ] 37. Checkpoint - Ensure admin panel tests pass
+- [x] 37. Checkpoint - Ensure admin panel tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 

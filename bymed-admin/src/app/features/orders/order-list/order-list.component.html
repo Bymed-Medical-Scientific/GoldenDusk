@@ -1,0 +1,164 @@
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Orders</h1>
+        <p class="page-subtitle">Review and filter customer orders.</p>
+      </div>
+    </div>
+
+    <div class="toolbar-filters">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Order number, customer name, or email"
+          aria-label="Search orders"
+        />
+        @if (searchQuery()) {
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Status</mat-label>
+        <mat-select [ngModel]="statusFilter()" (ngModelChange)="onStatusChange($event)">
+          <mat-option value="all">All statuses</mat-option>
+          <mat-option value="0">Pending</mat-option>
+          <mat-option value="1">Processing</mat-option>
+          <mat-option value="2">Shipped</mat-option>
+          <mat-option value="3">Delivered</mat-option>
+          <mat-option value="4">Cancelled</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>From date</mat-label>
+        <input
+          matInput
+          type="date"
+          [ngModel]="dateFrom()"
+          (ngModelChange)="onDateFromChange($event)"
+          aria-label="Filter from date"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>To date</mat-label>
+        <input
+          matInput
+          type="date"
+          [ngModel]="dateTo()"
+          (ngModelChange)="onDateToChange($event)"
+          aria-label="Filter to date"
+        />
+      </mat-form-field>
+
+      <div class="filter-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="exportToCsv()"
+          [disabled]="isExporting()"
+          aria-label="Export orders to CSV using current filters"
+        >
+          <mat-icon>download</mat-icon>
+          {{ isExporting() ? 'Exporting…' : 'Export CSV' }}
+        </button>
+        <button mat-stroked-button type="button" (click)="clearFilters()">Clear filters</button>
+      </div>
+    </div>
+
+    @if (isExporting()) {
+      <mat-progress-bar class="export-progress" mode="indeterminate" aria-label="Export in progress" />
+    }
+
+    <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="pageSize()"
+          ariaLabel="Loading orders"
+        />
+      } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="order-table">
+        <ng-container matColumnDef="orderNumber">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
+          <td mat-cell *matCellDef="let row">
+            <a class="order-link cell-strong" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="customer">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Customer</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-strong">{{ row.customerName }}</div>
+            <div class="cell-subtext">{{ row.customerEmail }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Total</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.total | currency: row.currency:'symbol':'1.2-2' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="chip" [ngClass]="orderStatusChipClass(row.status)">
+              {{ orderStatusLabel(row.status) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="created">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Placed</th>
+          <td mat-cell *matCellDef="let row">{{ row.creationTime | date: 'medium' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <a mat-icon-button [routerLink]="['/orders', row.id]" aria-label="View order">
+              <mat-icon>visibility</mat-icon>
+            </a>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+            No orders match your filters.
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalCount()"
+        [pageIndex]="pageNumber() - 1"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        showFirstLastButtons
+        aria-label="Select page of orders"
+        (page)="onPageChange($event)"
+      />
+      }
+    </div>
+}

@@ -1,0 +1,198 @@
+@if (isInitializing()) {
+  <app-page-loading label="Loading page…" />
+} @else {
+  @if (initError()) {
+    <app-global-error [message]="initError() ?? ''" />
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/content">
+        <mat-icon>arrow_back</mat-icon>
+        Back to pages
+      </a>
+    </div>
+  } @else {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Edit page</h1>
+        <p class="page-subtitle">Update copy, SEO metadata, and publication status.</p>
+      </div>
+      <div class="header-actions">
+        <a mat-stroked-button routerLink="/content">
+          <mat-icon>arrow_back</mat-icon>
+          Back to list
+        </a>
+        <a mat-stroked-button [routerLink]="['/content', routeSlug(), 'history']">
+          <mat-icon>history</mat-icon>
+          Version history
+        </a>
+        <button mat-stroked-button type="button" (click)="discardChanges()" [disabled]="isSubmitting()">
+          Discard changes
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="save()"
+          [disabled]="isSubmitting() || isPreview()"
+        >
+          @if (isSubmitting()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Save
+          }
+        </button>
+      </div>
+    </div>
+
+    @if (pageError()) {
+      <app-global-error [message]="pageError() ?? ''" />
+    }
+
+    <mat-card class="card-block">
+      <mat-card-header>
+        <mat-card-title>View mode</mat-card-title>
+        <mat-card-subtitle>Preview renders HTML as it will appear on the site (admin-trusted content).</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-button-toggle-group
+          class="mode-toggle"
+          [value]="isPreview() ? 'preview' : 'edit'"
+          (change)="setPreview($event.value === 'preview')"
+          aria-label="Editor or preview"
+        >
+          <mat-button-toggle value="edit">Edit</mat-button-toggle>
+          <mat-button-toggle value="preview">Preview</mat-button-toggle>
+        </mat-button-toggle-group>
+      </mat-card-content>
+    </mat-card>
+
+    <form [formGroup]="pageForm" class="editor-form" (ngSubmit)="save()">
+      <mat-card class="card-block">
+        <mat-card-header>
+          <mat-card-title>Page</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="stack">
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" autocomplete="off" />
+            @if (pageForm.controls.title.hasError('required') && pageForm.controls.title.touched) {
+              <mat-error>Title is required.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+            <mat-label>URL slug</mat-label>
+            <input matInput formControlName="slug" autocomplete="off" />
+            <mat-hint>Lowercase letters, numbers, and hyphens only.</mat-hint>
+            @if (pageForm.controls.slug.hasError('pattern') && pageForm.controls.slug.touched) {
+              <mat-error>Invalid slug format.</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="publish-row">
+            <mat-slide-toggle formControlName="isPublished">Published on live site</mat-slide-toggle>
+            <span class="publish-hint">Draft pages are stored but not shown to the public storefront.</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="card-block">
+        <mat-card-header>
+          <mat-card-title>Body</mat-card-title>
+          <mat-card-subtitle>Rich text; use the image button to upload and embed images.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <input
+            #quillImageInput
+            type="file"
+            class="visually-hidden"
+            accept="image/*"
+            (change)="onQuillImageSelected($event)"
+            aria-hidden="true"
+            tabindex="-1"
+          />
+          @if (isUploadingQuillImage()) {
+            <div class="inline-status">
+              <mat-spinner diameter="24" />
+              <span>Uploading image…</span>
+            </div>
+            @if (quillUploadProgress() !== null) {
+              <mat-progress-bar mode="determinate" [value]="quillUploadProgress()!" class="upload-bar" />
+            }
+          }
+          @if (isPreview()) {
+            <div class="preview-pane mat-elevation-z1">
+              <div class="preview-body" [innerHTML]="trustedPreviewHtml()"></div>
+            </div>
+          } @else {
+            <div class="quill-wrap">
+              <quill-editor
+                formControlName="content"
+                [theme]="'snow'"
+                [modules]="contentQuillModules"
+                placeholder="Page content…"
+                (onEditorCreated)="onContentEditorCreated($event)"
+              />
+            </div>
+          }
+          @if (pageForm.controls.content.hasError('required') && pageForm.controls.content.touched) {
+            <p class="field-error">Content is required.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="card-block">
+        <mat-card-header>
+          <mat-card-title>SEO &amp; social</mat-card-title>
+          <mat-card-subtitle>Meta title and description for search; Open Graph image URL.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="stack">
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+            <mat-label>Meta title</mat-label>
+            <input matInput formControlName="metaTitle" autocomplete="off" />
+            <mat-hint align="end">{{ pageForm.controls.metaTitle.value.length }} / {{ 100 }}</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+            <mat-label>Meta description</mat-label>
+            <textarea matInput formControlName="metaDescription" rows="3"></textarea>
+            <mat-hint align="end">{{ pageForm.controls.metaDescription.value.length }} / {{ 300 }}</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+            <mat-label>OG image URL</mat-label>
+            <input matInput formControlName="ogImage" autocomplete="off" />
+            <mat-hint>Optional. Paste a URL or upload to fill this field.</mat-hint>
+          </mat-form-field>
+
+          <div class="og-actions">
+            <input
+              #ogImageInput
+              type="file"
+              class="visually-hidden"
+              accept="image/*"
+              (change)="onOgImageSelected($event)"
+              aria-hidden="true"
+              tabindex="-1"
+            />
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="openOgImagePicker()"
+              [disabled]="isUploadingOgImage()"
+            >
+              @if (isUploadingOgImage()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                <mat-icon>upload</mat-icon>
+              }
+              Upload OG image
+            </button>
+            @if (ogUploadProgress() !== null) {
+              <mat-progress-bar mode="determinate" [value]="ogUploadProgress()!" class="upload-bar" />
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  }
+}

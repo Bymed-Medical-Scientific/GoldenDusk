@@ -22,6 +22,69 @@
           <mat-icon matListItemIcon aria-hidden="true">dashboard</mat-icon>
           <span matListItemTitle>Dashboard</span>
         </a>
+        <a
+          mat-list-item
+          routerLink="/content"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">article</mat-icon>
+          <span matListItemTitle>Content</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/categories"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">category</mat-icon>
+          <span matListItemTitle>Categories</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/products"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">inventory_2</mat-icon>
+          <span matListItemTitle>Products</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/inventory"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon
+            matListItemIcon
+            aria-hidden="true"
+            [matBadge]="lowStockBadge()"
+            [matBadgeHidden]="lowStockCount() === 0"
+            matBadgeColor="warn"
+            matBadgeSize="small"
+            >warehouse</mat-icon
+          >
+          <span matListItemTitle>Inventory</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/orders"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">receipt_long</mat-icon>
+          <span matListItemTitle>Orders</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/orders/analytics"
+          routerLinkActive="active-link"
+          (click)="isHandset() && sidebar.close()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true">bar_chart</mat-icon>
+          <span matListItemTitle>Sales analytics</span>
+        </a>
       </mat-nav-list>
     </nav>
   </mat-sidenav>
@@ -60,6 +123,35 @@
 
     @if (isNavigating()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    @if (lowStockCount() > 0) {
+      <div class="low-stock-banner" role="alert">
+        <mat-icon class="banner-icon" aria-hidden="true">warning</mat-icon>
+        <div class="banner-body">
+          <strong class="banner-title">Low stock: {{ lowStockCount() }} product(s)</strong>
+          <p class="banner-detail">
+            @for (row of lowStockPreview(); track row.productId) {
+              <span class="banner-chip">{{ row.productName }} ({{ row.inventoryCount }})</span>
+            }
+            @if (lowStockOverflow() > 0) {
+              <span class="banner-more">+{{ lowStockOverflow() }} more</span>
+            }
+          </p>
+          <p class="banner-hint">
+            Set per-product thresholds on the product edit screen. Stock can be updated from Inventory.
+          </p>
+        </div>
+        <a
+          mat-stroked-button
+          color="warn"
+          routerLink="/inventory"
+          [queryParams]="{ lowStock: '1' }"
+          class="banner-action"
+        >
+          View low stock
+        </a>
+      </div>
     }
 
     <main class="shell-content">
