@@ -15,6 +15,12 @@ jest.mock("@/lib/site-url", () => ({
 }));
 
 const getPageBySlugMock = getPageBySlug as jest.MockedFunction<typeof getPageBySlug>;
+
+const generateHomeMetadata = require("@/app/page").generateMetadata as () => Promise<{
+  title?: unknown;
+  description?: unknown;
+  openGraph?: { title?: unknown; description?: unknown };
+}>;
 const generateAboutMetadata = require("@/app/about/page").generateMetadata as () => Promise<{
   title?: unknown;
   description?: unknown;
@@ -37,10 +43,14 @@ describe("Property 30: Page metadata completeness", () => {
     getPageBySlugMock.mockReset();
   });
 
-  it("for generated metadata inputs, title/description/openGraph are always present (100 runs)", async () => {
+  it("for home, about, and services generated metadata, title/description/openGraph are always present (100 runs)", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom<"about" | "services">("about", "services"),
+        fc.constantFrom<"home" | "about" | "services">(
+          "home",
+          "about",
+          "services",
+        ),
         fc.option(fc.string({ minLength: 1, maxLength: 80 }), { nil: undefined }),
         fc.option(fc.string({ minLength: 1, maxLength: 200 }), { nil: undefined }),
         fc.option(fc.webUrl(), { nil: undefined }),
@@ -48,7 +58,7 @@ describe("Property 30: Page metadata completeness", () => {
           getPageBySlugMock.mockResolvedValueOnce({
             id: `${slug}-id`,
             slug,
-            title: slug === "about" ? "About ByMed" : "Services",
+            title: slug,
             content: "{}",
             metadata: {
               metaTitle,
@@ -60,9 +70,11 @@ describe("Property 30: Page metadata completeness", () => {
           });
 
           const metadata =
-            slug === "about"
-              ? await generateAboutMetadata()
-              : await generateServicesMetadata();
+            slug === "home"
+              ? await generateHomeMetadata()
+              : slug === "about"
+                ? await generateAboutMetadata()
+                : await generateServicesMetadata();
 
           const title =
             typeof metadata.title === "string"

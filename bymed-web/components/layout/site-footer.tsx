@@ -22,8 +22,8 @@ export function SiteFooter() {
               <BymedLogo variant="footer" />
             </Link>
             <p className="mt-2 text-sm text-muted-foreground">
-              Medical and scientific equipment. Quality supplies for healthcare
-              and laboratory professionals.
+              Healthcare, scientific research, and engineering education across
+              Zimbabwe—trusted equipment, consumables, and training.
             </p>
           </div>
 
