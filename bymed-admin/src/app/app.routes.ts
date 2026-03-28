@@ -33,8 +33,8 @@ export const routes: Routes = [
       {
         path: 'content/:slug/edit',
         loadComponent: () =>
-          import('@features/content/content-editor-stub/content-editor-stub.component').then(
-            (m) => m.ContentEditorStubComponent
+          import('@features/content/content-editor-page/content-editor-page.component').then(
+            (m) => m.ContentEditorPageComponent
           )
       },
       {

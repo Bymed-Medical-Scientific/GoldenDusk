@@ -15,8 +15,10 @@ import {
   OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
+  ContentImageUploadDto,
   PageContentSummaryDto,
   UpdateOrderStatusRequestDto,
+  UpdatePageContentRequestDto,
   PagedResultDto,
   ProductDto,
   ProductImageDto,
@@ -236,5 +238,25 @@ export class AdminApiService {
       pageNumber,
       pageSize
     });
+  }
+
+  public getPageContentBySlug(slug: string): Observable<PageContentSummaryDto> {
+    return this.apiService.get<PageContentSummaryDto>(`content/${encodeURIComponent(slug)}`);
+  }
+
+  public updatePageContent(
+    slug: string,
+    request: UpdatePageContentRequestDto
+  ): Observable<PageContentSummaryDto> {
+    return this.apiService.put<UpdatePageContentRequestDto, PageContentSummaryDto>(
+      `content/${encodeURIComponent(slug)}`,
+      request
+    );
+  }
+
+  public uploadContentImage(file: File): Observable<ContentImageUploadDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormData<ContentImageUploadDto>('content/images', formData);
   }
 }

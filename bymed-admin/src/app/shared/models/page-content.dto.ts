@@ -15,3 +15,18 @@ export interface PageContentSummaryDto {
   readonly isPublished: boolean;
   readonly creationTime: string;
 }
+
+/** Request body for `PUT /api/v1/content/{slug}`. */
+export interface UpdatePageContentRequestDto {
+  readonly slug?: string | null;
+  readonly title?: string | null;
+  readonly content?: string | null;
+  readonly metadata?: PageMetadataDto | null;
+  /** When true/false, applies publish or unpublish when needed; omit only if unchanged (not used by admin UI). */
+  readonly publishState?: boolean | null;
+}
+
+export interface ContentImageUploadDto {
+  readonly url: string;
+  readonly fileName: string;
+}
