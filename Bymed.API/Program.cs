@@ -28,8 +28,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 using Asp.Versioning;
 
-using Microsoft.AspNetCore.Http.Timeouts;
-
 using Microsoft.AspNetCore.OpenApi;
 
 using Microsoft.AspNetCore.Identity;
@@ -69,24 +67,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 {
 
     options.MultipartBodyLengthLimit = MaxRequestBodySizeBytes;
-
-});
-
-
-
-builder.Services.AddRequestTimeouts(options =>
-
-{
-
-    options.DefaultPolicy = new RequestTimeoutPolicy
-
-    {
-
-        Timeout = TimeSpan.FromSeconds(30),
-
-        TimeoutStatusCode = StatusCodes.Status504GatewayTimeout
-
-    };
 
 });
 
@@ -501,8 +481,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-
-app.UseRequestTimeouts();
 
 app.UseIpRateLimiting();
 

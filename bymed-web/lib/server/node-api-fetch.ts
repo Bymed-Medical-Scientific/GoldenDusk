@@ -15,6 +15,14 @@ export function isDevLocalHttpsBymedApi(url: string): boolean {
   );
 }
 
+/** Bodies we can send through the Node http(s) client (avoids Next.js patched `fetch`). */
+function canSendBodyWithNode(body: RequestInit["body"]): boolean {
+  if (body == null) return true;
+  if (typeof body === "string") return true;
+  if (body instanceof Uint8Array) return true;
+  return false;
+}
+
 function requestWithNode(
   urlStr: string,
   init: RequestInit | undefined,
@@ -43,6 +51,7 @@ function requestWithNode(
     const req = lib.request(options, (incoming) => {
       const chunks: Buffer[] = [];
       incoming.on("data", (chunk: Buffer) => chunks.push(chunk));
+      incoming.on("error", reject);
       incoming.on("end", () => {
         const buf = Buffer.concat(chunks);
         const outHeaders = new Headers();
@@ -81,22 +90,32 @@ function requestWithNode(
     }
     reject(
       new TypeError(
-        "nodeFetchBymedApi (dev TLS bypass) supports string or Uint8Array body only.",
+        "nodeFetchBymedApi supports null, string, or Uint8Array body; use native fetch for FormData/Blob/streams.",
       ),
     );
   });
 }
 
-/** Use for every server-side request to Bymed.API (SSR, route handlers, proxy). */
+/**
+ * Server-side calls to Bymed.API.
+ *
+ * Next.js patches global `fetch` and ties it to the RSC / static render lifecycle. When a
+ * render is discarded, that `fetch` is aborted — the API sees `RequestAborted` and EF throws
+ * `OperationCanceledException`. Using Node's http(s) client avoids that patched `fetch`
+ * for typical JSON bodies while preserving dev TLS relaxation for localhost HTTPS.
+ */
 export async function nodeFetchBymedApi(
   url: string,
   init?: RequestInit,
 ): Promise<Response> {
-  if (!isDevLocalHttpsBymedApi(url)) {
-    return fetch(url, init ?? {});
-  }
-
   const rest = { ...(init ?? {}) } as Record<string, unknown>;
   delete rest.next;
-  return requestWithNode(url, rest as RequestInit, false);
+
+  const initForNode = rest as RequestInit;
+  if (!canSendBodyWithNode(initForNode.body)) {
+    return fetch(url, initForNode);
+  }
+
+  const rejectUnauthorized = !isDevLocalHttpsBymedApi(url);
+  return requestWithNode(url, initForNode, rejectUnauthorized);
 }

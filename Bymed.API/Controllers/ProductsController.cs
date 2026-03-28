@@ -5,8 +5,9 @@ using Bymed.Application.Products;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using System.Text;
 
 namespace Bymed.API.Controllers;
@@ -20,18 +21,25 @@ public sealed class ProductsController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IValidator<CreateProductRequest> _createValidator;
     private readonly IValidator<UpdateProductRequest> _updateValidator;
+    private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
     public ProductsController(
         IMediator mediator,
         IValidator<CreateProductRequest> createValidator,
-        IValidator<UpdateProductRequest> updateValidator)
+        IValidator<UpdateProductRequest> updateValidator,
+        IHostApplicationLifetime hostApplicationLifetime)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
+        _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
     }
 
     /// <summary>List products with optional filtering and pagination.</summary>
+    /// <remarks>
+    /// Uses <see cref="IHostApplicationLifetime.ApplicationStopping"/> for MediatR (not the request token) so
+    /// client disconnects and aborted upstream fetches do not cancel EF/Redis catalog work.
+    /// </remarks>
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResult<ProductDto>), StatusCodes.Status200OK)]
@@ -40,11 +48,10 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? search = null,
-        [FromQuery] bool? inStock = null,
-        CancellationToken cancellationToken = default)
+        [FromQuery] bool? inStock = null)
     {
         var query = new GetProductsQuery(pageNumber, pageSize, categoryId, search, inStock);
-        var result = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+        var result = await _mediator.Send(query, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         return Ok(result);
     }
 
@@ -53,9 +60,9 @@ public sealed class ProductsController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _mediator.Send(new GetProductByIdQuery(id), cancellationToken).ConfigureAwait(false);
+        var result = await _mediator.Send(new GetProductByIdQuery(id), _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         if (!result.IsSuccess)
             return NotFound(new { error = result.Error });
         return Ok(result.Value);

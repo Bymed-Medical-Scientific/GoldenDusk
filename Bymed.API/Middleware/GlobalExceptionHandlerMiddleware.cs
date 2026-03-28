@@ -34,6 +34,19 @@ public sealed class GlobalExceptionHandlerMiddleware
         {
             await _next(context).ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+            // Client disconnected, upstream fetch aborted, or host shutdown — not an application bug.
+            if (context.RequestAborted.IsCancellationRequested)
+            {
+                _logger.LogDebug(
+                    "Request canceled (likely client disconnect or aborted caller). Path: {Path}, TraceId: {TraceId}",
+                    context.Request.Path,
+                    context.TraceIdentifier);
+            }
+
+            throw;
+        }
         catch (Exception ex)
         {
             await HandleExceptionAsync(context, ex).ConfigureAwait(false);
