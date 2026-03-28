@@ -1,9 +1,6 @@
-@if (isLoading()) {
-  <app-page-loading label="Loading inventory..." />
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  @if (errorMessage()) {
-    <app-global-error [message]="errorMessage() ?? ''" />
-  } @else {
     <div class="page-header">
       <div>
         <h1 class="page-title">Inventory</h1>
@@ -59,6 +56,13 @@
     </div>
 
     <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="pageSize()"
+          ariaLabel="Loading inventory"
+        />
+      } @else {
       <table mat-table [dataSource]="dataSource" matSort class="inventory-table">
         <ng-container matColumnDef="productName">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Product</th>
@@ -132,6 +136,6 @@
         aria-label="Select page of inventory"
         (page)="onPageChange($event)"
       />
+      }
     </div>
-  }
 }

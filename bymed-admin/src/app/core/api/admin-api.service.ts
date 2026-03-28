@@ -1,3 +1,4 @@
+import { HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
@@ -95,6 +96,19 @@ export class AdminApiService {
     return this.apiService.postFormData<ProductImageDto>(`products/${productId}/images`, formData);
   }
 
+  public uploadProductImageWithProgress(
+    productId: string,
+    file: File,
+    altText?: string
+  ): Observable<HttpEvent<ProductImageDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormDataWithProgress<ProductImageDto>(`products/${productId}/images`, formData);
+  }
+
   public deleteProduct(productId: string): Observable<void> {
     return this.apiService.delete<void>(`products/${productId}`);
   }
@@ -122,6 +136,12 @@ export class AdminApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.apiService.postFormData<ImportProductsResultDto>('products/import', formData);
+  }
+
+  public importProductsWithProgress(file: File): Observable<HttpEvent<ImportProductsResultDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormDataWithProgress<ImportProductsResultDto>('products/import', formData);
   }
 
   public getOrders(
@@ -260,6 +280,12 @@ export class AdminApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.apiService.postFormData<ContentImageUploadDto>('content/images', formData);
+  }
+
+  public uploadContentImageWithProgress(file: File): Observable<HttpEvent<ContentImageUploadDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormDataWithProgress<ContentImageUploadDto>('content/images', formData);
   }
 
   public getContentVersionHistory(

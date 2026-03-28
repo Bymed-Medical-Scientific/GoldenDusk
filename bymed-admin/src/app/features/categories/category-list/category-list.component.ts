@@ -16,7 +16,7 @@ import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { CategoryDto } from '@shared/models';
 
 @Component({
@@ -35,7 +35,7 @@ import { CategoryDto } from '@shared/models';
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
-    PageLoadingComponent,
+    TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './category-list.component.html',

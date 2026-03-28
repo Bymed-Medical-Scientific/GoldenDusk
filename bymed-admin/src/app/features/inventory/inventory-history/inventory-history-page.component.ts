@@ -25,7 +25,7 @@ import {
 } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { InventoryLogEntryDto, ProductDto } from '@shared/models';
 
 const GUID_LIKE =
@@ -50,7 +50,7 @@ const GUID_LIKE =
     MatProgressSpinnerModule,
     MatSortModule,
     MatTableModule,
-    PageLoadingComponent
+    TableSkeletonComponent
   ],
   templateUrl: './inventory-history-page.component.html',
   styleUrl: './inventory-history-page.component.scss'

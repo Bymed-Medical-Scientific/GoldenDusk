@@ -1,9 +1,6 @@
-@if (isLoading()) {
-  <app-page-loading label="Loading products..." />
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  @if (errorMessage()) {
-    <app-global-error [message]="errorMessage() ?? ''" />
-  } @else {
     <div class="page-header">
       <div>
         <h1 class="page-title">Products</h1>
@@ -69,6 +66,13 @@
       </mat-form-field>
     </div>
 
+    @if (importUploadProgress() !== null) {
+      <div class="import-progress mat-elevation-z1">
+        <span class="import-progress-label">Uploading import file…</span>
+        <mat-progress-bar mode="determinate" [value]="importUploadProgress()!" />
+      </div>
+    }
+
     <div class="bulk-actions">
       <div class="bulk-meta">
         {{ selectedProductIds().size }} selected
@@ -95,6 +99,13 @@
     </div>
 
     <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="pageSize()"
+          ariaLabel="Loading products"
+        />
+      } @else {
       <table mat-table [dataSource]="dataSource" matSort class="product-table">
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef scope="col">
@@ -201,6 +212,6 @@
         aria-label="Select page of products"
         (page)="onPageChange($event)"
       />
+      }
     </div>
-  }
 }

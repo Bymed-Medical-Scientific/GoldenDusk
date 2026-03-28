@@ -5,6 +5,11 @@
   margin-bottom: 1rem;
 }
 
+.quick-actions--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));

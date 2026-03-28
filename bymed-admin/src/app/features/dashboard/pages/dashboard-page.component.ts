@@ -5,7 +5,7 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { DashboardSkeletonComponent } from '@shared/components/dashboard-skeleton/dashboard-skeleton.component';
 import { InventoryItemDto, OrderSummaryDto, ProductDto } from '@shared/models';
 import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +30,7 @@ interface SalesSummary {
     MatCardModule,
     MatIconModule,
     NgClass,
-    PageLoadingComponent,
+    DashboardSkeletonComponent,
     RouterLink
   ],
   templateUrl: './dashboard-page.component.html',

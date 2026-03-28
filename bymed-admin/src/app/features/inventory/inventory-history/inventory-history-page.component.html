@@ -83,7 +83,13 @@
 
 @if (selectedProduct()) {
   @if (isLoading()) {
-    <app-page-loading label="Loading history..." />
+    <div class="table-wrap mat-elevation-z1">
+      <app-table-skeleton
+        [columnCount]="displayedColumns.length"
+        [rowCount]="pageSize()"
+        ariaLabel="Loading inventory history"
+      />
+    </div>
   } @else {
     <div class="table-wrap mat-elevation-z1">
       <table mat-table [dataSource]="dataSource" matSort class="history-table">

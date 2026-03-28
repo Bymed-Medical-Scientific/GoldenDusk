@@ -13,11 +13,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
-import { catchError, EMPTY, finalize, mergeMap, of } from 'rxjs';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { catchError, EMPTY, filter, finalize, map, mergeMap, of, tap } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
@@ -28,6 +30,7 @@ import {
   CategoryDto,
   CreateProductRequestDto,
   ProductDto,
+  ProductImageDto,
   UpdateProductRequestDto
 } from '@shared/models';
 
@@ -80,6 +83,7 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSnackBarModule,
@@ -108,6 +112,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   protected readonly serverFieldErrors = signal<Record<string, string>>({});
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly imagePreviewUrl = signal<string | null>(null);
+  /** 0–100 while primary image is uploading after save; null when idle. */
+  protected readonly primaryImageUploadProgress = signal<number | null>(null);
   /** Set in edit mode after load — used for read-only availability. */
   protected readonly loadedProduct = signal<ProductDto | null>(null);
 
@@ -362,12 +368,20 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const file = this.pendingImageFile;
     const alt = this.productForm.get('name')?.value?.trim() ?? '';
     this.pendingImageFile = null;
-    return this.adminApi.uploadProductImage(productId, file, alt).pipe(
-      mergeMap(() => of(undefined)),
+    this.primaryImageUploadProgress.set(0);
+    return this.adminApi.uploadProductImageWithProgress(productId, file, alt).pipe(
+      tap((event) => {
+        if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
+          this.primaryImageUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+        }
+      }),
+      filter((e): e is HttpResponse<ProductImageDto> => e.type === HttpEventType.Response),
+      map(() => undefined),
       catchError(() => {
         this.snackBar.open('Product saved but image upload failed.', 'Dismiss', { duration: 8000 });
         return of(undefined);
-      })
+      }),
+      finalize(() => this.primaryImageUploadProgress.set(null))
     );
   }
 
@@ -378,12 +392,20 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
     const file = this.pendingImageFile;
     this.pendingImageFile = null;
-    return this.adminApi.uploadProductImage(product.id, file, product.name).pipe(
-      mergeMap(() => of(undefined)),
+    this.primaryImageUploadProgress.set(0);
+    return this.adminApi.uploadProductImageWithProgress(product.id, file, product.name).pipe(
+      tap((event) => {
+        if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
+          this.primaryImageUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+        }
+      }),
+      filter((e): e is HttpResponse<ProductImageDto> => e.type === HttpEventType.Response),
+      map(() => undefined),
       catchError(() => {
         this.snackBar.open('Product saved but image upload failed.', 'Dismiss', { duration: 8000 });
         return of(undefined);
-      })
+      }),
+      finalize(() => this.primaryImageUploadProgress.set(null))
     );
   }
 

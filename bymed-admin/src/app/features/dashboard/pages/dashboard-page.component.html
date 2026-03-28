@@ -1,5 +1,10 @@
 @if (isLoading()) {
-  <app-page-loading label="Loading dashboard overview..." />
+  <section class="quick-actions quick-actions--disabled" aria-hidden="true">
+    <button mat-raised-button disabled type="button">New Product</button>
+    <button mat-stroked-button disabled type="button">New Category</button>
+    <button mat-stroked-button disabled type="button">View Orders</button>
+  </section>
+  <app-dashboard-skeleton />
 } @else {
   @if (errorMessage()) {
     <app-global-error [message]="errorMessage() ?? ''" />

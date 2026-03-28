@@ -1,9 +1,6 @@
-@if (isLoading()) {
-  <app-page-loading label="Loading content pages..." />
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  @if (errorMessage()) {
-    <app-global-error [message]="errorMessage() ?? ''" />
-  } @else {
     <div class="page-header">
       <div>
         <h1 class="page-title">Website content</h1>
@@ -37,6 +34,13 @@
     </div>
 
     <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="8"
+          ariaLabel="Loading content pages"
+        />
+      } @else {
       <table mat-table [dataSource]="dataSource" matSort class="content-table">
         <ng-container matColumnDef="title">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Title</th>
@@ -105,6 +109,6 @@
         showFirstLastButtons
         aria-label="Select page of content"
       />
+      }
     </div>
-  }
 }

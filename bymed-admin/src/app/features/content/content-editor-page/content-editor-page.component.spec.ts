@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -6,7 +7,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
-import { PageContentSummaryDto } from '@shared/models';
+import { ContentImageUploadDto, PageContentSummaryDto } from '@shared/models';
 import { ContentEditorPageComponent } from './content-editor-page.component';
 
 describe('ContentEditorPageComponent', () => {
@@ -33,10 +34,12 @@ describe('ContentEditorPageComponent', () => {
     adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', [
       'getPageContentBySlug',
       'updatePageContent',
-      'uploadContentImage'
+      'uploadContentImageWithProgress'
     ]);
     adminApiSpy.getPageContentBySlug.and.returnValue(of(pageDto));
     adminApiSpy.updatePageContent.and.returnValue(of(pageDto));
+    const uploadDto: ContentImageUploadDto = { url: 'https://cdn.example/x.png', fileName: 'x.png' };
+    adminApiSpy.uploadContentImageWithProgress.and.returnValue(of(new HttpResponse({ body: uploadDto })));
 
     await TestBed.configureTestingModule({
       imports: [ContentEditorPageComponent, NoopAnimationsModule],
@@ -147,7 +150,7 @@ describe('ContentEditorPageComponent (not found)', () => {
     const adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', [
       'getPageContentBySlug',
       'updatePageContent',
-      'uploadContentImage'
+      'uploadContentImageWithProgress'
     ]);
     adminApiSpy.getPageContentBySlug.and.returnValue(throwError(() => new ApiError(404, 'Not found')));
 

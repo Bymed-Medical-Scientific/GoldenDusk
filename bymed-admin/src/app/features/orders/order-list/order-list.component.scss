@@ -119,6 +119,12 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+.export-progress {
+  margin: 0 0 0.75rem;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
 @media (max-width: 1200px) {
   .toolbar-filters {
     grid-template-columns: repeat(2, minmax(180px, 1fr));

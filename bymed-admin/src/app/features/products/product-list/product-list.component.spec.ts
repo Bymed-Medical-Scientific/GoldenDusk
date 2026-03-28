@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -78,15 +79,19 @@ describe('ProductListComponent', () => {
       'bulkDeleteProducts',
       'bulkSetProductAvailability',
       'exportProducts',
-      'importProducts'
+      'importProductsWithProgress'
     ]);
     adminApiSpy.getProducts.and.returnValue(of(pagedProducts));
     adminApiSpy.getCategories.and.returnValue(of([category]));
     adminApiSpy.bulkDeleteProducts.and.returnValue(of(bulkOk));
     adminApiSpy.bulkSetProductAvailability.and.returnValue(of(bulkOk));
     adminApiSpy.exportProducts.and.returnValue(of(new Blob(['id,name'], { type: 'text/csv' })));
-    adminApiSpy.importProducts.and.returnValue(
-      of({ importedCount: 0, updatedCount: 0, failedCount: 0, errors: [] })
+    adminApiSpy.importProductsWithProgress.and.returnValue(
+      of(
+        new HttpResponse({
+          body: { importedCount: 0, updatedCount: 0, failedCount: 0, errors: [] }
+        })
+      )
     );
 
     await TestBed.configureTestingModule({
@@ -134,7 +139,10 @@ describe('ProductListComponent', () => {
     expect(adminApiSpy.bulkSetProductAvailability).not.toHaveBeenCalled();
   });
 
-  it('calls bulkSetProductAvailability when rows are selected', () => {
+  it('calls bulkSetProductAvailability when rows are selected and user confirms', () => {
+    openDialogSpy.and.returnValue({
+      afterClosed: () => of(true)
+    } as never);
     adminApiSpy.bulkSetProductAvailability.and.returnValue(
       of({ requestedCount: 1, processedCount: 1, notFoundCount: 0 })
     );
@@ -142,6 +150,7 @@ describe('ProductListComponent', () => {
     (component as any).toggleRowSelection(productA.id, true);
     (component as any).bulkSetAvailability(true);
 
+    expect(openDialogSpy).toHaveBeenCalled();
     expect(adminApiSpy.bulkSetProductAvailability).toHaveBeenCalledWith({
       productIds: [productA.id],
       isAvailable: true
@@ -152,6 +161,18 @@ describe('ProductListComponent', () => {
       jasmine.objectContaining({ duration: 5000 })
     );
     expect(adminApiSpy.getProducts).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not call bulkSetProductAvailability when user cancels confirmation', () => {
+    openDialogSpy.and.returnValue({
+      afterClosed: () => of(false)
+    } as never);
+
+    (component as any).toggleRowSelection(productA.id, true);
+    (component as any).bulkSetAvailability(false);
+
+    expect(openDialogSpy).toHaveBeenCalled();
+    expect(adminApiSpy.bulkSetProductAvailability).not.toHaveBeenCalled();
   });
 
   it('bulk deletes after confirmation and refreshes the list', () => {
@@ -203,7 +224,7 @@ describe('ProductListComponent', () => {
 
     (component as any).importProducts(event);
 
-    expect(adminApiSpy.importProducts).toHaveBeenCalledWith(file);
+    expect(adminApiSpy.importProductsWithProgress).toHaveBeenCalledWith(file);
     expect(snackBarOpenSpy).toHaveBeenCalledWith(
       'Import complete: 0 added, 0 updated, 0 failed.',
       'Dismiss',

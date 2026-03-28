@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -53,11 +54,11 @@ describe('ProductFormComponent', () => {
       'getProductById',
       'createProduct',
       'updateProduct',
-      'uploadProductImage'
+      'uploadProductImageWithProgress'
     ]);
     adminApiSpy.getCategories.and.returnValue(of([category]));
     adminApiSpy.createProduct.and.returnValue(of(createdProduct));
-    adminApiSpy.uploadProductImage.and.returnValue(of(uploadedImage));
+    adminApiSpy.uploadProductImageWithProgress.and.returnValue(of(new HttpResponse({ body: uploadedImage })));
 
     await TestBed.configureTestingModule({
       imports: [ProductFormComponent, NoopAnimationsModule],
@@ -164,7 +165,7 @@ describe('ProductFormComponent', () => {
 
     (component as any).submit();
 
-    expect(adminApiSpy.uploadProductImage).toHaveBeenCalledWith(createdProduct.id, file, 'New Product');
+    expect(adminApiSpy.uploadProductImageWithProgress).toHaveBeenCalledWith(createdProduct.id, file, 'New Product');
     expect(router.navigate).toHaveBeenCalledWith(['/products']);
   });
 

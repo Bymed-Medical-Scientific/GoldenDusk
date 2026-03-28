@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { DashboardSkeletonComponent } from '@shared/components/dashboard-skeleton/dashboard-skeleton.component';
 import { OrderAnalyticsDto, SalesByDayPointDto } from '@shared/models';
 import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
 
@@ -38,7 +38,7 @@ export interface ChartBar {
     MatIconModule,
     MatInputModule,
     NgClass,
-    PageLoadingComponent,
+    DashboardSkeletonComponent,
     RouterLink
   ],
   templateUrl: './order-analytics-page.component.html',

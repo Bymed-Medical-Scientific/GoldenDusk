@@ -115,6 +115,9 @@
               <mat-spinner diameter="24" />
               <span>Uploading image…</span>
             </div>
+            @if (quillUploadProgress() !== null) {
+              <mat-progress-bar mode="determinate" [value]="quillUploadProgress()!" class="upload-bar" />
+            }
           }
           @if (isPreview()) {
             <div class="preview-pane mat-elevation-z1">
@@ -184,6 +187,9 @@
               }
               Upload OG image
             </button>
+            @if (ogUploadProgress() !== null) {
+              <mat-progress-bar mode="determinate" [value]="ogUploadProgress()!" class="upload-bar" />
+            }
           </div>
         </mat-card-content>
       </mat-card>

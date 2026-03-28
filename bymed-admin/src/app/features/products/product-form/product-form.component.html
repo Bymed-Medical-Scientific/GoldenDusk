@@ -174,6 +174,13 @@
           </div>
         }
 
+        @if (primaryImageUploadProgress() !== null) {
+          <div class="upload-progress">
+            <span class="upload-progress-label">Uploading image…</span>
+            <mat-progress-bar mode="determinate" [value]="primaryImageUploadProgress()!" />
+          </div>
+        }
+
         <div class="form-actions">
           <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
             @if (isSubmitting()) {

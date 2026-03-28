@@ -1,3 +1,4 @@
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { CurrencyPipe } from '@angular/common';
 import { AfterViewInit, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -8,19 +9,20 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
+import { catchError, EMPTY, filter, finalize, forkJoin, map, tap } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
-import { CategoryDto, ProductDto } from '@shared/models';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
+import { CategoryDto, ImportProductsResultDto, ProductDto } from '@shared/models';
 
 type AvailabilityFilter = 'all' | 'available' | 'unavailable';
 type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
@@ -39,12 +41,13 @@ type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
+    MatProgressBarModule,
     MatSelectModule,
     MatSnackBarModule,
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
-    PageLoadingComponent,
+    TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './product-list.component.html',
@@ -75,6 +78,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
   ];
   protected readonly deletingId = signal<string | null>(null);
   protected readonly isBulkProcessing = signal(false);
+  protected readonly importUploadProgress = signal<number | null>(null);
   protected readonly selectedProductIds = signal<Set<string>>(new Set<string>());
   protected readonly totalCount = signal(0);
   protected readonly pageNumber = signal(1);
@@ -293,26 +297,50 @@ export class ProductListComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.isBulkProcessing.set(true);
-    this.adminApi
-      .bulkSetProductAvailability({ productIds: selectedIds, isAvailable })
-      .pipe(
-        catchError((err: unknown) => {
-          const message = err instanceof ApiError ? err.message : 'Could not update availability.';
-          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
-          return EMPTY;
-        }),
-        finalize(() => this.isBulkProcessing.set(false))
-      )
-      .subscribe((result) => {
-        const label = isAvailable ? 'available' : 'unavailable';
-        this.snackBar.open(
-          `Marked ${result.processedCount}/${result.requestedCount} product(s) as ${label}.`,
-          'Dismiss',
-          { duration: 5000 }
-        );
-        this.clearSelection();
-        this.loadPage();
+    const count = selectedIds.length;
+    const data: ConfirmDialogData = isAvailable
+      ? {
+          title: 'Mark products as available?',
+          message: `Mark ${count} selected product(s) as available? Visible to customers when in stock and inventory rules allow.`,
+          confirmLabel: 'Mark available',
+          confirmColor: 'primary'
+        }
+      : {
+          title: 'Mark products as unavailable?',
+          message: `Mark ${count} selected product(s) as unavailable? They will be hidden from the catalog.`,
+          confirmLabel: 'Mark unavailable',
+          confirmColor: 'warn'
+        };
+
+    this.dialog
+      .open(ConfirmDialogComponent, { data, width: 'min(480px, 92vw)' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed !== true) {
+          return;
+        }
+
+        this.isBulkProcessing.set(true);
+        this.adminApi
+          .bulkSetProductAvailability({ productIds: selectedIds, isAvailable })
+          .pipe(
+            catchError((err: unknown) => {
+              const message = err instanceof ApiError ? err.message : 'Could not update availability.';
+              this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+              return EMPTY;
+            }),
+            finalize(() => this.isBulkProcessing.set(false))
+          )
+          .subscribe((result) => {
+            const label = isAvailable ? 'available' : 'unavailable';
+            this.snackBar.open(
+              `Marked ${result.processedCount}/${result.requestedCount} product(s) as ${label}.`,
+              'Dismiss',
+              { duration: 5000 }
+            );
+            this.clearSelection();
+            this.loadPage();
+          });
       });
   }
 
@@ -348,9 +376,17 @@ export class ProductListComponent implements OnInit, AfterViewInit {
     }
 
     this.isBulkProcessing.set(true);
+    this.importUploadProgress.set(0);
     this.adminApi
-      .importProducts(file)
+      .importProductsWithProgress(file)
       .pipe(
+        tap((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
+            this.importUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+          }
+        }),
+        filter((e): e is HttpResponse<ImportProductsResultDto> => e.type === HttpEventType.Response),
+        map((e) => e.body!),
         catchError((err: unknown) => {
           const message = err instanceof ApiError ? err.message : 'Could not import products.';
           this.snackBar.open(message, 'Dismiss', { duration: 8000 });
@@ -358,6 +394,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
         }),
         finalize(() => {
           this.isBulkProcessing.set(false);
+          this.importUploadProgress.set(null);
           if (input) {
             input.value = '';
           }

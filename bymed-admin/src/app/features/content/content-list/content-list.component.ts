@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { PageContentSummaryDto } from '@shared/models';
 
 /** CMS page count is small; API caps page size at 100. */
@@ -35,7 +35,7 @@ const CONTENT_LIST_PAGE_SIZE = 100;
     MatTableModule,
     MatTooltipModule,
     NgClass,
-    PageLoadingComponent,
+    TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './content-list.component.html',

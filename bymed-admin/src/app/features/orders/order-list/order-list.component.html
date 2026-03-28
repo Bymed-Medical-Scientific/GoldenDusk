@@ -1,9 +1,6 @@
-@if (isLoading()) {
-  <app-page-loading label="Loading orders..." />
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  @if (errorMessage()) {
-    <app-global-error [message]="errorMessage() ?? ''" />
-  } @else {
     <div class="page-header">
       <div>
         <h1 class="page-title">Orders</h1>
@@ -85,7 +82,18 @@
       </div>
     </div>
 
+    @if (isExporting()) {
+      <mat-progress-bar class="export-progress" mode="indeterminate" aria-label="Export in progress" />
+    }
+
     <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="pageSize()"
+          ariaLabel="Loading orders"
+        />
+      } @else {
       <table mat-table [dataSource]="dataSource" matSort class="order-table">
         <ng-container matColumnDef="orderNumber">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
@@ -151,6 +159,6 @@
         aria-label="Select page of orders"
         (page)="onPageChange($event)"
       />
+      }
     </div>
-  }
 }

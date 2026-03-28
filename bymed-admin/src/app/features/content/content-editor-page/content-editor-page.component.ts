@@ -15,17 +15,21 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
 import Quill from 'quill';
-import { catchError, distinctUntilChanged, EMPTY, filter, finalize, map, switchMap } from 'rxjs';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { catchError, distinctUntilChanged, EMPTY, filter, finalize, map, switchMap, tap } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
-import { PageContentSummaryDto } from '@shared/models';
+import { ContentImageUploadDto, PageContentSummaryDto } from '@shared/models';
 
 const TITLE_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
@@ -59,9 +63,11 @@ function nonEmptyHtmlValidator(control: AbstractControl): ValidationErrors | nul
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -77,6 +83,7 @@ export class ContentEditorPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -100,6 +107,8 @@ export class ContentEditorPageComponent implements OnInit {
   protected readonly isPreview = signal(false);
   protected readonly isUploadingQuillImage = signal(false);
   protected readonly isUploadingOgImage = signal(false);
+  protected readonly quillUploadProgress = signal<number | null>(null);
+  protected readonly ogUploadProgress = signal<number | null>(null);
 
   protected readonly contentQuillModules = {
     toolbar: [
@@ -187,15 +196,26 @@ export class ContentEditorPageComponent implements OnInit {
     }
 
     this.isUploadingQuillImage.set(true);
+    this.quillUploadProgress.set(0);
     this.adminApi
-      .uploadContentImage(file)
+      .uploadContentImageWithProgress(file)
       .pipe(
+        tap((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
+            this.quillUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+          }
+        }),
+        filter((e): e is HttpResponse<ContentImageUploadDto> => e.type === HttpEventType.Response),
+        map((e) => e.body!),
         catchError((err: unknown) => {
           const msg = err instanceof ApiError ? err.message : 'Image upload failed.';
           this.snackBar.open(msg, 'Dismiss', { duration: 8000 });
           return EMPTY;
         }),
-        finalize(() => this.isUploadingQuillImage.set(false))
+        finalize(() => {
+          this.isUploadingQuillImage.set(false);
+          this.quillUploadProgress.set(null);
+        })
       )
       .subscribe((res) => {
         const range = this.quillInstance?.getSelection(true);
@@ -222,15 +242,26 @@ export class ContentEditorPageComponent implements OnInit {
     }
 
     this.isUploadingOgImage.set(true);
+    this.ogUploadProgress.set(0);
     this.adminApi
-      .uploadContentImage(file)
+      .uploadContentImageWithProgress(file)
       .pipe(
+        tap((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
+            this.ogUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+          }
+        }),
+        filter((e): e is HttpResponse<ContentImageUploadDto> => e.type === HttpEventType.Response),
+        map((e) => e.body!),
         catchError((err: unknown) => {
           const msg = err instanceof ApiError ? err.message : 'Image upload failed.';
           this.snackBar.open(msg, 'Dismiss', { duration: 8000 });
           return EMPTY;
         }),
-        finalize(() => this.isUploadingOgImage.set(false))
+        finalize(() => {
+          this.isUploadingOgImage.set(false);
+          this.ogUploadProgress.set(null);
+        })
       )
       .subscribe((res) => {
         this.pageForm.patchValue({ ogImage: res.url });
@@ -242,6 +273,35 @@ export class ContentEditorPageComponent implements OnInit {
     if (!this.lookupSlug) {
       return;
     }
+
+    if (!this.pageForm.dirty) {
+      this.reloadPageFromServer();
+      return;
+    }
+
+    const data: ConfirmDialogData = {
+      title: 'Discard unsaved changes?',
+      message: 'Your edits will be replaced with the last saved version from the server.',
+      confirmLabel: 'Discard',
+      cancelLabel: 'Keep editing',
+      confirmColor: 'warn'
+    };
+
+    this.dialog
+      .open(ConfirmDialogComponent, { data, width: 'min(440px, 92vw)' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed === true) {
+          this.reloadPageFromServer();
+        }
+      });
+  }
+
+  private reloadPageFromServer(): void {
+    if (!this.lookupSlug) {
+      return;
+    }
+
     this.pageError.set(null);
     this.isInitializing.set(true);
     this.adminApi

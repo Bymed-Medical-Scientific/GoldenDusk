@@ -1,5 +1,5 @@
 @if (isLoading()) {
-  <app-page-loading label="Loading analytics..." />
+  <app-dashboard-skeleton />
 } @else {
   @if (errorMessage()) {
     <app-global-error [message]="errorMessage() ?? ''" />

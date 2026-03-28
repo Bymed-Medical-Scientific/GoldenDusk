@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -15,7 +16,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { OrderSummaryDto } from '@shared/models';
 import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
 
@@ -35,11 +36,12 @@ type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
+    MatProgressBarModule,
     MatSelectModule,
     MatSnackBarModule,
     MatSortModule,
     MatTableModule,
-    PageLoadingComponent,
+    TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './order-list.component.html',

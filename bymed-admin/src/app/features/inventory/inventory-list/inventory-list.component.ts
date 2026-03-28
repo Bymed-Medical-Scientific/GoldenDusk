@@ -13,7 +13,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
-import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
+import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { InventoryItemDto } from '@shared/models';
 
 type StockScopeFilter = 'all' | 'low';
@@ -33,7 +33,7 @@ type StockScopeFilter = 'all' | 'low';
     MatSortModule,
     MatTableModule,
     NgClass,
-    PageLoadingComponent,
+    TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './inventory-list.component.html',

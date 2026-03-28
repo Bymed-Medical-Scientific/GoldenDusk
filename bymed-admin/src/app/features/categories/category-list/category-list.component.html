@@ -1,9 +1,6 @@
-@if (isLoading()) {
-  <app-page-loading label="Loading categories..." />
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  @if (errorMessage()) {
-    <app-global-error [message]="errorMessage() ?? ''" />
-  } @else {
     <div class="page-header">
       <div class="page-header-text">
         <h1 class="page-title">Categories</h1>
@@ -41,6 +38,13 @@
     </div>
 
     <div class="table-wrap mat-elevation-z1">
+      @if (isLoading()) {
+        <app-table-skeleton
+          [columnCount]="displayedColumns.length"
+          [rowCount]="8"
+          ariaLabel="Loading categories"
+        />
+      } @else {
       <table mat-table [dataSource]="dataSource" matSort class="category-table">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Name</th>
@@ -99,6 +103,6 @@
         showFirstLastButtons
         aria-label="Select page of categories"
       />
+      }
     </div>
-  }
 }
