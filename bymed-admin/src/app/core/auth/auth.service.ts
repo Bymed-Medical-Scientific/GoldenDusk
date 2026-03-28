@@ -51,7 +51,12 @@ export class AuthService {
   }
 
   public isAdmin(): boolean {
-    return this.tokenStorage.getUser()?.role === 'Admin';
+    const role = this.tokenStorage.getUser()?.role;
+    // API may send enum as string ("Admin") or legacy numeric JSON (1 = Admin).
+    if (role === 'Admin' || role === 1) {
+      return true;
+    }
+    return typeof role === 'string' && role.toLowerCase() === 'admin';
   }
 
   public refreshToken(): Observable<RefreshTokenResponseDto> {

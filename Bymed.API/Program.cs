@@ -44,6 +44,8 @@ using Serilog;
 
 using System.Text;
 
+using System.Text.Json.Serialization;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -96,7 +98,15 @@ builder.Host.UseSerilog((context, configuration) =>
 
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+
+    .AddJsonOptions(options =>
+
+    {
+
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+    });
 
 
 
@@ -112,11 +122,23 @@ var frontendCorsOrigins = builder.Configuration
 
 
 
-// In development, allow localhost if no origins configured
+// In development, allow common local dev servers if no origins configured (Next.js :3000, Angular :4200)
 
 if (builder.Environment.IsDevelopment() && frontendCorsOrigins.Length == 0)
 
-    frontendCorsOrigins = ["http://localhost:3000"];
+    frontendCorsOrigins =
+
+    [
+
+        "http://localhost:3000",
+
+        "https://localhost:3000",
+
+        "http://localhost:4200",
+
+        "https://localhost:4200"
+
+    ];
 
 
 

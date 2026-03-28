@@ -7,7 +7,8 @@ export interface AuthUserDto {
   readonly id: string;
   readonly email: string;
   readonly name: string;
-  readonly role: 'Customer' | 'Admin' | string;
+  /** String when API uses JsonStringEnumConverter; legacy responses may send 0/1. */
+  readonly role: 'Customer' | 'Admin' | string | number;
 }
 
 export interface LoginResponseDto {
