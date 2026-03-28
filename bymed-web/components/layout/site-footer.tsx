@@ -1,3 +1,4 @@
+import { BymedLogo } from "@/components/brand/bymed-logo";
 import Link from "next/link";
 import {
   siteFooterContact,
@@ -14,9 +15,12 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <p className="text-lg font-semibold tracking-tight text-foreground">
-              ByMed
-            </p>
+            <Link
+              href="/"
+              className="inline-block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <BymedLogo variant="footer" />
+            </Link>
             <p className="mt-2 text-sm text-muted-foreground">
               Medical and scientific equipment. Quality supplies for healthcare
               and laboratory professionals.

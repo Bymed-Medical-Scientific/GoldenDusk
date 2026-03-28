@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth/auth-context";
 import { useCart } from "@/components/cart/cart-context";
+import { BymedLogo } from "@/components/brand/bymed-logo";
 import { CurrencySelector } from "@/components/currency/currency-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { primaryNavLinks } from "@/lib/site-nav";
@@ -296,15 +297,11 @@ export function SiteHeader() {
 
           <Link
             href="/"
-            className="flex min-w-0 flex-col leading-tight"
+            className="inline-flex min-w-0 shrink-0 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            aria-label="ByMed Medical and Scientific — home"
             onClick={closeMobile}
           >
-            <span className="text-lg font-semibold tracking-tight sm:text-xl">
-              ByMed
-            </span>
-            <span className="hidden text-xs text-white/90 sm:block">
-              Medical &amp; Scientific
-            </span>
+            <BymedLogo variant="header" priority />
           </Link>
         </div>
 
