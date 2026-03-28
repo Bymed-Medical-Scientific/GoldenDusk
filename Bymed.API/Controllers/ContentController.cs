@@ -30,6 +30,7 @@ public sealed class ContentController : ControllerBase
 
     /// <summary>List all pages with pagination.</summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResult<PageContentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int pageNumber = 1,
@@ -153,6 +154,7 @@ public sealed class ContentController : ControllerBase
 
     /// <summary>Get page content by slug.</summary>
     [HttpGet("{slug}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PageContentDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBySlug(string slug, CancellationToken cancellationToken = default)

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { applyTokenCookies } from "@/lib/server/apply-auth-cookies";
 import { backendApiUrl } from "@/lib/server/backend-url";
+import { nodeFetchBymedApi } from "@/lib/server/node-api-fetch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const upstream = await fetch(backendApiUrl("/Auth/login"), {
+  const upstream = await nodeFetchBymedApi(backendApiUrl("/Auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

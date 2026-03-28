@@ -33,6 +33,7 @@ public sealed class ProductsController : ControllerBase
 
     /// <summary>List products with optional filtering and pagination.</summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResult<ProductDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int pageNumber = 1,
@@ -49,6 +50,7 @@ public sealed class ProductsController : ControllerBase
 
     /// <summary>Get a product by id.</summary>
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)

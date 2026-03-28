@@ -1,4 +1,4 @@
-import { getPublicApiBaseUrl } from "@/lib/env";
+import { getPublicApiBaseUrl, getServerSideApiOrigin } from "@/lib/env";
 import { joinUrl } from "@/lib/url";
 import type { ApiValidationIssue } from "@/types/api-common";
 
@@ -26,10 +26,13 @@ function isDirectBrowserApiPath(path: string, method: string): boolean {
 }
 
 function resolveRequestUrl(path: string, method: string): string {
-  const base = getPublicApiBaseUrl();
+  const base =
+    typeof window === "undefined"
+      ? getServerSideApiOrigin()
+      : getPublicApiBaseUrl();
   if (!base) {
     throw new Error(
-      "NEXT_PUBLIC_API_URL is not set. Add it to .env.local (see .env.example).",
+      "NEXT_PUBLIC_API_URL is not configured. Set it for production builds (see .env.example).",
     );
   }
   if (typeof window === "undefined") {
@@ -189,21 +192,28 @@ export async function apiFetch(
   let lastNetworkError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const requestInit: RequestInit & {
-        next?: { revalidate?: number; tags?: string[] };
-      } = {
-        ...init,
+      const { next: _dropInitNext, ...initRest } = init as RequestInit & {
+        next?: unknown;
+      };
+      const requestInit: RequestInit = {
+        ...initRest,
         headers,
         credentials: "include",
       };
       if (options.cache != null) requestInit.cache = options.cache;
-      if (typeof window === "undefined" && options.next) {
-        requestInit.next = options.next;
-      }
 
-      const res = await fetch(url, {
-        ...requestInit,
-      });
+      const withNext =
+        typeof window === "undefined" && options.next
+          ? { ...requestInit, next: options.next }
+          : requestInit;
+
+      let res: Response;
+      if (typeof window === "undefined") {
+        const { nodeFetchBymedApi } = await import("@/lib/server/node-api-fetch");
+        res = await nodeFetchBymedApi(url, withNext);
+      } else {
+        res = await fetch(url, withNext);
+      }
 
       if (
         allowRetry &&

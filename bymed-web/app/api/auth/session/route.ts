@@ -16,9 +16,10 @@ export async function GET() {
   const access = jar.get(BYMED_ACCESS_COOKIE)?.value;
   const refresh = jar.get(BYMED_REFRESH_COOKIE)?.value;
 
-  const unauthorized = () => {
-    const res = NextResponse.json({ user: null }, { status: 401 });
-    clearAuthCookies(res);
+  /** Logged-out and guest browsers: 200 so fetch is not a console error; body still has user: null. */
+  const guestResponse = (clearCookies: boolean) => {
+    const res = NextResponse.json({ user: null });
+    if (clearCookies) clearAuthCookies(res);
     return res;
   };
 
@@ -27,13 +28,13 @@ export async function GET() {
     if (user) return NextResponse.json({ user });
   }
 
-  if (!refresh) return unauthorized();
+  if (!refresh) return guestResponse(false);
 
   const tokens = await refreshTokensWithBackend(refresh);
-  if (!tokens) return unauthorized();
+  if (!tokens) return guestResponse(true);
 
   const user = await buildAuthUserFromSession(tokens.token);
-  if (!user) return unauthorized();
+  if (!user) return guestResponse(true);
 
   const res = NextResponse.json({ user });
   applyTokenCookies(res, tokens.token, tokens.refreshToken);
