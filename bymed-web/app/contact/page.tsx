@@ -1,13 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +12,17 @@ import {
   siteFooterMailtoHref,
   siteFooterTelHref,
 } from "@/lib/site-contact";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import {
+  Beaker,
+  Clock,
+  Globe2,
+  Mail,
+  MapPin,
+  Phone,
+  Share2,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 type FormState = {
@@ -37,6 +40,39 @@ const initialForm: FormState = {
   subject: "",
   message: "",
 };
+
+const interestOptions = [
+  "Clinical diagnostics",
+  "Laboratory systems",
+  "Point-of-care devices",
+  "Imaging technologies",
+  "Training services",
+  "General inquiry",
+] as const;
+
+function ContactItem({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {label}
+        </p>
+        <div className="mt-1 text-sm text-foreground">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 function validateName(value: string): string | null {
   const trimmed = value.trim();
@@ -138,214 +174,284 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1fr_380px] lg:gap-14 lg:py-16">
-      <section>
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-          Get in touch
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Contact Us
+    <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+      <section className="max-w-4xl">
+        <h1 className="font-heading text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Connect with Bymed <span className="text-primary">Scientific</span>
         </h1>
-        <p className="mt-4 max-w-xl text-muted-foreground sm:text-lg">
-          Send us your questions and we will get back to you as soon as
-          possible.
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-muted-foreground">
+          Expert consultation for clinical laboratories, research institutions,
+          and medical facilities. Reach out to our scientific specialists for
+          precise equipment solutions.
         </p>
+      </section>
 
-        <Card className="mt-10 border-border/80 shadow-premium-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-heading text-lg">Message</CardTitle>
-            <CardDescription>
-              All fields are required. We typically respond within one business
-              day.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="space-y-6" noValidate>
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-7">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+            Request a Quote
+          </h2>
+          <form onSubmit={onSubmit} className="mt-6 space-y-5" noValidate>
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="contact-name">Name</Label>
+                <Label htmlFor="contact-name">Full name</Label>
                 <Input
                   id="contact-name"
                   type="text"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
                   autoComplete="name"
+                  placeholder="Dr. Sarah Jenkins"
                   aria-invalid={Boolean(fieldErrors.name)}
                   aria-describedby={
                     fieldErrors.name ? "contact-name-error" : undefined
                   }
+                  className="h-11 rounded-xl bg-muted/35"
                 />
                 {fieldErrors.name ? (
-                  <p
-                    id="contact-name-error"
-                    className="text-xs text-destructive"
-                  >
+                  <p id="contact-name-error" className="text-xs text-destructive">
                     {fieldErrors.name}
                   </p>
                 ) : null}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact-email">Email</Label>
+                <Label htmlFor="contact-email">Work email</Label>
                 <Input
                   id="contact-email"
                   type="email"
                   value={form.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   autoComplete="email"
+                  placeholder="s.jenkins@medical.org"
                   aria-invalid={Boolean(fieldErrors.email)}
                   aria-describedby={
                     fieldErrors.email ? "contact-email-error" : undefined
                   }
+                  className="h-11 rounded-xl bg-muted/35"
                 />
                 {fieldErrors.email ? (
-                  <p
-                    id="contact-email-error"
-                    className="text-xs text-destructive"
-                  >
+                  <p id="contact-email-error" className="text-xs text-destructive">
                     {fieldErrors.email}
                   </p>
                 ) : null}
               </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="contact-organization">Organization</Label>
+                <Input
+                  id="contact-organization"
+                  type="text"
+                  onChange={(e) => {
+                    const organization = e.target.value.trim();
+                    const rest = form.message
+                      .replace(/^Organization:\s.*\n\n/g, "")
+                      .trimStart();
+                    const nextMessage = organization
+                      ? `Organization: ${organization}\n\n${rest}`
+                      : rest;
+                    updateField("message", nextMessage);
+                  }}
+                  placeholder="Central Research Hospital"
+                  className="h-11 rounded-xl bg-muted/35"
+                />
+              </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact-subject">Subject</Label>
-                <Input
+                <Label htmlFor="contact-subject">Equipment interest</Label>
+                <select
                   id="contact-subject"
-                  type="text"
                   value={form.subject}
                   onChange={(e) => updateField("subject", e.target.value)}
                   aria-invalid={Boolean(fieldErrors.subject)}
                   aria-describedby={
                     fieldErrors.subject ? "contact-subject-error" : undefined
                   }
-                />
+                  className="h-11 w-full rounded-xl border border-input bg-muted/35 px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+                >
+                  <option value="">Select category</option>
+                  {interestOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
                 {fieldErrors.subject ? (
-                  <p
-                    id="contact-subject-error"
-                    className="text-xs text-destructive"
-                  >
+                  <p id="contact-subject-error" className="text-xs text-destructive">
                     {fieldErrors.subject}
                   </p>
                 ) : null}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="contact-message">Message</Label>
-                <Textarea
-                  id="contact-message"
-                  value={form.message}
-                  onChange={(e) => updateField("message", e.target.value)}
-                  rows={6}
-                  aria-invalid={Boolean(fieldErrors.message)}
-                  aria-describedby={
-                    fieldErrors.message ? "contact-message-error" : undefined
-                  }
-                  className="min-h-[140px] resize-y"
-                />
-                {fieldErrors.message ? (
-                  <p
-                    id="contact-message-error"
-                    className="text-xs text-destructive"
-                  >
-                    {fieldErrors.message}
-                  </p>
-                ) : null}
-              </div>
-
-              {statusSuccess ? (
-                <p
-                  className="text-sm text-teal dark:text-teal-muted"
-                  role="status"
-                >
-                  {statusSuccess}
-                </p>
-              ) : null}
-              {statusError ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {statusError}
-                </p>
-              ) : null}
-
-              <Button type="submit" disabled={pending} className="min-w-[9rem]">
-                {pending ? "Sending…" : "Send message"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </section>
-
-      <aside className="lg:pt-14">
-        <Card className="border-border/80 bg-gradient-to-b from-card to-muted/20 shadow-premium-sm">
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">
-              Contact information
-            </CardTitle>
-            <CardDescription>
-              Prefer email or phone? Reach us directly.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 text-sm">
-            <div className="flex gap-3">
-              <Mail
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden
+            <div className="space-y-2">
+              <Label htmlFor="contact-message">Detailed message</Label>
+              <Textarea
+                id="contact-message"
+                value={form.message}
+                onChange={(e) => updateField("message", e.target.value)}
+                rows={5}
+                placeholder="Briefly describe your requirements or technical specifications..."
+                aria-invalid={Boolean(fieldErrors.message)}
+                aria-describedby={
+                  fieldErrors.message ? "contact-message-error" : undefined
+                }
+                className="min-h-[140px] resize-y rounded-2xl bg-muted/35"
               />
+              {fieldErrors.message ? (
+                <p id="contact-message-error" className="text-xs text-destructive">
+                  {fieldErrors.message}
+                </p>
+              ) : null}
+            </div>
+
+            {statusSuccess ? (
+              <p className="text-sm text-teal dark:text-teal-muted" role="status">
+                {statusSuccess}
+              </p>
+            ) : null}
+            {statusError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {statusError}
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              disabled={pending}
+              className="h-11 w-full rounded-full text-sm font-semibold"
+            >
+              {pending ? "Submitting..." : "Submit Request"}
+            </Button>
+          </form>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="flex items-start gap-3 rounded-2xl bg-muted/40 px-4 py-3">
+              <Clock className="mt-0.5 size-4 text-primary" aria-hidden />
               <div>
-                <p className="font-medium text-foreground">Email</p>
-                <a
-                  href={siteFooterMailtoHref}
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  {siteFooterContact.email}
-                </a>
+                <p className="text-sm font-semibold text-foreground">Rapid response</p>
+                <p className="text-xs text-muted-foreground">
+                  Our specialist teams respond within 24 hours to all scientific
+                  inquiries.
+                </p>
               </div>
             </div>
-            <div className="flex gap-3">
-              <Phone
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden
-              />
+            <div className="flex items-start gap-3 rounded-2xl bg-muted/40 px-4 py-3">
+              <ShieldCheck className="mt-0.5 size-4 text-primary" aria-hidden />
               <div>
-                <p className="font-medium text-foreground">Phone</p>
+                <p className="text-sm font-semibold text-foreground">Trusted globally</p>
+                <p className="text-xs text-muted-foreground">
+                  Partnered with over 500 research institutions and hospitals.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className="space-y-5">
+          <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-7">
+            <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+              Scientific HQ
+            </h2>
+            <div className="mt-6 space-y-5">
+              <ContactItem icon={MapPin} label="Address">
+                <address className="not-italic text-muted-foreground">
+                  ByMed Medical &amp; Scientific
+                  <br />
+                  12 Healthway Avenue, Harare
+                  <br />
+                  Zimbabwe
+                </address>
+              </ContactItem>
+
+              <ContactItem icon={Phone} label="Clinical support">
                 <a
                   href={siteFooterTelHref}
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
                   {siteFooterContact.phoneDisplay}
                 </a>
-              </div>
+              </ContactItem>
+
+              <ContactItem icon={Mail} label="Inquiries">
+                <a
+                  href={siteFooterMailtoHref}
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {siteFooterContact.email}
+                </a>
+              </ContactItem>
             </div>
-            <div className="flex gap-3">
-              <Clock
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden
+          </section>
+
+          <section className="rounded-3xl border border-border/70 bg-muted/35 p-4">
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+              <iframe
+                title="ByMed location map"
+                className="h-56 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps?q=Bulawayo,+Zimbabwe&output=embed"
               />
-              <div>
-                <p className="font-medium text-foreground">Hours</p>
-                <p className="text-muted-foreground">
-                  {siteFooterContact.hoursLine}
-                </p>
-              </div>
             </div>
-            <div className="flex gap-3 border-t border-border pt-5">
-              <MapPin
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden
-              />
-              <div>
-                <p className="font-medium text-foreground">Address</p>
-                <address className="not-italic text-muted-foreground">
-                  ByMed Medical &amp; Scientific
-                  <br />
-                  12 Healthway Avenue
-                  <br />
-                  Harare, Zimbabwe
-                </address>
-              </div>
+            <a
+              href="https://maps.google.com/?q=Bulawayo,+Zimbabwe"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center justify-center rounded-full bg-card px-4 py-2 text-sm font-medium text-foreground ring-1 ring-border transition-colors hover:bg-muted"
+            >
+              View in Google Maps
+            </a>
+          </section>
+
+          <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Connect digitally
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <a
+                href={siteFooterMailtoHref}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                aria-label="Email"
+              >
+                <Mail className="size-4" aria-hidden />
+              </a>
+              <a
+                href={siteFooterTelHref}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                aria-label="Phone"
+              >
+                <Phone className="size-4" aria-hidden />
+              </a>
+              <a
+                href="https://bymed.co.zw/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                aria-label="Website"
+              >
+                <Globe2 className="size-4" aria-hidden />
+              </a>
+              <a
+                href="/products"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                aria-label="Catalog"
+              >
+                <Beaker className="size-4" aria-hidden />
+              </a>
+              <a
+                href="/"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                aria-label="Share home page"
+              >
+                <Share2 className="size-4" aria-hidden />
+              </a>
             </div>
-          </CardContent>
-        </Card>
-      </aside>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }
