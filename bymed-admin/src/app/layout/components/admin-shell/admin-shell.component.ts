@@ -43,7 +43,11 @@ export class AdminShellComponent {
   protected readonly sidebarOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
   protected readonly isDarkMode = signal(false);
+  protected readonly currentUrl = signal('');
   protected readonly lowStockCount = computed(() => this.lowStockAlerts.items().length);
+  protected readonly showLowStockBanner = computed(
+    () => this.lowStockCount() > 0 && this.currentUrl().startsWith('/inventory')
+  );
   protected readonly lowStockBadge = computed(() => {
     const n = this.lowStockCount();
     if (n <= 0) {
@@ -72,6 +76,7 @@ export class AdminShellComponent {
     private readonly authService: AuthService
   ) {
     this.lowStockAlerts.refresh();
+    this.currentUrl.set(this.router.url);
     this.syncThemeState();
     this.breakpointObserver
       .observe('(max-width: 960px)')
@@ -92,6 +97,10 @@ export class AdminShellComponent {
         if (event instanceof NavigationStart) {
           this.isNavigating.set(true);
           return;
+        }
+
+        if (event instanceof NavigationEnd) {
+          this.currentUrl.set(event.urlAfterRedirects);
         }
 
         this.isNavigating.set(false);

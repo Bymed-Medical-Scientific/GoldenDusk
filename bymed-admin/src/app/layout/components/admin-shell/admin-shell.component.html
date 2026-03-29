@@ -70,7 +70,7 @@
       <div class="route-loading" role="status" aria-live="polite"></div>
     }
 
-    @if (lowStockCount() > 0) {
+    @if (showLowStockBanner()) {
       <div class="low-stock-banner" role="alert">
         <i class="pi pi-exclamation-triangle banner-icon" aria-hidden="true"></i>
         <div class="banner-body">
