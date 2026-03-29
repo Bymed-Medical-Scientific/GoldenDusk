@@ -5,7 +5,7 @@ import {
   DEFAULT_HOME_MARKETING,
   parseHomeMarketingContent,
 } from "@/lib/content/marketing-pages";
-import { listProducts } from "@/lib/api/products";
+import { getProductById, listProducts } from "@/lib/api/products";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
@@ -13,6 +13,31 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 const HOME_SLUG = "home";
+const FEATURED_PRODUCTS_LIMIT = 4;
+
+function toFeaturedProduct(p: {
+  id: string;
+  name: string;
+  categoryName: string;
+  primaryImageUrl?: string | null;
+  images?: { url: string; altText: string; displayOrder: number }[] | null;
+}): HomeFeaturedProduct {
+  const ordered =
+    p.images?.slice().sort((a, b) => a.displayOrder - b.displayOrder) ?? [];
+  const first = ordered[0];
+  const imageUrl = resolveProductImageUrl(p.primaryImageUrl ?? first?.url ?? null);
+  const imageAlt =
+    ordered.find((i) => i.url === p.primaryImageUrl)?.altText ??
+    first?.altText ??
+    p.name;
+  return {
+    id: p.id,
+    name: p.name,
+    categoryName: p.categoryName,
+    imageUrl,
+    imageAlt,
+  };
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await loadMarketingPage(HOME_SLUG);
@@ -55,26 +80,39 @@ export default async function Home() {
 
   let featuredProducts: HomeFeaturedProduct[] = [];
   try {
-    const catalog = await listProducts({ pageNumber: 1, pageSize: 4 });
-    featuredProducts = catalog.items.map((p) => {
-      const ordered =
-        p.images?.slice().sort((a, b) => a.displayOrder - b.displayOrder) ?? [];
-      const first = ordered[0];
-      const imageUrl = resolveProductImageUrl(
-        p.primaryImageUrl ?? first?.url ?? null,
+    const requestedIds = data.featuredProductIds.slice(0, FEATURED_PRODUCTS_LIMIT);
+    const selectedById = new Map<string, HomeFeaturedProduct>();
+
+    if (requestedIds.length > 0) {
+      const fetched = await Promise.all(
+        requestedIds.map(async (id) => {
+          try {
+            return await getProductById(id);
+          } catch {
+            return null;
+          }
+        }),
       );
-      const imageAlt =
-        ordered.find((i) => i.url === p.primaryImageUrl)?.altText ??
-        first?.altText ??
-        p.name;
-      return {
-        id: p.id,
-        name: p.name,
-        categoryName: p.categoryName,
-        imageUrl,
-        imageAlt,
-      };
-    });
+      for (const p of fetched) {
+        if (!p) continue;
+        selectedById.set(p.id, toFeaturedProduct(p));
+      }
+      featuredProducts = requestedIds
+        .map((id) => selectedById.get(id))
+        .filter((p): p is HomeFeaturedProduct => Boolean(p));
+    }
+
+    if (featuredProducts.length < FEATURED_PRODUCTS_LIMIT) {
+      const catalog = await listProducts({
+        pageNumber: 1,
+        pageSize: FEATURED_PRODUCTS_LIMIT * 3,
+      });
+      for (const p of catalog.items) {
+        if (featuredProducts.length >= FEATURED_PRODUCTS_LIMIT) break;
+        if (selectedById.has(p.id)) continue;
+        featuredProducts.push(toFeaturedProduct(p));
+      }
+    }
   } catch {
     /* catalog API unavailable — featured section uses placeholders */
   }

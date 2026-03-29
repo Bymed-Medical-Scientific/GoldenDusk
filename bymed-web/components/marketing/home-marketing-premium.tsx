@@ -5,16 +5,11 @@ import type { HomeMarketingContent } from "@/lib/content/marketing-pages";
 import { resolvedHeroSlides } from "@/lib/content/marketing-pages";
 import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { cn } from "@/lib/utils";
-import {
-  Cpu,
-  FlaskConical,
-  Microscope,
-  Stethoscope,
-  Wrench,
-} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { HomeBrandsSlider } from "./home-brands-slider";
 import { HomeHeroCarousel } from "./home-hero-carousel";
+import { HomeWhatWeOfferSection } from "./home-what-we-offer-section";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 
 export type HomeFeaturedProduct = {
@@ -24,42 +19,6 @@ export type HomeFeaturedProduct = {
   imageUrl?: string;
   imageAlt: string;
 };
-
-const TRUSTED_BRANDS = [
-  "Roche",
-  "Philips",
-  "GE Healthcare",
-  "Terumo",
-  "Olympus",
-] as const;
-
-const SERVICE_HIGHLIGHTS = [
-  {
-    title: "Seamless installation",
-    body: "Certified technicians configure and validate equipment on-site so your teams can go live with confidence and minimal disruption.",
-    image:
-      "https://images.unsplash.com/photo-1516549655169-df83a0774519?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Clinician training",
-    body: "Hands-on programmes tailored to wards, theatres, and labs—covering safe operation, routine maintenance, and troubleshooting.",
-    image:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "24/7 maintenance",
-    body: "Rapid response and planned servicing to protect uptime for critical care, imaging, and laboratory assets when it matters most.",
-    image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80",
-  },
-] as const;
-
-const STATS = [
-  { value: "20+", label: "Years experience" },
-  { value: "150+", label: "Global partners" },
-  { value: "1.2k", label: "Projects completed" },
-  { value: "24/7", label: "Support response" },
-] as const;
 
 const PLACEHOLDER_FEATURED: HomeFeaturedProduct[] = [
   {
@@ -95,16 +54,6 @@ const PLACEHOLDER_FEATURED: HomeFeaturedProduct[] = [
     imageAlt: "Surgical environment",
   },
 ];
-
-function ecosystemIcon(title: string) {
-  const t = title.toLowerCase();
-  if (t.includes("point") || t.includes("care")) return Stethoscope;
-  if (t.includes("theatre") || t.includes("surgical")) return Microscope;
-  if (t.includes("teaching") || t.includes("education")) return FlaskConical;
-  if (t.includes("instrument") || t.includes("consumable")) return Cpu;
-  if (t.includes("imaging")) return Microscope;
-  return Wrench;
-}
 
 function FeaturedProductCard({ product }: { product: HomeFeaturedProduct }) {
   const isPlaceholder = product.id.startsWith("placeholder");
@@ -173,13 +122,7 @@ export function HomeMarketingPremium({
             }
             return row;
           })();
-  const ecosystemCards = data.offerings.slice(0, 4);
-  const testimonial = data.testimonials[0] ?? {
-    quote:
-      "Their team delivered on time, trained our staff thoroughly, and our imaging downtime dropped immediately.",
-    author: "Dr. Sarah Thompson",
-    role: "Chief of Radiology",
-  };
+  const whyCards = data.differentiators.slice(0, 3);
 
   return (
     <div className="bg-background text-foreground">
@@ -198,104 +141,16 @@ export function HomeMarketingPremium({
         />
       </header>
 
-      <section
-        className="bg-muted py-12 text-foreground sm:py-14"
-        aria-label="Trusted partners"
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Trusted by global industry leaders
-          </p>
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-14 lg:justify-between">
-            {TRUSTED_BRANDS.map((name) => (
-              <li key={name}>
-                <span className="font-heading text-lg font-semibold tracking-tight text-foreground/55 grayscale sm:text-xl dark:text-foreground/45">
-                  {name}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <HomeWhatWeOfferSection data={data} />
+
+      <HomeBrandsSlider />
 
       <MotionSection
-        className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
-        aria-labelledby="ecosystems-heading"
-      >
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-start lg:gap-16">
-          <MotionFadeUp>
-            <p className="font-script text-2xl text-primary sm:text-3xl">
-              Built for precision
-            </p>
-            <h2
-              id="ecosystems-heading"
-              className="font-heading mt-2 text-3xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl"
-            >
-              {data.whatWeOfferHeading}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-              {data.whatWeOfferIntro}
-            </p>
-          </MotionFadeUp>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ecosystemCards.map(({ title, blurb }) => {
-              const Icon = ecosystemIcon(title);
-              return (
-                <div
-                  key={title}
-                  className="rounded-2xl bg-card p-6 text-card-foreground shadow-sm ring-1 ring-border/80"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                    <Icon className="size-5" aria-hidden />
-                  </div>
-                  <h3 className="mt-4 font-heading text-lg font-semibold text-foreground">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {blurb}
-                  </p>
-                </div>
-              );
-            })}
-
-            <div className="relative overflow-hidden rounded-2xl bg-[#0a2463] p-8 text-white shadow-lg sm:col-span-2 lg:col-span-2">
-              <div
-                className="pointer-events-none absolute -right-8 bottom-0 opacity-25"
-                aria-hidden
-              >
-                <Cpu className="size-48 text-white" strokeWidth={1} />
-              </div>
-              <div className="relative z-[1] max-w-lg">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
-                  Engineering labs
-                </p>
-                <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-                  Build teaching and R&amp;D spaces that scale
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-white/85 sm:text-base">
-                  Turnkey layouts, durable benches, and equipment packages for
-                  universities and technical colleges—aligned to curriculum and
-                  industry standards.
-                </p>
-                <Link
-                  href="/services"
-                  className="mt-6 inline-flex text-sm font-semibold text-white underline-offset-4 hover:underline"
-                >
-                  Explore services
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </MotionSection>
-
-      <section
         className="bg-muted py-16 text-foreground sm:py-20"
         aria-labelledby="featured-catalog-heading"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <MotionFadeUp className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <h2
               id="featured-catalog-heading"
               className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
@@ -311,92 +166,50 @@ export function HomeMarketingPremium({
             >
               View entire catalog
             </Link>
-          </div>
+          </MotionFadeUp>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {catalogItems.map((p) => (
-              <FeaturedProductCard key={p.id} product={p} />
+              <MotionFadeUp key={p.id}>
+                <FeaturedProductCard product={p} />
+              </MotionFadeUp>
             ))}
           </div>
         </div>
-      </section>
+      </MotionSection>
 
       <MotionSection
         className="mx-auto max-w-7xl bg-background px-4 py-16 sm:px-6 sm:py-20"
-        aria-labelledby="service-highlights-heading"
+        aria-labelledby="why-choose-us-heading"
       >
-        <h2 id="service-highlights-heading" className="sr-only">
-          Service highlights
-        </h2>
-        <div className="grid gap-8 lg:grid-cols-3">
-          {SERVICE_HIGHLIGHTS.map((item) => (
+        <MotionFadeUp className="max-w-3xl">
+          <p className="font-script text-2xl text-primary sm:text-3xl">
+            Built for confidence
+          </p>
+          <h2
+            id="why-choose-us-heading"
+            className="font-heading mt-2 text-3xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl"
+          >
+            Why Choose Us
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {data.whySub}
+          </p>
+        </MotionFadeUp>
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          {whyCards.map((item) => (
             <MotionFadeUp key={item.title}>
-              <div className="flex h-full flex-col">
-                <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-muted">
-                  <Image
-                    src={item.image}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 33vw"
-                  />
-                </div>
-                <h3 className="font-heading mt-5 text-xl font-bold tracking-tight text-foreground">
+              <article className="h-full rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border/70">
+                <h3 className="font-heading text-xl font-bold tracking-tight text-foreground">
                   {item.title}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {item.body}
                 </p>
-              </div>
+              </article>
             </MotionFadeUp>
           ))}
         </div>
       </MotionSection>
-
-      <section
-        className="bg-[#0a2463] py-16 text-white dark:bg-[#0c1a3a] sm:py-20"
-        aria-labelledby="stats-heading"
-      >
-        <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <div>
-            <h2 id="stats-heading" className="sr-only">
-              By the numbers
-            </h2>
-            <div className="grid grid-cols-2 gap-8 sm:gap-10">
-              {STATS.map((s) => (
-                <div key={s.label}>
-                  <p className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                    {s.value}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-white/75">
-                    {s.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-2xl bg-white/10 p-8 backdrop-blur-md ring-1 ring-white/15 sm:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
-              Client testimonial
-            </p>
-            <blockquote className="mt-4 text-lg leading-relaxed text-white/95 sm:text-xl">
-              &ldquo;{testimonial.quote}&rdquo;
-            </blockquote>
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-sm font-semibold">
-                {testimonial.author
-                  .split(" ")
-                  .map((w) => w[0])
-                  .join("")
-                  .slice(0, 2)}
-              </div>
-              <div>
-                <p className="font-semibold">{testimonial.author}</p>
-                <p className="text-sm text-white/70">{testimonial.role}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <MotionSection
         className="bg-muted py-16 text-foreground sm:py-20"

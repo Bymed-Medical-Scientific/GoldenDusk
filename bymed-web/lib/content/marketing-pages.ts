@@ -17,6 +17,16 @@ export type HomeHeroSlide = {
 
 export type HomeTestimonial = { quote: string; author: string; role: string };
 
+/** Optional manufacturer / partner callout on a home offering (external HTTPS links only). */
+export type HomeOfferingPartner = { label: string; href: string };
+
+export type HomeOffering = {
+  title: string;
+  blurb: string;
+  /** Featured manufacturer links (HTTPS). CMS may send `partner` (single) or `partners` (array). */
+  partners?: HomeOfferingPartner[];
+};
+
 export type HomeMarketingContent = {
   metaTitle: string;
   metaDescription: string;
@@ -31,7 +41,9 @@ export type HomeMarketingContent = {
   secondaryCta: CtaLink;
   whatWeOfferHeading: string;
   whatWeOfferIntro: string;
-  offerings: { title: string; blurb: string }[];
+  offerings: HomeOffering[];
+  /** Optional product IDs to pin in home "Featured catalog" order. */
+  featuredProductIds: string[];
   catalogueLinkLabel: string;
   brandsHeading: string;
   brandsIntro: string;
@@ -145,60 +157,85 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   ],
   primaryCta: { label: "Browse Products", href: "/products" },
   secondaryCta: { label: "Request Quote", href: "/contact" },
-  whatWeOfferHeading: "Comprehensive scientific ecosystems",
+  whatWeOfferHeading: "What we offer",
   whatWeOfferIntro:
-    "From diagnostics and imaging to teaching labs and engineering workspaces—we help you build complete, reliable environments for care and discovery.",
+    "From teaching labs and theatres to hospitals and point-of-care settings—we supply equipment, instruments, and consumables aligned to how you work.",
   offerings: [
     {
-      title: "Point of care",
-      blurb: "Diagnostics and bedside solutions for clinics and wards.",
+      title: "Technical teaching equipment",
+      blurb:
+        "Industrial and classroom training systems for engineering and applied sciences programmes.",
+      partners: [{ label: "Edibon", href: "https://www.edibon.com/en/" }],
     },
     {
       title: "Theatre",
-      blurb: "Surgical instruments, drapes, and theatre-ready consumables.",
+      blurb:
+        "Operating theatre integration: lights, tables, surgical support, and related technologies.",
+      partners: [{ label: "Tekno", href: "https://www.tekno-medical.com/en/" }],
     },
     {
-      title: "Medical & technical teaching",
-      blurb: "Training systems for universities and technical colleges.",
+      title: "Medical teaching equipment",
+      blurb:
+        "Anatomical models, simulation, and education tools for medical and health sciences training.",
+      partners: [
+        { label: "3B Scientific", href: "https://www.3bscientific.com/" },
+      ],
     },
     {
-      title: "Instruments & consumables",
-      blurb: "Reliable disposables and precision instruments for daily use.",
+      title: "Industrial and lab scales",
+      blurb:
+        "Robust industrial scales and laboratory balances for quality control, production, mining, agriculture, and education.",
+      partners: [{ label: "Adam", href: "https://www.adamequipment.com/" }],
     },
     {
-      title: "Imaging",
-      blurb: "Support for diagnostic imaging workflows and accessories.",
+      title: "Hospital equipment",
+      blurb:
+        "Full-facility coverage: ICU and SCBU, patient monitoring, diagnostic imaging, theatre support, ward equipment, furniture, and orthopaedic implants.",
+      partners: [{ label: "Narang", href: "https://www.narang.com/" }],
     },
     {
-      title: "ICU / SCBU",
-      blurb: "Critical and neonatal care equipment when outcomes matter most.",
+      title: "Point of care",
+      blurb:
+        "Rapid diagnostics and bedside devices for clinics, wards, and outreach programmes.",
+    },
+    {
+      title: "Instruments",
+      blurb:
+        "Precision surgical and diagnostic instruments for daily clinical and laboratory use.",
+    },
+    {
+      title: "Laboratory equipment for schools",
+      blurb:
+        "Physics, chemistry, and biology teaching labs—safe, curriculum-aligned apparatus for secondary schools and colleges.",
+    },
+    {
+      title: "Consumables",
+      blurb:
+        "Disposables and routine supplies for clinics, laboratories, and hospitals.",
     },
   ],
+  featuredProductIds: [],
   catalogueLinkLabel: "View product catalogue →",
   brandsHeading: "Trusted brands",
   brandsIntro:
     "We supply equipment and consumables from recognised manufacturers so you can standardise quality across your facility or campus.",
   brandsLinkLabel: "Explore brands in the store →",
-  whyHeading: "Why choose us",
+  whyHeading: "Why Choose Us",
   whyLead: "Precision and innovation",
   whySub:
-    "Partnerships, customisation, technology, and training—so you get solutions that fit Zimbabwe's healthcare and education landscape.",
+    "We combine trusted global partnerships, tailored delivery, and innovative technology to support healthcare, science, and engineering institutions across Zimbabwe.",
   differentiators: [
     {
-      title: "World-class partnerships",
-      body: "We work with industry leaders such as MedicalCSE and EDIBON to bring leading medical, scientific, and engineering technologies to Zimbabwe.",
+      title: "World Class Partnerships",
+      body: "We partner with industry leaders like MedicalCSE and EDIBON to bring best medical, scientific and engineering technologies to Zimbabwe.",
     },
     {
-      title: "Tailored solutions",
-      body: "From advanced medical devices to engineering research equipment, we customise approaches for universities, healthcare providers, and research institutions.",
+      title: "Tailored Solutions",
+      body: "From advanced medical devices to engineering research equipment, we provide customized solutions for universities, healthcare providers and research institutions.",
     },
     {
-      title: "Innovative technology",
-      body: "We stay ahead of the curve with the latest innovations in medical, engineering, and scientific technologies.",
-    },
-    {
-      title: "Expert training",
-      body: "Our technical training division builds practical skills so people and organisations can thrive in fast-evolving industries.",
+      title: "Innovative Technology",
+      body: "We are committed to staying ahead of the curve, offering the latest innovations in medical, engineering and scientific technologies.",
     },
   ],
   servicesLinkLabel: "Our services →",
@@ -437,6 +474,36 @@ function pickTestimonials(
   return out.length > 0 ? out : fallback;
 }
 
+function pickOfferingPartner(
+  value: unknown,
+): HomeOfferingPartner | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const o = value as Record<string, unknown>;
+  const label = asString(o.label, "");
+  const href = asString(o.href, "");
+  if (!label || !href.startsWith("https://")) return undefined;
+  return { label, href };
+}
+
+function pickOfferingPartnersList(value: unknown): HomeOfferingPartner[] {
+  if (!Array.isArray(value)) return [];
+  const out: HomeOfferingPartner[] = [];
+  for (const entry of value) {
+    const p = pickOfferingPartner(entry);
+    if (p) out.push(p);
+  }
+  return out;
+}
+
+function pickOfferingPartnersFromItem(
+  o: Record<string, unknown>,
+): HomeOfferingPartner[] | undefined {
+  const fromArray = pickOfferingPartnersList(o.partners);
+  if (fromArray.length > 0) return fromArray;
+  const single = pickOfferingPartner(o.partner);
+  return single ? [single] : undefined;
+}
+
 function pickOfferings(
   value: unknown,
   fallback: HomeMarketingContent["offerings"],
@@ -448,7 +515,9 @@ function pickOfferings(
     const o = item as Record<string, unknown>;
     const title = asString(o.title, "");
     const blurb = asString(o.blurb, "");
-    if (title && blurb) out.push({ title, blurb });
+    if (!title || !blurb) continue;
+    const partners = pickOfferingPartnersFromItem(o);
+    out.push({ title, blurb, ...(partners ? { partners } : {}) });
   }
   return out.length > 0 ? out : fallback;
 }
@@ -522,6 +591,19 @@ function pickKeywords(value: unknown, fallback: string[]): string[] {
   return arr.length > 0 ? arr : fallback;
 }
 
+function pickFeaturedProductIds(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value) || value.length === 0) return fallback;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of value) {
+    const id = typeof v === "string" ? v.trim() : "";
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out.length > 0 ? out : fallback;
+}
+
 /** Merge API JSON into defaults; unknown shape falls back safely. */
 export function parseHomeMarketingContent(
   raw: string,
@@ -549,6 +631,10 @@ export function parseHomeMarketingContent(
       ),
       whatWeOfferIntro: asString(p.whatWeOfferIntro, defaults.whatWeOfferIntro),
       offerings: pickOfferings(p.offerings, defaults.offerings),
+      featuredProductIds: pickFeaturedProductIds(
+        p.featuredProductIds,
+        defaults.featuredProductIds,
+      ),
       catalogueLinkLabel: asString(
         p.catalogueLinkLabel,
         defaults.catalogueLinkLabel,
