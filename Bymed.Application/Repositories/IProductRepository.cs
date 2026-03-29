@@ -15,7 +15,12 @@ public interface IProductRepository
     Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Product?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
     /// <summary>Paged catalog query; combine with caching in read handlers for hot paths.</summary>
-    Task<PagedResult<Product>> GetPagedAsync(PaginationParams pagination, Guid? categoryId = null, bool? isAvailable = null, CancellationToken cancellationToken = default);
+    Task<PagedResult<Product>> GetPagedAsync(
+        PaginationParams pagination,
+        Guid? categoryId = null,
+        bool? isAvailable = null,
+        string? brand = null,
+        CancellationToken cancellationToken = default);
     Task<PagedResult<Product>> GetInventoryPagedAsync(
         PaginationParams pagination,
         bool lowStockOnly = false,

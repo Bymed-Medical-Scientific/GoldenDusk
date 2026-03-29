@@ -34,7 +34,12 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
         // For now use repository-level category and availability filters.
         // Search filtering can be added later at repository level if needed.
         var pagedProducts = await _productRepository
-            .GetPagedAsync(pagination, request.CategoryId, request.InStock, cancellationToken)
+            .GetPagedAsync(
+                pagination,
+                request.CategoryId,
+                request.InStock,
+                request.Brand,
+                cancellationToken)
             .ConfigureAwait(false);
 
         var productIds = pagedProducts.Items.Select(p => p.Id).ToList();

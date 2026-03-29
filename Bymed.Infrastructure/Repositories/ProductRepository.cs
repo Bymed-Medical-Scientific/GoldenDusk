@@ -57,7 +57,12 @@ public class ProductRepository : IProductRepository
             .ConfigureAwait(false);
     }
 
-    public async Task<PagedResult<Product>> GetPagedAsync(PaginationParams pagination, Guid? categoryId = null, bool? isAvailable = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Product>> GetPagedAsync(
+        PaginationParams pagination,
+        Guid? categoryId = null,
+        bool? isAvailable = null,
+        string? brand = null,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Products.AsNoTracking().Include(p => p.Category).AsQueryable();
 
@@ -65,6 +70,13 @@ public class ProductRepository : IProductRepository
             query = query.Where(p => p.CategoryId == categoryId.Value);
         if (isAvailable.HasValue)
             query = query.Where(p => p.IsAvailable == isAvailable.Value);
+        if (!string.IsNullOrWhiteSpace(brand))
+        {
+            var brandTerm = brand.Trim().ToLowerInvariant();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(brandTerm) ||
+                (p.Sku != null && p.Sku.ToLower().Contains(brandTerm)));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
 

@@ -266,13 +266,13 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
 };
 
 export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
-  metaTitle: "About us",
+  metaTitle: "About Us - Bymed Medical & Scientific",
   metaDescription:
-    "ByMed Medical & Scientific supplies world-class medical, scientific, and engineering solutions in Zimbabwe. Discover our vision, mission, ECG and imaging focus, university partnerships, and technical training.",
+    "Bymed Medical & Scientific is a dynamic, growth-driven company delivering world-class medical, scientific, and engineering solutions across Africa.",
   ogTitle:
-    "About ByMed — medical, scientific & engineering solutions in Zimbabwe",
-  twitterTitle: "About ByMed Medical & Scientific",
-  jsonLdName: "About ByMed Medical & Scientific",
+    "About Us - Bymed Medical & Scientific",
+  twitterTitle: "About Us - Bymed Medical & Scientific",
+  jsonLdName: "About Bymed Medical & Scientific",
   keywords: [
     "ByMed",
     "ByMed Medical and Scientific",
@@ -284,10 +284,10 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
     "medical imaging Zimbabwe",
     "technical training medical equipment",
   ],
-  headerEyebrow: "About us",
-  headerTitle: "About ByMed Medical & Scientific",
+  headerEyebrow: "About Us",
+  headerTitle: "About Bymed Medical & Scientific",
   headerSubtitle:
-    "If you need high-quality, professional medical or scientific products, you are in the right place.",
+    "If you are in need of high-quality and professional medical or scientific products, look no further.",
   overviewHeading: "Company overview",
   overviewParagraphs: [
     "ByMed Medical & Scientific is a dynamic, growth-driven company dedicated to delivering world-class medical, scientific, and engineering solutions across Africa. As a trusted importer and distributor, we supply high-quality medical equipment, consumables, point-of-care devices, laboratory tools, and digital imaging technologies to support critical care and minimally invasive procedures.",
@@ -309,7 +309,7 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
   ],
   visionTitle: "Vision",
   visionText:
-    "To be Zimbabwe's leading distributor of advanced medical devices, scientific research technologies, and engineering education solutions—empowering healthcare professionals, researchers, and students to drive progress and innovation.",
+    "To be Zimbabwe's leading distributor of advanced medical devices, scientific research technologies and engineering education solutions, empowering healthcare professionals, researchers and students to drive progress and innovation.",
   missionTitle: "Mission",
   missionText:
     "Our mission is to provide cutting-edge technologies and expert training services that help transform healthcare, science, and engineering education across Zimbabwe.",
@@ -317,11 +317,11 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
   aims: [
     "Improve healthcare outcomes by bringing advanced ECG diagnostic technologies to Zimbabwe.",
     "Equip universities and research centres with state-of-the-art science and engineering equipment.",
-    "Offer practical skills training to individuals and organisations so they can thrive in technical and scientific fields.",
+    "Offer practical skills training to individuals and organizations, enabling them to thrive in technical and scientific fields.",
   ],
   ctaTitle: "We would love to hear from you",
   ctaBody:
-    "Whether you are interested in our ECG technologies, science and research equipment, or training services, our team is here to help.",
+    "Whether you're interested in our ECG technologies, science and research equipment, or training services, our team is here to help.",
   ctaButtonLabel: "Contact us",
 };
 

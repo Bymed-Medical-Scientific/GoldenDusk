@@ -48,9 +48,10 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? search = null,
-        [FromQuery] bool? inStock = null)
+        [FromQuery] bool? inStock = null,
+        [FromQuery] string? brand = null)
     {
-        var query = new GetProductsQuery(pageNumber, pageSize, categoryId, search, inStock);
+        var query = new GetProductsQuery(pageNumber, pageSize, categoryId, search, inStock, brand);
         var result = await _mediator.Send(query, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         return Ok(result);
     }
