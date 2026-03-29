@@ -106,44 +106,137 @@
       <mat-card class="card-block">
         <mat-card-header>
           <mat-card-title>Body</mat-card-title>
-          <mat-card-subtitle>Rich text; use the image button to upload and embed images.</mat-card-subtitle>
+          <mat-card-subtitle>
+            @if (isHomeSlug()) {
+              Home page uses structured JSON content.
+            } @else {
+              Rich text; use the image button to upload and embed images.
+            }
+          </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <input
-            #quillImageInput
-            type="file"
-            class="visually-hidden"
-            accept="image/*"
-            (change)="onQuillImageSelected($event)"
-            aria-hidden="true"
-            tabindex="-1"
-          />
-          @if (isUploadingQuillImage()) {
-            <div class="inline-status">
-              <mat-spinner diameter="24" />
-              <span>Uploading image…</span>
-            </div>
-            @if (quillUploadProgress() !== null) {
-              <mat-progress-bar mode="determinate" [value]="quillUploadProgress()!" class="upload-bar" />
+          @if (!isHomeSlug()) {
+            <input
+              #quillImageInput
+              type="file"
+              class="visually-hidden"
+              accept="image/*"
+              (change)="onQuillImageSelected($event)"
+              aria-hidden="true"
+              tabindex="-1"
+            />
+            @if (isUploadingQuillImage()) {
+              <div class="inline-status">
+                <mat-spinner diameter="24" />
+                <span>Uploading image…</span>
+              </div>
+              @if (quillUploadProgress() !== null) {
+                <mat-progress-bar mode="determinate" [value]="quillUploadProgress()!" class="upload-bar" />
+              }
             }
           }
+
           @if (isPreview()) {
-            <div class="preview-pane mat-elevation-z1">
-              <div class="preview-body" [innerHTML]="trustedPreviewHtml()"></div>
-            </div>
+            @if (isHomeSlug()) {
+              <div class="preview-pane mat-elevation-z1">
+                <pre class="json-preview">{{ homeJsonPreview() }}</pre>
+              </div>
+            } @else {
+              <div class="preview-pane mat-elevation-z1">
+                <div class="preview-body" [innerHTML]="trustedPreviewHtml()"></div>
+              </div>
+            }
           } @else {
-            <div class="quill-wrap">
-              <quill-editor
-                formControlName="content"
-                [theme]="'snow'"
-                [modules]="contentQuillModules"
-                placeholder="Page content…"
-                (onEditorCreated)="onContentEditorCreated($event)"
-              />
-            </div>
+            @if (isHomeSlug()) {
+              <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                <mat-label>Home JSON content</mat-label>
+                <textarea matInput formControlName="content" rows="20" class="json-editor"></textarea>
+                <mat-hint>Set featured products via picker below; IDs are stored in <code>featuredProductIds</code>.</mat-hint>
+              </mat-form-field>
+              @if (homeJsonError()) {
+                <p class="field-error">{{ homeJsonError() }}</p>
+              }
+            } @else {
+              <div class="quill-wrap">
+                <quill-editor
+                  formControlName="content"
+                  [theme]="'snow'"
+                  [modules]="contentQuillModules"
+                  placeholder="Page content…"
+                  (onEditorCreated)="onContentEditorCreated($event)"
+                />
+              </div>
+            }
           }
           @if (pageForm.controls.content.hasError('required') && pageForm.controls.content.touched) {
             <p class="field-error">Content is required.</p>
+          }
+
+          @if (isHomeSlug() && !isPreview()) {
+            <div class="featured-picker">
+              <h3 class="picker-title">Featured catalog products (max {{ 4 }})</h3>
+              <p class="picker-subtitle">
+                Search products and add them in display order. This updates <code>featuredProductIds</code> in JSON.
+              </p>
+
+              <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                <mat-label>Search products</mat-label>
+                <input matInput [formControl]="featuredSearch" autocomplete="off" />
+                <mat-hint>Type at least 2 characters.</mat-hint>
+              </mat-form-field>
+
+              @if (isSearchingFeaturedProducts()) {
+                <div class="inline-status">
+                  <mat-spinner diameter="20" />
+                  <span>Searching products…</span>
+                </div>
+              }
+
+              @if (featuredSearchResults().length > 0) {
+                <div class="search-results">
+                  @for (product of featuredSearchResults(); track product.id) {
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      (click)="addFeaturedProduct(product)"
+                      [disabled]="selectedFeaturedProducts().length >= 4"
+                    >
+                      + {{ product.name }}
+                    </button>
+                  }
+                </div>
+              }
+
+              <div class="selected-list">
+                @for (product of selectedFeaturedProducts(); track product.id; let i = $index) {
+                  <div class="selected-row">
+                    <div class="selected-meta">
+                      <strong>{{ i + 1 }}.</strong> {{ product.name }}
+                      <span class="selected-sub">({{ product.categoryName }})</span>
+                    </div>
+                    <div class="selected-actions">
+                      <button mat-icon-button type="button" (click)="moveFeaturedProduct(i, -1)" [disabled]="i === 0" aria-label="Move up">
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        (click)="moveFeaturedProduct(i, 1)"
+                        [disabled]="i === selectedFeaturedProducts().length - 1"
+                        aria-label="Move down"
+                      >
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                      <button mat-icon-button type="button" (click)="removeFeaturedProduct(product.id)" aria-label="Remove product">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="picker-empty">No featured products selected yet.</p>
+                }
+              </div>
+            </div>
           }
         </mat-card-content>
       </mat-card>

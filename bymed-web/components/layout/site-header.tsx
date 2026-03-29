@@ -1,16 +1,30 @@
 "use client";
 
 import { useAuth } from "@/components/auth/auth-context";
-import { useCart } from "@/components/cart/cart-context";
 import { BymedLogo } from "@/components/brand/bymed-logo";
-import { CurrencySelector } from "@/components/currency/currency-selector";
+import { useCart } from "@/components/cart/cart-context";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { primaryNavLinks } from "@/lib/site-nav";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
-/** Hover / focus-visible label for icon-only header controls (pointer users see text; aria-label stays on control). */
 function HeaderIconHint({
   label,
   children,
@@ -21,11 +35,11 @@ function HeaderIconHint({
   className?: string;
 }) {
   return (
-    <div className={`group relative inline-flex ${className}`}>
+    <div className={cn("group relative inline-flex", className)}>
       {children}
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-full z-[70] mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+        className="pointer-events-none absolute left-1/2 top-full z-[70] mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 dark:bg-neutral-100 dark:text-neutral-900"
       >
         {label}
       </span>
@@ -36,9 +50,7 @@ function HeaderIconHint({
 function IconMenu({ className }: { className?: string }) {
   return (
     <svg
-      className={className}
-      width="24"
-      height="24"
+      className={cn("size-6 shrink-0", className)}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -48,25 +60,6 @@ function IconMenu({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  );
-}
-
-function IconClose({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   );
 }
@@ -132,16 +125,64 @@ function IconUser({ className }: { className?: string }) {
   );
 }
 
+function PrimaryNavLink({
+  href,
+  label,
+  overlay,
+}: {
+  href: string;
+  label: string;
+  overlay: boolean;
+}) {
+  const pathname = usePathname();
+  const active =
+    pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "group relative whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors",
+        overlay
+          ? active
+            ? "text-white"
+            : "text-white/85 hover:text-white"
+          : active
+            ? "text-primary"
+            : "text-foreground/80 hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground",
+      )}
+      aria-current={active ? "page" : undefined}
+    >
+      {label}
+      <span
+        className={cn(
+          "absolute bottom-0 left-3 right-3 h-0.5 rounded-full transition-transform duration-200 ease-out",
+          overlay ? "bg-white" : "bg-brand",
+          active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
+        )}
+        aria-hidden
+      />
+    </Link>
+  );
+}
+
+const iconBtnOverlay =
+  "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50";
+
+const iconBtnBar =
+  "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground/85 transition-colors hover:bg-black/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:text-muted-foreground dark:hover:bg-muted";
+
 export function SiteHeader() {
   const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
   const { totalItems } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const mobileNavId = useId();
-  const currencySelectHeaderId = useId();
-  const currencySelectDrawerId = useId();
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+  const siteSearchInputId = useId();
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -150,13 +191,11 @@ export function SiteHeader() {
   }, [pathname, closeMobile]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [mobileOpen]);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!userMenuOpen) return;
@@ -175,45 +214,243 @@ export function SiteHeader() {
     };
   }, [userMenuOpen]);
 
-  const navLinkClass = (href: string) => {
-    const active = pathname === href || (href !== "/" && pathname.startsWith(href));
-    return `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-      active
-        ? "bg-white/20 text-white"
-        : "text-white/90 hover:bg-white/10 hover:text-white"
-    }`;
-  };
+  useEffect(() => {
+    if (!searchOpen) return;
+    function onPointerDown(e: PointerEvent) {
+      if (searchWrapRef.current?.contains(e.target as Node)) return;
+      setSearchOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setSearchOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [searchOpen]);
+
+  const isHome = pathname === "/";
+  const overlayNav = isHome && !scrolled;
+  const iconBtnClass = overlayNav ? iconBtnOverlay : iconBtnBar;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/10 bg-brand text-brand-foreground shadow-[0_4px_0_0_#000000]">
-      {/* Utility row: icon-only; label on hover / focus-within */}
-      <div className="border-b border-white/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-end gap-1 px-4 py-2">
-          <HeaderIconHint label="Currency">
-            <CurrencySelector
-              variant="headerIcon"
-              selectId={currencySelectHeaderId}
-            />
-          </HeaderIconHint>
-          <HeaderIconHint label="Cart">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 bg-transparent transition-[box-shadow,backdrop-filter,border-color] duration-300 ease-out",
+        scrolled
+          ? "border-b border-border/40 text-foreground backdrop-blur-md dark:border-border/30"
+          : "border-b-0",
+      )}
+    >
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent
+          side="left"
+          className="flex w-[min(22rem,92vw)] flex-col gap-0 p-0"
+        >
+          <SheetHeader className="border-b border-border px-4 py-4 text-left">
+            <SheetTitle className="font-heading text-lg">Menu</SheetTitle>
+          </SheetHeader>
+          <div className="border-b border-border p-4">
+            <form action="/products" method="get" role="search">
+              <label htmlFor="site-search-drawer" className="sr-only">
+                Search products
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  id="site-search-drawer"
+                  name="q"
+                  type="search"
+                  placeholder="Search technology…"
+                  autoComplete="off"
+                  className="flex-1"
+                />
+                <Button type="submit" size="icon" aria-label="Submit search">
+                  <IconSearch />
+                </Button>
+              </div>
+            </form>
+          </div>
+          <nav
+            id="mobile-nav-sheet"
+            className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3"
+            aria-label="Mobile primary"
+          >
+            {primaryNavLinks.map(({ href, label }) => {
+              const active =
+                pathname === href ||
+                (href !== "/" && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-brand/12 text-brand"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+            <Link
+              href="/contact"
+              className={buttonVariants({
+                className:
+                  "mt-3 h-12 w-full justify-center rounded-full border-0 bg-brand px-6 text-brand-foreground shadow-[0_8px_24px_-8px_rgb(0_0_0_/_0.2)] transition-shadow hover:bg-brand-hover hover:shadow-[0_12px_28px_-10px_rgb(0_0_0_/_0.28)]",
+              })}
+            >
+              Request Quote
+            </Link>
+          </nav>
+          <div className="mt-auto border-t border-border p-4">
             <Link
               href="/cart"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-              aria-label="Cart"
+              className="mb-2 block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
+              Cart
+              {totalItems > 0 ? ` (${totalItems})` : ""}
+            </Link>
+            {!user ? (
+              <Link
+                href="/login"
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/account"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  My account
+                </Link>
+                <button
+                  type="button"
+                  className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  onClick={() => {
+                    closeMobile();
+                    void logout();
+                  }}
+                >
+                  Sign out
+                </button>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <div className="relative mx-auto flex h-[4.5rem] max-w-7xl items-center gap-3 px-4 sm:h-20 sm:gap-4 sm:px-6">
+        <div className="flex min-w-0 flex-1 items-center lg:flex-initial">
+          <Link
+            href="/"
+            className={cn(
+              "inline-flex min-w-0 shrink-0 rounded-md focus:outline-none focus-visible:ring-2",
+              overlayNav
+                ? "focus-visible:ring-white/60"
+                : "focus-visible:ring-primary/45",
+            )}
+            aria-label="ByMed Medical and Scientific — home"
+            onClick={closeMobile}
+          >
+            <BymedLogo
+              variant={overlayNav ? "header" : "headerOnLight"}
+              priority
+            />
+          </Link>
+        </div>
+
+        <nav
+          className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:flex"
+          aria-label="Primary"
+        >
+          <div className="flex items-center gap-0.5 xl:gap-1">
+            {primaryNavLinks.map(({ href, label }) => (
+              <PrimaryNavLink
+                key={href}
+                href={href}
+                label={label}
+                overlay={overlayNav}
+              />
+            ))}
+          </div>
+        </nav>
+
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1.5">
+          <div className="relative hidden lg:block" ref={searchWrapRef}>
+            <HeaderIconHint label="Search">
+              <button
+                type="button"
+                className={iconBtnClass}
+                aria-expanded={searchOpen}
+                aria-controls="site-search-popover"
+                aria-label="Open search"
+                onClick={() => setSearchOpen((o) => !o)}
+              >
+                <IconSearch />
+              </button>
+            </HeaderIconHint>
+            {searchOpen ? (
+              <div
+                id="site-search-popover"
+                className="absolute right-0 top-full z-[60] mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-premium"
+                role="dialog"
+                aria-label="Search catalog"
+              >
+                <form action="/products" method="get" role="search">
+                  <label htmlFor={siteSearchInputId} className="sr-only">
+                    Search technology
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={siteSearchInputId}
+                      name="q"
+                      type="search"
+                      placeholder="Search technology…"
+                      autoComplete="off"
+                      className="flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      aria-label="Submit search"
+                      className="shrink-0 bg-brand text-brand-foreground hover:bg-brand-hover"
+                    >
+                      <IconSearch />
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            ) : null}
+          </div>
+
+          <HeaderIconHint label="Cart" className="hidden lg:inline-flex">
+            <Link href="/cart" className={iconBtnClass} aria-label="Cart">
               <IconCart />
               {totalItems > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-semibold leading-none text-brand">
+                <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold leading-none text-brand-foreground">
                   {totalItems > 99 ? "99+" : totalItems}
                 </span>
               ) : null}
             </Link>
           </HeaderIconHint>
-          <HeaderIconHint label="Account">
+
+          <HeaderIconHint label="Theme">
+            <ThemeToggle variant={overlayNav ? "header" : "minimal"} />
+          </HeaderIconHint>
+
+          <HeaderIconHint label="Account" className="hidden lg:inline-flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-md text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                className={iconBtnClass}
                 aria-expanded={userMenuOpen}
                 aria-haspopup="menu"
                 aria-label={
@@ -231,7 +468,7 @@ export function SiteHeader() {
               {userMenuOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[12rem] rounded-lg border border-border bg-background py-1 text-foreground shadow-lg"
+                  className="absolute right-0 top-full z-50 mt-1 min-w-[12rem] rounded-xl border border-border bg-popover py-1 text-popover-foreground shadow-premium"
                 >
                   {user ? (
                     <>
@@ -275,202 +512,39 @@ export function SiteHeader() {
               ) : null}
             </div>
           </HeaderIconHint>
-          <HeaderIconHint label="Theme">
-            <ThemeToggle variant="header" />
-          </HeaderIconHint>
-        </div>
-      </div>
-
-      {/* Main row: logo (left), primary nav (true center), search (right) */}
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-4">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3 lg:col-start-1 lg:justify-self-start">
-          <button
-            type="button"
-            className="inline-flex shrink-0 rounded-md p-2 text-white hover:bg-white/10 lg:hidden"
-            aria-expanded={mobileOpen}
-            aria-controls={mobileNavId}
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
-            {mobileOpen ? <IconClose /> : <IconMenu />}
-          </button>
 
           <Link
-            href="/"
-            className="inline-flex min-w-0 shrink-0 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            aria-label="ByMed Medical and Scientific — home"
-            onClick={closeMobile}
+            href="/contact"
+            className={cn(
+              buttonVariants({
+                size: "sm",
+                className:
+                  "hidden lg:inline-flex h-11 min-h-11 rounded-full border-0 bg-brand px-6 font-semibold text-brand-foreground shadow-[0_8px_24px_-8px_rgb(0_0_0_/_0.2)] transition-shadow hover:bg-brand-hover hover:shadow-[0_12px_28px_-10px_rgb(0_0_0_/_0.28)] dark:shadow-[0_8px_28px_-8px_rgb(0_0_0_/_0.55)] dark:hover:shadow-[0_12px_32px_-10px_rgb(0_0_0_/_0.65)]",
+              }),
+            )}
           >
-            <BymedLogo variant="header" priority />
+            Request Quote
           </Link>
-        </div>
 
-        <nav
-          className="hidden items-center justify-center gap-0.5 lg:col-start-2 lg:flex lg:justify-self-center xl:gap-1"
-          aria-label="Primary"
-        >
-          {primaryNavLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={navLinkClass(href)}
-              aria-current={pathname === href ? "page" : undefined}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <form
-          action="/products"
-          method="get"
-          role="search"
-          className="flex min-w-0 w-full max-w-none lg:col-start-3 lg:w-full lg:max-w-md lg:justify-self-end xl:max-w-lg"
-        >
-          <label htmlFor="site-search" className="sr-only">
-            Search products
-          </label>
-          <div className="flex w-full overflow-hidden rounded-lg border border-white/20 bg-white/10 shadow-inner">
-            <input
-              id="site-search"
-              name="q"
-              type="search"
-              placeholder="Search products…"
-              autoComplete="off"
-              className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/40"
-            />
-            <button
-              type="submit"
-              className="flex items-center px-3 text-white hover:bg-white/10"
-              aria-label="Submit search"
-            >
-              <IconSearch />
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {mobileOpen ? (
-        <>
-          <button
+          <Button
             type="button"
-            className="fixed bottom-0 left-0 right-0 top-[7.75rem] z-40 bg-black/40 lg:hidden"
-            aria-label="Close menu"
-            onClick={closeMobile}
-          />
-          <nav
-            id={mobileNavId}
-            className="fixed bottom-0 left-0 top-[7.75rem] z-50 flex w-[min(20rem,88vw)] flex-col border-r border-border bg-background text-foreground shadow-xl lg:hidden"
-            aria-label="Mobile primary"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "lg:hidden size-11 min-h-11 min-w-11 rounded-md",
+              overlayNav && "text-white hover:bg-white/10 hover:text-white",
+            )}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-sheet"
+            onClick={() => setMobileOpen((o) => !o)}
           >
-            <div className="border-b border-border p-3">
-              <form action="/products" method="get" role="search">
-                <label htmlFor="site-search-mobile" className="sr-only">
-                  Search products
-                </label>
-                <div className="flex overflow-hidden rounded-lg border border-border bg-muted/30">
-                  <input
-                    id="site-search-mobile"
-                    name="q"
-                    type="search"
-                    placeholder="Search products…"
-                    autoComplete="off"
-                    className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring"
-                  />
-                  <button
-                    type="submit"
-                    className="flex items-center px-3 text-foreground hover:bg-muted"
-                    aria-label="Submit search"
-                  >
-                    <IconSearch className="text-muted-foreground" />
-                  </button>
-                </div>
-              </form>
-            </div>
-            <div className="border-b border-border p-3">
-              <CurrencySelector
-                variant="drawer"
-                selectId={currencySelectDrawerId}
-              />
-            </div>
-            <ul className="flex flex-col gap-0.5 p-3">
-              {primaryNavLinks.map(({ href, label }) => {
-                const active =
-                  pathname === href ||
-                  (href !== "/" && pathname.startsWith(href));
-                return (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      className={`block rounded-md px-3 py-2.5 text-sm font-medium ${
-                        active
-                          ? "bg-muted text-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                      aria-current={active ? "page" : undefined}
-                      onClick={closeMobile}
-                    >
-                      {label}
-                    </Link>
-                  </li>
-                );
-              })}
-              <li className="mt-2 border-t border-border pt-2">
-                <Link
-                  href="/cart"
-                  className="block rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={closeMobile}
-                >
-                  Cart
-                </Link>
-              </li>
-              {!user ? (
-                <li>
-                  <Link
-                    href="/login"
-                    className="block rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                    onClick={closeMobile}
-                  >
-                    Sign in
-                  </Link>
-                </li>
-              ) : (
-                <>
-                  <li>
-                    <Link
-                      href="/account"
-                      className="block rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                      onClick={closeMobile}
-                    >
-                      My account
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="block w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                      onClick={() => {
-                        closeMobile();
-                        void logout();
-                      }}
-                    >
-                      Sign out
-                    </button>
-                  </li>
-                </>
-              )}
-            </ul>
-            <div className="mt-auto border-t border-border p-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Theme
-              </p>
-              <div className="flex justify-start rounded-md bg-brand p-2">
-                <ThemeToggle variant="header" />
-              </div>
-            </div>
-          </nav>
-        </>
-      ) : null}
+            <span className="sr-only">
+              {mobileOpen ? "Close menu" : "Open menu"}
+            </span>
+            <IconMenu className="size-8" />
+          </Button>
+        </div>
+      </div>
     </header>
   );
 }

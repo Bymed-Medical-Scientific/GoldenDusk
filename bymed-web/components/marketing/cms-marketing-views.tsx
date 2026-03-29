@@ -3,160 +3,36 @@ import type {
   HomeMarketingContent,
   ServicesMarketingContent,
 } from "@/lib/content/marketing-pages";
+import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { absoluteUrl } from "@/lib/site-url";
+import Image from "next/image";
 import Link from "next/link";
+import {
+  HomeMarketingPremium,
+  type HomeFeaturedProduct,
+} from "@/components/marketing/home-marketing-premium";
 
-export function HomeMarketingView({ data }: { data: HomeMarketingContent }) {
+export function HomeMarketingView({
+  data,
+  featuredProducts,
+}: {
+  data: HomeMarketingContent;
+  featuredProducts?: HomeFeaturedProduct[];
+}) {
   return (
-    <div className="bg-background text-foreground">
-      <header className="border-b border-border bg-muted/30">
-        <div className="mx-auto max-w-5xl px-4 py-16 sm:py-20">
-          <p className="text-sm font-medium uppercase tracking-wide text-brand-ink dark:text-brand">
-            {data.heroEyebrow}
-          </p>
-          <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
-            {data.heroTitle}
-          </h1>
-          <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            {data.heroSubtitle}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href={data.primaryCta.href}
-              className="inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-[0_3px_0_0_#000000] transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {data.primaryCta.label}
-            </Link>
-            <Link
-              href={data.secondaryCta.href}
-              className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {data.secondaryCta.label}
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <section
-        className="mx-auto max-w-5xl px-4 py-14 sm:py-16"
-        aria-labelledby="what-we-offer"
-      >
-        <div className="max-w-2xl">
-          <h2
-            id="what-we-offer"
-            className="text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            {data.whatWeOfferHeading}
-          </h2>
-          <p className="mt-2 text-muted-foreground">{data.whatWeOfferIntro}</p>
-        </div>
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.offerings.map(({ title: name, blurb }) => (
-            <li
-              key={name}
-              className="rounded-xl border border-border bg-muted/20 p-5 transition-colors hover:bg-muted/40"
-            >
-              <h3 className="text-base font-semibold text-foreground">{name}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {blurb}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-8">
-          <Link
-            href="/products"
-            className="text-sm font-medium text-brand hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            {data.catalogueLinkLabel}
-          </Link>
-        </p>
-      </section>
-
-      <section
-        className="border-y border-border bg-muted/25"
-        aria-labelledby="trusted-brands"
-      >
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:py-16">
-          <h2
-            id="trusted-brands"
-            className="text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            {data.brandsHeading}
-          </h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">{data.brandsIntro}</p>
-          <Link
-            href="/products"
-            className="mt-6 inline-flex text-sm font-medium text-brand hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
-          >
-            {data.brandsLinkLabel}
-          </Link>
-        </div>
-      </section>
-
-      <section
-        className="mx-auto max-w-5xl px-4 py-14 sm:py-16"
-        aria-labelledby="why-choose"
-      >
-        <h2
-          id="why-choose"
-          className="text-2xl font-semibold tracking-tight sm:text-3xl"
-        >
-          {data.whyHeading}
-        </h2>
-        <p className="mt-2 max-w-2xl text-lg font-medium text-foreground">
-          {data.whyLead}
-        </p>
-        <p className="mt-2 max-w-2xl text-muted-foreground">{data.whySub}</p>
-        <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-          {data.differentiators.map(({ title: heading, body }) => (
-            <li key={heading} className="rounded-xl border border-border p-6">
-              <h3 className="text-base font-semibold">{heading}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {body}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-10">
-          <Link
-            href="/services"
-            className="text-sm font-medium text-brand hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            {data.servicesLinkLabel}
-          </Link>
-        </p>
-      </section>
-
-      <section
-        className="border-t border-border bg-muted/40"
-        aria-labelledby="contact-cta"
-      >
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:py-16">
-          <h2
-            id="contact-cta"
-            className="text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            {data.contactHeading}
-          </h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            {data.contactIntro}
-          </p>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-[0_3px_0_0_#000000] transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
-          >
-            {data.contactCtaLabel}
-          </Link>
-        </div>
-      </section>
-    </div>
+    <HomeMarketingPremium data={data} featuredProducts={featuredProducts} />
   );
 }
 
 export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
   const canonical = absoluteUrl("/about");
   const description = data.metaDescription;
+  const stats = [
+    { label: "Years of service", value: "15+" },
+    { label: "Healthcare partners", value: "450+" },
+    { label: "Installed systems", value: "1.2k" },
+    { label: "Support availability", value: "24/7" },
+  ];
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "AboutPage",
@@ -185,106 +61,185 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="bg-background text-foreground">
-        <header className="border-b border-border bg-muted/30">
-          <div className="mx-auto max-w-5xl px-4 py-12 sm:py-14">
-            <p className="text-sm font-medium uppercase tracking-wide text-brand-ink dark:text-brand">
+        <header className="relative overflow-hidden border-b border-border/70 bg-gradient-to-br from-[#09325f] via-[#0d4f7d] to-[#0f8b8d] text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_38%)]" />
+          <div className="absolute inset-0 bg-black/15" />
+          <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/90">
               {data.headerEyebrow}
             </p>
-            <h1 className="mt-2 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="font-heading mt-3 max-w-3xl text-balance text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
               {data.headerTitle}
             </h1>
-            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
+            <p className="mt-5 max-w-2xl text-base text-white/90 sm:text-lg">
               {data.headerSubtitle}
             </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link
+                href="/contact"
+                className="inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-[#0b3f74] transition-colors hover:bg-white/90"
+              >
+                Contact
+              </Link>
+              <Link
+                href="/products"
+                className="inline-flex h-11 min-h-11 items-center justify-center rounded-full border border-white/65 bg-white/15 px-6 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                Explore Solutions
+              </Link>
+            </div>
           </div>
         </header>
 
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:py-14">
-          <section className="space-y-4" aria-labelledby="company-story">
-            <h2
-              id="company-story"
-              className="text-2xl font-semibold tracking-tight sm:text-3xl"
-            >
-              {data.overviewHeading}
-            </h2>
-            {data.overviewParagraphs.map((paragraph) => (
-              <p key={paragraph} className="text-muted-foreground">
-                {paragraph}
-              </p>
-            ))}
-          </section>
-
-          <ul
-            className="mt-10 grid gap-4 sm:grid-cols-3"
-            aria-label="What defines ByMed"
-          >
-            {data.valueProps.map(({ title, body }) => (
-              <li
-                key={title}
-                className="rounded-xl border border-border bg-muted/20 p-5"
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="grid gap-8 rounded-[1.75rem] bg-muted/45 p-4 ring-1 ring-border/70 md:grid-cols-[1.05fr_1fr] md:p-8">
+            <div className="relative min-h-[18rem] overflow-hidden rounded-2xl bg-muted sm:min-h-[22rem]">
+              <Image
+                src="/images/medical-teaching.jpg"
+                alt="ByMed team supporting healthcare and research operations"
+                fill
+                sizes="(max-width: 767px) 100vw, 50vw"
+                className="object-cover"
+                placeholder="blur"
+                blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
+              />
+            </div>
+            <div className="self-center">
+              <h2
+                id="company-story"
+                className="font-heading mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
               >
-                <h3 className="text-base font-semibold text-foreground">{title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-              </li>
-            ))}
-          </ul>
+                {data.overviewHeading}
+              </h2>
+              <div className="mt-4 space-y-4">
+                {data.overviewParagraphs.map((paragraph) => (
+                  <p key={paragraph} className="leading-relaxed text-muted-foreground">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <div className="mt-12 grid gap-10 lg:grid-cols-2">
-            <section aria-labelledby="vision-heading">
+        <section className="bg-muted/45 py-14 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-heading mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                High quality products and trusted expertise
+              </h2>
+            </div>
+            <ul
+              className="mt-10 grid gap-4 md:grid-cols-3"
+              aria-label="What defines ByMed"
+            >
+              {data.valueProps.map(({ title, body }) => (
+                <li
+                  key={title}
+                  className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border/70"
+                >
+                  <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                    Pillar
+                  </span>
+                  <h3 className="font-heading mt-4 text-xl font-semibold text-foreground">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {body}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="bg-brand py-8 text-brand-foreground">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
+            {stats.map((item) => (
+              <div key={item.label} className="text-center">
+                <p className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+                  {item.value}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-brand-foreground/85">
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="grid gap-8 md:grid-cols-2">
+            <article className="rounded-2xl bg-card p-7 shadow-sm ring-1 ring-border/70">
               <h2
                 id="vision-heading"
-                className="text-xl font-semibold tracking-tight sm:text-2xl"
+                className="font-heading text-2xl font-bold tracking-tight sm:text-3xl"
               >
                 {data.visionTitle}
               </h2>
-              <p className="mt-3 text-muted-foreground">{data.visionText}</p>
-            </section>
-            <section aria-labelledby="mission-heading">
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                {data.visionText}
+              </p>
+            </article>
+            <article className="rounded-2xl bg-card p-7 shadow-sm ring-1 ring-border/70">
               <h2
                 id="mission-heading"
-                className="text-xl font-semibold tracking-tight sm:text-2xl"
+                className="font-heading text-2xl font-bold tracking-tight sm:text-3xl"
               >
                 {data.missionTitle}
               </h2>
-              <p className="mt-3 text-muted-foreground">{data.missionText}</p>
-            </section>
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                {data.missionText}
+              </p>
+            </article>
           </div>
+        </section>
 
-          <section className="mt-14" aria-labelledby="we-aim-to">
-            <h2
-              id="we-aim-to"
-              className="text-xl font-semibold tracking-tight sm:text-2xl"
-            >
-              {data.aimsHeading}
-            </h2>
-            <ul className="mt-6 space-y-4 border-l-2 border-brand pl-6">
+        <section className="bg-muted py-14 sm:py-20" aria-labelledby="we-aim-to">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="max-w-3xl">
+              <h2
+                id="we-aim-to"
+                className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              >
+                {data.aimsHeading}
+              </h2>
+            </div>
+            <ul className="mt-8 space-y-3">
               {data.aims.map((item) => (
-                <li key={item} className="text-muted-foreground">
+                <li
+                  key={item}
+                  className="rounded-xl bg-card px-4 py-4 text-sm leading-relaxed text-muted-foreground ring-1 ring-border/70 sm:px-5 sm:text-base"
+                >
                   {item}
                 </li>
               ))}
             </ul>
-          </section>
+          </div>
+        </section>
 
-          <section
-            className="mt-14 rounded-xl border border-border bg-muted/25 p-8"
-            aria-labelledby="about-contact-cta"
-          >
+        <section
+          className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20"
+          aria-labelledby="about-contact-cta"
+        >
+          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-sm sm:p-10">
             <h2
               id="about-contact-cta"
-              className="text-xl font-semibold tracking-tight"
+              className="font-heading text-2xl font-bold tracking-tight sm:text-3xl"
             >
               {data.ctaTitle}
             </h2>
-            <p className="mt-3 text-muted-foreground">{data.ctaBody}</p>
+            <p className="mt-3 max-w-3xl leading-relaxed text-muted-foreground">
+              {data.ctaBody}
+            </p>
             <Link
               href="/contact"
-              className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-[0_3px_0_0_#000000] transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
+              className="mt-7 inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-brand px-7 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
             >
               {data.ctaButtonLabel}
             </Link>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </>
   );

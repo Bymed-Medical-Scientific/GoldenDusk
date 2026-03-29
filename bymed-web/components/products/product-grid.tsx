@@ -9,7 +9,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) return null;
 
   return (
-    <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {products.map((p) => (
         <li key={p.id}>
           <ProductCard product={p} />

@@ -45,25 +45,24 @@ export async function generateMetadata({
     return {};
   }
 
-  const page = await loadMarketingPage(slug);
-  if (!page) {
-    return { title: "Not found" };
-  }
-
   if (STRUCTURED_MARKETING_SLUGS.has(slug)) {
+    const page = await loadMarketingPage(slug);
     const parsed =
       slug === "about"
-        ? parseAboutMarketingContent(page.content, DEFAULT_ABOUT_MARKETING)
-        : parseServicesMarketingContent(page.content, DEFAULT_SERVICES_MARKETING);
+        ? parseAboutMarketingContent(page?.content ?? "", DEFAULT_ABOUT_MARKETING)
+        : parseServicesMarketingContent(
+            page?.content ?? "",
+            DEFAULT_SERVICES_MARKETING,
+          );
     const title =
-      page.metadata?.metaTitle?.trim() || parsed.metaTitle;
+      page?.metadata?.metaTitle?.trim() || parsed.metaTitle;
     const description =
-      page.metadata?.metaDescription?.trim() || parsed.metaDescription;
+      page?.metadata?.metaDescription?.trim() || parsed.metaDescription;
     const canonical = absoluteUrl(canonicalPathForSlug(slug));
-    const ogTitle = page.metadata?.metaTitle?.trim() || parsed.ogTitle;
-    const ogImage = page.metadata?.ogImage?.trim() || undefined;
+    const ogTitle = page?.metadata?.metaTitle?.trim() || parsed.ogTitle;
+    const ogImage = page?.metadata?.ogImage?.trim() || undefined;
     const twitterTitle =
-      page.metadata?.metaTitle?.trim() || parsed.twitterTitle;
+      page?.metadata?.metaTitle?.trim() || parsed.twitterTitle;
 
     return {
       title,
@@ -83,6 +82,11 @@ export async function generateMetadata({
         description,
       },
     };
+  }
+
+  const page = await loadMarketingPage(slug);
+  if (!page) {
+    return { title: "Not found" };
   }
 
   const title =
@@ -122,25 +126,27 @@ export default async function CmsBySlugPage({
     notFound();
   }
 
-  const page = await loadMarketingPage(slug);
-  if (!page) {
-    notFound();
-  }
-
   if (slug === "about") {
+    const page = await loadMarketingPage(slug);
     const data = parseAboutMarketingContent(
-      page.content,
+      page?.content ?? "",
       DEFAULT_ABOUT_MARKETING,
     );
     return <AboutMarketingView data={data} />;
   }
 
   if (slug === "services") {
+    const page = await loadMarketingPage(slug);
     const data = parseServicesMarketingContent(
-      page.content,
+      page?.content ?? "",
       DEFAULT_SERVICES_MARKETING,
     );
     return <ServicesMarketingView data={data} />;
+  }
+
+  const page = await loadMarketingPage(slug);
+  if (!page) {
+    notFound();
   }
 
   const safe = sanitizeCmsBodyHtml(page.content);

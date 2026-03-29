@@ -43,8 +43,8 @@ function IconMoon({ className }: { className?: string }) {
 }
 
 type ThemeToggleProps = {
-  /** When true, styles for placement on the brand (blue) header bar. */
-  variant?: "header" | "default";
+  /** `header`: light controls on brand bar. `minimal`: icon only on light navbar. */
+  variant?: "header" | "default" | "minimal";
   className?: string;
 };
 
@@ -71,7 +71,9 @@ export function ThemeToggle({ variant = "default", className = "" }: ThemeToggle
   const buttonClass =
     variant === "header"
       ? "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-      : "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+      : variant === "minimal"
+        ? "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-[#424752] transition-colors hover:bg-[#191c1e]/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 dark:text-muted-foreground dark:hover:bg-muted"
+        : "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <button

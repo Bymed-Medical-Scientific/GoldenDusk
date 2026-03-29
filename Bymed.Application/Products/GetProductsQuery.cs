@@ -8,4 +8,5 @@ public sealed record GetProductsQuery(
     int PageSize,
     Guid? CategoryId,
     string? Search,
-    bool? InStock) : IRequest<PagedResult<ProductDto>>;
+    bool? InStock,
+    string? Brand = null) : IRequest<PagedResult<ProductDto>>;

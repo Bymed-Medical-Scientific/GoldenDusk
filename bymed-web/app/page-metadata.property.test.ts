@@ -1,5 +1,7 @@
-import fc from "fast-check";
+import { generateMetadata as generateCmsSlugMetadata } from "@/app/[slug]/page";
+import { generateMetadata as generateHomeMetadata } from "@/app/page";
 import { getPageBySlug } from "@/lib/api/content";
+import fc from "fast-check";
 
 jest.mock("react", () => {
   const actual = jest.requireActual("react");
@@ -15,19 +17,6 @@ jest.mock("@/lib/site-url", () => ({
 }));
 
 const getPageBySlugMock = getPageBySlug as jest.MockedFunction<typeof getPageBySlug>;
-
-const generateHomeMetadata = require("@/app/page").generateMetadata as () => Promise<{
-  title?: unknown;
-  description?: unknown;
-  openGraph?: { title?: unknown; description?: unknown };
-}>;
-const generateCmsSlugMetadata = require("@/app/[slug]/page").generateMetadata as (opts: {
-  params: { slug: string };
-}) => Promise<{
-  title?: unknown;
-  description?: unknown;
-  openGraph?: { title?: unknown; description?: unknown };
-}>;
 
 function asNonEmptyString(value: unknown): string {
   return typeof value === "string" && value.trim() ? value : "";

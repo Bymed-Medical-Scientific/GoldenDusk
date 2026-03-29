@@ -1,3 +1,6 @@
+import CmsBySlugPage from "@/app/[slug]/page";
+import ContactPage from "@/app/contact/page";
+import HomePage from "@/app/page";
 import { render } from "@testing-library/react";
 import fc from "fast-check";
 
@@ -18,15 +21,21 @@ jest.mock("@/lib/api/content", () => ({
   })),
 }));
 
+jest.mock("@/lib/api/products", () => ({
+  listProducts: jest.fn(async () => ({
+    items: [],
+    pageNumber: 1,
+    pageSize: 4,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  })),
+}));
+
 jest.mock("@/lib/site-url", () => ({
   absoluteUrl: jest.fn((path: string) => `https://bymed.example${path}`),
 }));
-
-const HomePage = require("@/app/page").default as () => Promise<JSX.Element>;
-const CmsBySlugPage = require("@/app/[slug]/page").default as (props: {
-  params: { slug: string };
-}) => Promise<JSX.Element>;
-const ContactPage = require("@/app/contact/page").default as () => JSX.Element;
 
 // Feature: bymed-website, Property 29: HTML Semantic Structure
 describe("Property 29: HTML semantic structure", () => {

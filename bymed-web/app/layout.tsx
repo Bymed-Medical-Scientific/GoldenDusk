@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Great_Vibes, Inter, Poppins } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-context";
 import { CartProvider } from "@/components/cart/cart-context";
 import { CurrencyProvider } from "@/components/currency/currency-context";
@@ -9,16 +9,27 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { getSiteBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+/** Body: Inter. Display: Poppins (bold geometric). Accent script: Great Vibes — matches reference pairing. */
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+  display: "swap",
 });
+
+const greatVibes = Great_Vibes({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-script",
+  display: "swap",
+});
+
 const siteBaseUrl = getSiteBaseUrl();
 
 export const metadata: Metadata = {
@@ -48,15 +59,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${poppins.variable} ${greatVibes.variable}`}
+    >
+      <body className={`${inter.className} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           <AuthProvider>
             <CartProvider>
@@ -69,7 +82,7 @@ export default function RootLayout({
                   <main
                     id="main-content"
                     tabIndex={-1}
-                    className="flex flex-1 flex-col outline-none"
+                    className="relative z-0 flex flex-1 flex-col scroll-mt-[4.5rem] pt-[4.5rem] outline-none sm:scroll-mt-20 sm:pt-20"
                   >
                     {children}
                   </main>

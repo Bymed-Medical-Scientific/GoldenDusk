@@ -1,6 +1,8 @@
 import { CatalogPagination } from "@/components/products/catalog-pagination";
 import { CategoryFilterSidebar } from "@/components/products/category-filter-sidebar";
 import { ProductGrid } from "@/components/products/product-grid";
+import { CurrencySelector } from "@/components/currency/currency-selector";
+import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 import {
   buildProductsHref,
@@ -23,15 +25,19 @@ type ProductsPageProps = {
 export async function generateMetadata({
   searchParams,
 }: ProductsPageProps): Promise<Metadata> {
-  const { q } = parseCatalogQuery(searchParams);
+  const { q, brand } = parseCatalogQuery(searchParams);
   const title = q
     ? `Products — “${q}” | Bymed Medical & Scientific`
+    : brand
+      ? `Products — Brand: ${brand} | Bymed Medical & Scientific`
     : "Products | Bymed Medical & Scientific";
   const description = q
     ? `Browse products matching “${q}” at Bymed Medical & Scientific.`
+    : brand
+      ? `Browse products for brand ${brand} at Bymed Medical & Scientific.`
     : "Browse medical and scientific equipment and supplies at Bymed Medical & Scientific.";
   const canonical = absoluteUrl(
-    q ? `/products?q=${encodeURIComponent(q)}` : "/products",
+    buildProductsHref({ q, brand }),
   );
   return {
     title,
@@ -61,6 +67,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       pageSize: query.pageSize,
       categoryId: query.categoryId,
       search: query.q,
+      brand: query.brand,
     });
   } catch (e) {
     const message =
@@ -96,6 +103,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect(
       buildProductsHref({
         q: query.q,
+        brand: query.brand,
         categoryId: query.categoryId,
         page: productResult.totalPages,
       }),
@@ -115,35 +123,80 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          {query.q ? `Results for “${query.q}”` : "Products"}
-        </h1>
-        {query.q || query.categoryId ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            <Link href="/products" className="font-medium text-brand hover:underline">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <header className="mb-7 rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Laboratory / Equipment
+        </p>
+        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            {query.q ? `Scientific Instruments - "${query.q}"` : "Scientific Instruments"}{" "}
+            <span className="align-middle text-lg font-medium text-muted-foreground">
+              ({productResult.totalCount} Results)
+            </span>
+          </h1>
+          <div className="flex w-full max-w-xl items-center gap-3">
+            <form action="/products" method="get" className="w-full max-w-md">
+              {query.categoryId ? (
+                <input type="hidden" name="category" value={query.categoryId} />
+              ) : null}
+              {query.brand ? (
+                <input type="hidden" name="brand" value={query.brand} />
+              ) : null}
+              <label htmlFor="catalog-search" className="sr-only">
+                Search equipment
+              </label>
+              <div className="relative">
+                <Input
+                  id="catalog-search"
+                  name="q"
+                  defaultValue={query.q ?? ""}
+                  placeholder="Search equipment..."
+                  className="h-11 rounded-full bg-muted/45 pl-10 pr-4"
+                />
+                <svg
+                  viewBox="0 0 24 24"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </div>
+            </form>
+            <CurrencySelector
+              variant="drawer"
+              className="w-40 shrink-0"
+              selectId="products-currency"
+            />
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-4 text-sm">
+          {(query.q || query.brand || query.categoryId) && (
+            <Link href="/products" className="font-medium text-primary hover:underline">
               Clear filters
             </Link>
-          </p>
-        ) : (
-          <p className="mt-2 text-muted-foreground">
-            Browse our catalog. Use the search bar or categories to narrow results.
-          </p>
-        )}
-        {catalogError ? (
-          <p className="mt-2 text-sm text-muted-foreground" role="status">
-            {catalogError}
-          </p>
-        ) : null}
+          )}
+          {catalogError ? (
+            <p className="text-muted-foreground" role="status">
+              {catalogError}
+            </p>
+          ) : null}
+        </div>
       </header>
 
-      <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
-        <div className="lg:w-56 lg:flex-shrink-0">
+      <div className="flex flex-col gap-8 lg:flex-row lg:gap-8">
+        <div className="lg:w-64 lg:flex-shrink-0">
           <CategoryFilterSidebar
             categories={categories}
             activeCategoryId={query.categoryId}
             q={query.q}
+            brand={query.brand}
           />
         </div>
 
@@ -151,14 +204,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           {productResult.items.length === 0 ? (
             <EmptyState
               message={
-                query.q || query.categoryId
+                query.q || query.brand || query.categoryId
                   ? "No products match your filters. Try different search terms or categories."
                   : "No products are available yet."
               }
             />
           ) : (
             <>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-5 text-sm text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {(query.pageNumber - 1) * query.pageSize + 1}
@@ -180,6 +233,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 pageNumber={productResult.pageNumber}
                 totalPages={productResult.totalPages}
                 q={query.q}
+                brand={query.brand}
                 categoryId={query.categoryId}
               />
             </>

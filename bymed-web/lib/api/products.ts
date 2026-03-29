@@ -16,6 +16,7 @@ export type ListProductsParams = {
   categoryId?: string;
   search?: string;
   inStock?: boolean;
+  brand?: string;
 };
 
 export async function listProducts(
@@ -28,6 +29,7 @@ export async function listProducts(
   if (params.search != null && params.search !== "")
     q.set("search", params.search);
   if (params.inStock != null) q.set("inStock", String(params.inStock));
+  if (params.brand != null && params.brand !== "") q.set("brand", params.brand);
   const qs = q.toString();
   const res = await apiFetch(
     apiPath(`/Products${qs ? `?${qs}` : ""}`),
