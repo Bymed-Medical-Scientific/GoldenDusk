@@ -2,21 +2,11 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   catchError,
   debounceTime,
   distinctUntilChanged,
   EMPTY,
-  filter,
   finalize,
   map,
   of,
@@ -25,9 +15,13 @@ import {
 import { AdminApiService } from '@core/api/admin-api.service';
 import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { ApiError } from '@core/api/api-error';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { ProductDto } from '@shared/models';
+import { ButtonModule } from 'primeng/button';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TextareaModule } from 'primeng/textarea';
 
 const REASON_MAX = 500;
 
@@ -38,18 +32,14 @@ const GUID_LIKE =
   selector: 'app-inventory-adjust-page',
   standalone: true,
   imports: [
+    ButtonModule,
+    InputNumberModule,
+    InputTextModule,
+    ProgressSpinnerModule,
     ReactiveFormsModule,
     RouterLink,
+    TextareaModule,
     GlobalErrorComponent,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatCardModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
   ],
   templateUrl: './inventory-adjust-page.component.html',
   styleUrl: './inventory-adjust-page.component.scss'
@@ -58,8 +48,6 @@ export class InventoryAdjustPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly adminApi = inject(AdminApiService);
   private readonly lowStockAlerts = inject(LowStockAlertsService);
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly productSearch = this.fb.nonNullable.control('');
@@ -131,8 +119,7 @@ export class InventoryAdjustPageComponent implements OnInit {
     });
   }
 
-  protected onProductOptionSelected(event: MatAutocompleteSelectedEvent): void {
-    const id = event.option.value as string;
+  protected chooseProduct(id: string): void {
     const product = this.searchResults().find((x) => x.id === id);
     if (!product) {
       return;
@@ -171,25 +158,19 @@ export class InventoryAdjustPageComponent implements OnInit {
 
     const adjustment = newCount - product.inventoryCount;
     if (adjustment === 0) {
-      this.snackBar.open('New stock count matches the current level. Enter a different value.', 'Dismiss', {
-        duration: 6000
-      });
+      this.pageError.set('New stock count matches the current level. Enter a different value.');
       return;
     }
 
     const sign = adjustment > 0 ? '+' : '';
-    const data: ConfirmDialogData = {
-      title: 'Confirm inventory adjustment',
-      message: `Product: ${product.name} (SKU ${product.sku}). Current: ${product.inventoryCount}. New: ${newCount}. Change: ${sign}${adjustment}. Reason: ${reason}`,
-      confirmLabel: 'Apply adjustment',
-      confirmColor: 'primary'
-    };
+    const confirmed = window.confirm(
+      `Confirm inventory adjustment\n\nProduct: ${product.name}\nSKU: ${product.sku}\nCurrent: ${product.inventoryCount}\nNew: ${newCount}\nChange: ${sign}${adjustment}\nReason: ${reason}`
+    );
+    if (!confirmed) {
+      return;
+    }
 
-    this.dialog
-      .open(ConfirmDialogComponent, { data, width: 'min(520px, 92vw)' })
-      .afterClosed()
-      .pipe(filter((confirmed) => confirmed === true))
-      .subscribe(() => this.applyAdjustment(product.id, adjustment, reason));
+    this.applyAdjustment(product.id, adjustment, reason);
   }
 
   private applyAdjustment(productId: string, adjustment: number, reason: string): void {
@@ -206,10 +187,8 @@ export class InventoryAdjustPageComponent implements OnInit {
             } else {
               this.pageError.set(err.message);
             }
-            this.snackBar.open(err.message, 'Dismiss', { duration: 8000 });
           } else {
             this.pageError.set('Could not adjust inventory. Please try again.');
-            this.snackBar.open('Could not adjust inventory.', 'Dismiss', { duration: 8000 });
           }
           return EMPTY;
         }),
@@ -231,7 +210,7 @@ export class InventoryAdjustPageComponent implements OnInit {
           newStockCount: updated.inventoryCount,
           reason: ''
         });
-        this.snackBar.open('Inventory updated.', 'Dismiss', { duration: 4000 });
+        this.pageError.set(null);
       });
   }
 

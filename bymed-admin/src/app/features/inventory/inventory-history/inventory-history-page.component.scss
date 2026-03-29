@@ -15,12 +15,27 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
 .card-block {
   margin-bottom: 1.25rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.section-subtitle {
+  margin: 0.3rem 0 0.85rem;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
 }
 
 .card-content {
@@ -36,8 +51,32 @@
 }
 
 .option-meta {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-icon {
+  color: var(--text-color-secondary);
+}
+
+.search-results {
+  margin-top: 0.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  padding: 0.35rem;
+}
+
+.search-result-item {
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
 }
 
 .selected-banner {
@@ -46,8 +85,9 @@
   align-items: center;
   gap: 0.75rem 1rem;
   padding: 0.75rem 1rem;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, #ffffff);
 }
 
 .cell-strong {
@@ -55,7 +95,7 @@
 }
 
 .cell-sub {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -67,14 +107,29 @@
   padding-top: 0.5rem;
 }
 
+.date-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.date-field label {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}
+
 .table-wrap {
   overflow: auto;
-  border-radius: 4px;
-  background: #fff;
+  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
 }
 
 .history-table {
   width: 100%;
+}
+
+.mobile-cards {
+  display: none;
 }
 
 .reason-cell {
@@ -96,15 +151,39 @@
 .empty-cell {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .hint {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.9375rem;
 }
 
-mat-spinner {
-  display: inline-block;
-  vertical-align: middle;
+@media (max-width: 900px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .history-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0.875rem;
+    background: color-mix(in srgb, var(--surface-card) 96%, #000000);
+  }
+
+  .card-row {
+    margin: 0.4rem 0 0;
+    color: var(--text-color-secondary);
+  }
+
+  .card-row span {
+    font-weight: 600;
+    color: var(--text-color);
+  }
 }
