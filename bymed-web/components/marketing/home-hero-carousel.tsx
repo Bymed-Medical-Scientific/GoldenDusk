@@ -10,17 +10,12 @@ import {
 import { cn } from "@/lib/utils";
 import Autoplay from "embla-carousel-autoplay";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-const slideShell =
-  "relative min-h-[min(100svh,720px)] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br shadow-premium-lg sm:min-h-[560px] lg:min-h-[520px]";
-
-const gradients = [
-  "from-[#0000a8] via-[#0000cc] to-[#0d4f8c] dark:from-[#0a0a2e] dark:via-[#0000aa] dark:to-[#0d3d5c]",
-  "from-[#0c4a6e] via-[#0000cc] to-[#134e4a] dark:from-[#0c2e44] dark:via-[#1e1e8a] dark:to-[#134e4a]",
-  "from-[#115e59] via-[#1e3a8a] to-[#0000cc] dark:from-[#0f3d3a] dark:via-[#1e2a6b] dark:to-[#2222aa]",
-];
+/** Full small-viewport height so the first screen hides the following section (was capped at ~88–96svh on larger breakpoints). */
+const heroMinHeightClass = "min-h-[100svh]";
 
 type HomeHeroCarouselProps = {
   slides: HomeHeroSlide[];
@@ -51,111 +46,125 @@ export function HomeHeroCarousel({
     };
   }, [api, onSelect]);
 
-  const plugin = Autoplay({ delay: 6500, stopOnInteraction: true });
+  const plugin = Autoplay({ delay: 7000, stopOnInteraction: true });
   const active = slides[index] ?? slides[0];
 
   return (
-    <div className="relative px-4 pb-8 pt-6 sm:pb-12 sm:pt-8 lg:px-6">
-      <div className="relative mx-auto max-w-7xl">
+    <section
+      className="relative w-full overflow-hidden bg-[#0a0a0c]"
+      aria-roledescription="carousel"
+      aria-label="Featured highlights"
+    >
+      <div className={cn("relative w-full", heroMinHeightClass)}>
         <Carousel
-          className="w-full"
+          className="absolute inset-0 h-full w-full"
           opts={{ align: "start", loop: true }}
           plugins={[plugin]}
           setApi={setApi}
         >
-          <CarouselContent className="-ml-0">
-            {slides.map((_, i) => (
-              <CarouselItem key={i} className="pl-0">
-                <div
-                  className={cn(
-                    slideShell,
-                    gradients[i % gradients.length],
-                  )}
-                  aria-hidden={i !== index}
-                >
+          <CarouselContent className="-ml-0 h-full">
+            {slides.map((slide, i) => (
+              <CarouselItem key={i} className={cn("h-full pl-0", heroMinHeightClass)}>
+                <div className="relative h-full min-h-[inherit] w-full">
+                  {slide.imageSrc ? (
+                    <Image
+                      src={slide.imageSrc}
+                      alt=""
+                      fill
+                      priority={i === 0}
+                      className="object-cover object-center"
+                      sizes="100vw"
+                      quality={
+                        slide.imageSrc.startsWith("/") ? 95 : 88
+                      }
+                      aria-hidden
+                    />
+                  ) : null}
                   <div
-                    className="pointer-events-none absolute inset-0 opacity-40"
+                    className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35"
                     aria-hidden
-                  >
-                    <div className="absolute -left-20 top-1/4 h-72 w-72 rounded-full bg-teal-muted/30 blur-3xl" />
-                    <div className="absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-white/20 blur-3xl" />
-                    <div className="absolute right-1/4 top-10 h-48 w-48 animate-float rounded-full border border-white/20 bg-white/5 backdrop-blur-sm" />
-                  </div>
+                  />
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
         </Carousel>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 z-10 flex flex-col justify-end px-6 pb-12 pt-24 sm:px-10 sm:pb-14 sm:pt-28 lg:px-14 lg:pb-16">
-          <div className="pointer-events-auto mx-auto flex w-full max-w-7xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl text-white lg:max-w-xl">
-              <AnimatePresence mode="wait">
+        {/* Top band: keeps transparent header + light overlay nav readable on bright slide crops */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 z-[11] h-32 bg-gradient-to-b from-black/80 via-black/40 to-transparent sm:h-40"
+          aria-hidden
+        />
+
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col pt-[4.5rem] sm:pt-20">
+          <div className="flex min-h-0 flex-1 flex-col justify-center">
+            <div className="pointer-events-auto mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-2xl text-left text-white">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <p
+                      className="font-script text-2xl leading-snug text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-3xl md:text-[2rem]"
+                    >
+                      {active.tag}
+                    </p>
+                    <h1 className="font-heading mt-3 text-balance text-3xl font-bold leading-[1.08] tracking-[-0.02em] text-white sm:mt-4 sm:text-4xl sm:leading-[1.06] lg:text-5xl xl:text-[3.35rem]">
+                      {active.title}
+                    </h1>
+                    <p className="mt-5 max-w-xl text-base leading-relaxed text-white/88 sm:text-lg">
+                      {active.subtitle}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="mt-8 flex flex-wrap gap-3"
+                  initial={false}
                 >
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 sm:text-sm">
-                    {active.tag}
-                  </p>
-                  <h1 className="mt-4 text-balance text-3xl font-semibold leading-[1.12] tracking-tight sm:text-4xl lg:text-5xl">
-                    {active.title}
-                  </h1>
-                  <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-                    {active.subtitle}
-                  </p>
+                  <Link
+                    href={primaryCta.href}
+                    className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-brand px-8 text-sm font-semibold text-brand-foreground shadow-lg transition-transform hover:scale-[1.02] hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
+                  >
+                    {primaryCta.label}
+                  </Link>
+                  <Link
+                    href={secondaryCta.href}
+                    className="inline-flex h-12 min-h-12 items-center justify-center rounded-full border-0 bg-white/10 px-8 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgb(0_0_0_/_0.45)] backdrop-blur-sm transition-[transform,box-shadow] hover:bg-white/18 hover:shadow-[0_12px_32px_-10px_rgb(0_0_0_/_0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
+                  >
+                    {secondaryCta.label}
+                  </Link>
                 </motion.div>
-              </AnimatePresence>
-
-              <motion.div
-                className="mt-8 flex flex-wrap gap-3"
-                initial={false}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-              >
-                <Link
-                  href={primaryCta.href}
-                  className="inline-flex h-11 min-h-11 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#0000cc] shadow-premium-sm transition-transform hover:scale-[1.02] hover:bg-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
-                >
-                  {primaryCta.label}
-                </Link>
-                <Link
-                  href={secondaryCta.href}
-                  className="inline-flex h-11 min-h-11 items-center justify-center rounded-lg border border-white/40 bg-white/10 px-6 text-sm font-semibold text-white backdrop-blur-sm transition-transform hover:scale-[1.01] hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
-                >
-                  {secondaryCta.label}
-                </Link>
-              </motion.div>
+              </div>
             </div>
+          </div>
 
-            <div
-              className="flex items-center gap-2 lg:flex-col lg:items-end"
-              role="tablist"
-              aria-label="Hero slides"
-            >
-              {slides.map((_, dot) => (
+          <div className="pointer-events-auto mx-auto w-full max-w-7xl px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6 sm:px-6 sm:pb-14 lg:px-8">
+            <div className="flex gap-2" role="tablist" aria-label="Hero slides">
+              {slides.map((_, i) => (
                 <button
-                  key={dot}
+                  key={i}
                   type="button"
                   role="tab"
-                  aria-selected={dot === index}
-                  aria-label={`Slide ${dot + 1}`}
+                  aria-selected={i === index}
+                  aria-label={`Slide ${i + 1}`}
                   className={cn(
-                    "h-2 rounded-full transition-all duration-300",
-                    dot === index
-                      ? "w-8 bg-white"
-                      : "w-2 bg-white/40 hover:bg-white/60",
+                    "h-0.5 rounded-full transition-all duration-300",
+                    i === index
+                      ? "w-10 bg-white"
+                      : "w-10 bg-white/35 hover:bg-white/55",
                   )}
-                  onClick={() => api?.scrollTo(dot)}
+                  onClick={() => api?.scrollTo(i)}
                 />
               ))}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 /*
-  BYMED brand: primary #0000CC. Premium medical palette: deep blue + teal accents.
-  8px grid: prefer p-2, p-4, gap-4, gap-8 (multiples of 4/8).
+  BYMED brand: primary #0000CC, white on primary, black bar accent on buttons (logo).
+  Typography: Inter (body) + Poppins (headings) + Great Vibes (accent script).
+  Dark theme: deeper surfaces so bands (muted/card) read clearly vs background.
 */
 :root {
   --brand-primary: #0000cc;
@@ -36,25 +37,28 @@
 }
 
 .dark {
-  --background: oklch(0.13 0.025 264);
-  --foreground: oklch(0.97 0.01 264);
-  --card: oklch(0.18 0.03 264);
-  --card-foreground: oklch(0.97 0.01 264);
-  --popover: oklch(0.16 0.03 264);
-  --popover-foreground: oklch(0.97 0.01 264);
-  --primary: #4f4fff;
+  /* Near-black floor; light text (foreground / muted-foreground). */
+  --background: oklch(0.11 0.02 264);
+  --foreground: oklch(0.96 0.008 264);
+  --card: oklch(0.15 0.022 264);
+  --card-foreground: oklch(0.96 0.008 264);
+  --popover: oklch(0.14 0.022 264);
+  --popover-foreground: oklch(0.96 0.008 264);
+  /* Softer blue for inline text/links on dark surfaces; solid CTAs use --brand-primary via `bg-brand`. */
+  --primary: #6b7cff;
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.22 0.04 264);
-  --secondary-foreground: oklch(0.97 0.01 264);
-  --muted: oklch(0.22 0.03 264);
-  --muted-foreground: oklch(0.72 0.02 264);
-  --accent: oklch(0.25 0.05 195);
-  --accent-foreground: oklch(0.92 0.03 195);
+  --secondary: oklch(0.2 0.03 264);
+  --secondary-foreground: oklch(0.96 0.008 264);
+  /* Elevated section bands (trusted strip, alternating rows). */
+  --muted: oklch(0.17 0.022 264);
+  --muted-foreground: oklch(0.7 0.02 264);
+  --accent: oklch(0.22 0.04 195);
+  --accent-foreground: oklch(0.94 0.02 195);
   --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: #6b6bff;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: #7b86ff;
 }
 
 @layer base {

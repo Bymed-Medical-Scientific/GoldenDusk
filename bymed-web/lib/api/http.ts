@@ -192,9 +192,10 @@ export async function apiFetch(
   let lastNetworkError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const { next: _dropInitNext, ...initRest } = init as RequestInit & {
+      const { next: droppedNext, ...initRest } = init as RequestInit & {
         next?: unknown;
       };
+      void droppedNext;
       const requestInit: RequestInit = {
         ...initRest,
         headers,

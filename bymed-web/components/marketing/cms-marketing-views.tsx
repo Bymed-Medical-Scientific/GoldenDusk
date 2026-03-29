@@ -5,10 +5,21 @@ import type {
 } from "@/lib/content/marketing-pages";
 import { absoluteUrl } from "@/lib/site-url";
 import Link from "next/link";
-import { HomeMarketingPremium } from "@/components/marketing/home-marketing-premium";
+import {
+  HomeMarketingPremium,
+  type HomeFeaturedProduct,
+} from "@/components/marketing/home-marketing-premium";
 
-export function HomeMarketingView({ data }: { data: HomeMarketingContent }) {
-  return <HomeMarketingPremium data={data} />;
+export function HomeMarketingView({
+  data,
+  featuredProducts,
+}: {
+  data: HomeMarketingContent;
+  featuredProducts?: HomeFeaturedProduct[];
+}) {
+  return (
+    <HomeMarketingPremium data={data} featuredProducts={featuredProducts} />
+  );
 }
 
 export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {

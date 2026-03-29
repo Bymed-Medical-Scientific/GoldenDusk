@@ -1,3 +1,4 @@
+import sitemap from "@/app/sitemap";
 import { listProducts } from "@/lib/api/products";
 import fc from "fast-check";
 
@@ -10,9 +11,6 @@ jest.mock("@/lib/site-url", () => ({
 }));
 
 const listProductsMock = listProducts as jest.MockedFunction<typeof listProducts>;
-const sitemap = require("@/app/sitemap").default as () => Promise<
-  Array<{ url: string }>
->;
 
 function paginate(ids: string[], pageSize: number): string[][] {
   if (ids.length === 0) return [[]];

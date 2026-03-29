@@ -6,8 +6,14 @@
 
 export type CtaLink = { label: string; href: string };
 
-/** Optional CMS-driven hero slides; UI falls back to built-in three themes if empty. */
-export type HomeHeroSlide = { tag: string; title: string; subtitle: string };
+/** Optional CMS-driven hero slides; UI falls back to built-in themes if empty. */
+export type HomeHeroSlide = {
+  tag: string;
+  title: string;
+  subtitle: string;
+  /** Optional background image URL (HTTPS). */
+  imageSrc?: string;
+};
 
 export type HomeTestimonial = { quote: string; author: string; role: string };
 
@@ -19,7 +25,7 @@ export type HomeMarketingContent = {
   heroEyebrow: string;
   heroTitle: string;
   heroSubtitle: string;
-  /** When set (from CMS), replaces default three-slide hero copy. */
+  /** When set (from CMS), replaces default hero carousel slides. */
   heroSlides: HomeHeroSlide[];
   primaryCta: CtaLink;
   secondaryCta: CtaLink;
@@ -102,17 +108,46 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
     "ICU equipment",
     "engineering education Zimbabwe",
   ],
-  heroEyebrow: "ByMed Medical & Scientific",
+  heroEyebrow: "Innovating medical excellence",
   heroTitle:
-    "Dedicated to shaping the future of healthcare, scientific research, and engineering education in Zimbabwe.",
+    "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
   heroSubtitle:
-    "High-quality, durable products and services—from point of care and theatre to teaching labs and imaging—backed by trusted global brands and local expertise.",
-  heroSlides: [],
-  primaryCta: { label: "More about us", href: "/about" },
-  secondaryCta: { label: "Browse products", href: "/products" },
-  whatWeOfferHeading: "What we offer",
+    "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+  heroSlides: [
+    {
+      tag: "Innovating medical excellence",
+      title:
+        "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
+      subtitle:
+        "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+    },
+    {
+      tag: "Technical teaching",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+    },
+    {
+      tag: "Medical teaching",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+    },
+    {
+      tag: "Industrial and lab scales",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+    },
+    {
+      tag: "Hospital Equipment",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+      imageSrc: "/images/tekno-operating.webp",
+    },
+  ],
+  primaryCta: { label: "Browse Products", href: "/products" },
+  secondaryCta: { label: "Request Quote", href: "/contact" },
+  whatWeOfferHeading: "Comprehensive scientific ecosystems",
   whatWeOfferIntro:
-    "High-quality, durable products across the clinical and educational spectrum.",
+    "From diagnostics and imaging to teaching labs and engineering workspaces—we help you build complete, reliable environments for care and discovery.",
   offerings: [
     {
       title: "Point of care",
@@ -174,9 +209,9 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   testimonials: [
     {
       quote:
-        "ByMed helped us standardise theatre consumables and shortened our procurement cycle without compromising quality.",
-      author: "Procurement lead",
-      role: "Harare hospital",
+        "Their team delivered on time, trained our staff thoroughly, and our imaging downtime dropped immediately—we finally have a partner who understands acute care pressure.",
+      author: "Dr. Sarah Thompson",
+      role: "Chief of Radiology",
     },
     {
       quote:
@@ -377,7 +412,10 @@ function pickHeroSlides(value: unknown): HomeHeroSlide[] {
     const tag = asString(o.tag, "");
     const title = asString(o.title, "");
     const subtitle = asString(o.subtitle, "");
-    if (tag && title && subtitle) out.push({ tag, title, subtitle });
+    const imageSrcRaw = asString(o.imageSrc ?? o.image, "");
+    const imageSrc = imageSrcRaw || undefined;
+    if (tag && title && subtitle)
+      out.push({ tag, title, subtitle, ...(imageSrc ? { imageSrc } : {}) });
   }
   return out;
 }
@@ -499,7 +537,10 @@ export function parseHomeMarketingContent(
       heroEyebrow: asString(p.heroEyebrow, defaults.heroEyebrow),
       heroTitle: asString(p.heroTitle, defaults.heroTitle),
       heroSubtitle: asString(p.heroSubtitle, defaults.heroSubtitle),
-      heroSlides: pickHeroSlides(p.heroSlides),
+      heroSlides: (() => {
+        const picked = pickHeroSlides(p.heroSlides);
+        return picked.length > 0 ? picked : defaults.heroSlides;
+      })(),
       primaryCta: pickCta(p.primaryCta, defaults.primaryCta),
       secondaryCta: pickCta(p.secondaryCta, defaults.secondaryCta),
       whatWeOfferHeading: asString(
@@ -536,25 +577,54 @@ export function parseHomeMarketingContent(
   }
 }
 
-/** Hero carousel: CMS `heroSlides` when present, else three default themes using core hero copy. */
+const DEFAULT_HERO_BACKGROUNDS = [
+  "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=2400&q=80",
+  "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=2400&q=80",
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2400&q=80",
+  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=2400&q=80",
+  "/images/tekno-operating.webp",
+] as const;
+
+/** Hero carousel: CMS `heroSlides` when present, else defaults + imagery per slide index. */
 export function resolvedHeroSlides(data: HomeMarketingContent): HomeHeroSlide[] {
-  if (data.heroSlides.length > 0) return data.heroSlides;
+  if (data.heroSlides.length > 0) {
+    return data.heroSlides.map((slide, i) => ({
+      ...slide,
+      imageSrc:
+        slide.imageSrc ??
+        DEFAULT_HERO_BACKGROUNDS[i % DEFAULT_HERO_BACKGROUNDS.length],
+    }));
+  }
   return [
     {
-      tag: "Medical equipment",
+      tag: data.heroEyebrow,
       title: data.heroTitle,
       subtitle: data.heroSubtitle,
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[0],
     },
     {
-      tag: "Scientific solutions",
-      title: "Research-ready laboratory & imaging support",
-      subtitle:
-        "Trusted consumables, precision instruments, and partner brands for accurate diagnostics and discovery—aligned with how you work in Zimbabwe.",
+      tag: "Technical teaching",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[1],
     },
     {
-      tag: "Educational labs",
-      title: "Teaching systems for universities & colleges",
-      subtitle: `${data.whatWeOfferIntro} Practical training and durable lab solutions so students graduate ready for real equipment.`,
+      tag: "Medical teaching",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[2],
+    },
+    {
+      tag: "Industrial and lab scales",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[3],
+    },
+    {
+      tag: "Hospital Equipment",
+      title: "Details coming soon",
+      subtitle: "We’re preparing messaging for this slide.",
+      imageSrc: "/images/tekno-operating.webp",
     },
   ];
 }
