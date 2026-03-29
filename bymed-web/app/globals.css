@@ -3,46 +3,103 @@
 @tailwind utilities;
 
 /*
-  Brand palette: primary blue #0000CC, on-primary #FFFFFF, depth #000000.
-  Same brand primary in dark mode (header and brand surfaces stay #0000CC).
+  BYMED brand: primary #0000CC. Premium medical palette: deep blue + teal accents.
+  8px grid: prefer p-2, p-4, gap-4, gap-8 (multiples of 4/8).
 */
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a12;
-  --muted: #f4f4f8;
-  --muted-foreground: #52525b;
-  --border: #e4e4eb;
   --brand-primary: #0000cc;
   --brand-primary-hover: #0000a8;
   --brand-on-primary: #ffffff;
+  --medical-teal: #0d9488;
+  --medical-teal-muted: #5eead4;
+
+  --background: oklch(0.99 0.006 264);
+  --foreground: oklch(0.17 0.03 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.03 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.03 264);
+  --primary: #0000cc;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.96 0.02 200);
+  --secondary-foreground: oklch(0.22 0.04 264);
+  --muted: oklch(0.96 0.008 264);
+  --muted-foreground: oklch(0.45 0.02 264);
+  --accent: oklch(0.94 0.04 195);
+  --accent-foreground: oklch(0.22 0.06 195);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0.01 264);
+  --input: oklch(0.9 0.01 264);
   --ring: #0000cc;
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --muted: #18181b;
-  --muted-foreground: #a1a1aa;
-  --border: #27272a;
-  --brand-primary: #0000cc;
-  --brand-primary-hover: #0000a8;
-  --brand-on-primary: #ffffff;
-  --ring: #0000cc;
+  --background: oklch(0.13 0.025 264);
+  --foreground: oklch(0.97 0.01 264);
+  --card: oklch(0.18 0.03 264);
+  --card-foreground: oklch(0.97 0.01 264);
+  --popover: oklch(0.16 0.03 264);
+  --popover-foreground: oklch(0.97 0.01 264);
+  --primary: #4f4fff;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.22 0.04 264);
+  --secondary-foreground: oklch(0.97 0.01 264);
+  --muted: oklch(0.22 0.03 264);
+  --muted-foreground: oklch(0.72 0.02 264);
+  --accent: oklch(0.25 0.05 195);
+  --accent-foreground: oklch(0.92 0.03 195);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: #6b6bff;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+    transition: background-color 0.35s ease, color 0.25s ease;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Opacity + CSS variables: avoid @apply …/NN on theme colors (Tailwind v3). */
+  .glass-header {
+    @apply border-b backdrop-blur-md;
+    border-bottom-color: rgb(255 255 255 / 0.1);
+    background-color: rgb(0 0 204 / 0.95);
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .glass-header {
+      background-color: rgb(0 0 204 / 0.8);
+    }
+  }
+
+  .glass-header-scrolled {
+    @apply text-foreground backdrop-blur-xl;
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+    background-color: color-mix(in oklch, var(--background) 80%, transparent);
+  }
+
+  .dark .glass-header-scrolled {
+    background-color: color-mix(in oklch, var(--background) 75%, transparent);
+  }
 }
 
-/* Visible only when focused — keyboard / screen reader users */
 .skip-to-main {
   @apply sr-only;
 }

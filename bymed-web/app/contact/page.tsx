@@ -1,9 +1,25 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { submitContactForm } from "@/lib/api/contact";
 import { ApiError } from "@/lib/api/http";
-import { siteFooterContact, siteFooterMailtoHref, siteFooterTelHref } from "@/lib/site-contact";
 import { validateEmail } from "@/lib/auth/credentials-validation";
+import {
+  siteFooterContact,
+  siteFooterMailtoHref,
+  siteFooterTelHref,
+} from "@/lib/site-contact";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 
 type FormState = {
@@ -112,7 +128,9 @@ export default function ContactPage() {
           setStatusError(error.message);
         }
       } else {
-        setStatusError("We could not send your message. Please try again shortly.");
+        setStatusError(
+          "We could not send your message. Please try again shortly.",
+        );
       }
     } finally {
       setPending(false);
@@ -120,129 +138,213 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[1fr_360px]">
+    <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1fr_380px] lg:gap-14 lg:py-16">
       <section>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+          Get in touch
+        </p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Contact Us
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Send us your questions and we will get back to you as soon as possible.
+        <p className="mt-4 max-w-xl text-muted-foreground sm:text-lg">
+          Send us your questions and we will get back to you as soon as
+          possible.
         </p>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-4" noValidate>
-          <label className="block text-sm">
-            <span className="text-foreground">Name</span>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => updateField("name", e.target.value)}
-              autoComplete="name"
-              aria-invalid={Boolean(fieldErrors.name)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-            />
-            {fieldErrors.name ? (
-              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
-                {fieldErrors.name}
-              </span>
-            ) : null}
-          </label>
+        <Card className="mt-10 border-border/80 shadow-premium-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-heading text-lg">Message</CardTitle>
+            <CardDescription>
+              All fields are required. We typically respond within one business
+              day.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="space-y-6" noValidate>
+              <div className="space-y-2">
+                <Label htmlFor="contact-name">Name</Label>
+                <Input
+                  id="contact-name"
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => updateField("name", e.target.value)}
+                  autoComplete="name"
+                  aria-invalid={Boolean(fieldErrors.name)}
+                  aria-describedby={
+                    fieldErrors.name ? "contact-name-error" : undefined
+                  }
+                />
+                {fieldErrors.name ? (
+                  <p
+                    id="contact-name-error"
+                    className="text-xs text-destructive"
+                  >
+                    {fieldErrors.name}
+                  </p>
+                ) : null}
+              </div>
 
-          <label className="block text-sm">
-            <span className="text-foreground">Email</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => updateField("email", e.target.value)}
-              autoComplete="email"
-              aria-invalid={Boolean(fieldErrors.email)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-            />
-            {fieldErrors.email ? (
-              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
-                {fieldErrors.email}
-              </span>
-            ) : null}
-          </label>
+              <div className="space-y-2">
+                <Label htmlFor="contact-email">Email</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => updateField("email", e.target.value)}
+                  autoComplete="email"
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={
+                    fieldErrors.email ? "contact-email-error" : undefined
+                  }
+                />
+                {fieldErrors.email ? (
+                  <p
+                    id="contact-email-error"
+                    className="text-xs text-destructive"
+                  >
+                    {fieldErrors.email}
+                  </p>
+                ) : null}
+              </div>
 
-          <label className="block text-sm">
-            <span className="text-foreground">Subject</span>
-            <input
-              type="text"
-              value={form.subject}
-              onChange={(e) => updateField("subject", e.target.value)}
-              aria-invalid={Boolean(fieldErrors.subject)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-            />
-            {fieldErrors.subject ? (
-              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
-                {fieldErrors.subject}
-              </span>
-            ) : null}
-          </label>
+              <div className="space-y-2">
+                <Label htmlFor="contact-subject">Subject</Label>
+                <Input
+                  id="contact-subject"
+                  type="text"
+                  value={form.subject}
+                  onChange={(e) => updateField("subject", e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.subject)}
+                  aria-describedby={
+                    fieldErrors.subject ? "contact-subject-error" : undefined
+                  }
+                />
+                {fieldErrors.subject ? (
+                  <p
+                    id="contact-subject-error"
+                    className="text-xs text-destructive"
+                  >
+                    {fieldErrors.subject}
+                  </p>
+                ) : null}
+              </div>
 
-          <label className="block text-sm">
-            <span className="text-foreground">Message</span>
-            <textarea
-              value={form.message}
-              onChange={(e) => updateField("message", e.target.value)}
-              rows={6}
-              aria-invalid={Boolean(fieldErrors.message)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-            />
-            {fieldErrors.message ? (
-              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
-                {fieldErrors.message}
-              </span>
-            ) : null}
-          </label>
+              <div className="space-y-2">
+                <Label htmlFor="contact-message">Message</Label>
+                <Textarea
+                  id="contact-message"
+                  value={form.message}
+                  onChange={(e) => updateField("message", e.target.value)}
+                  rows={6}
+                  aria-invalid={Boolean(fieldErrors.message)}
+                  aria-describedby={
+                    fieldErrors.message ? "contact-message-error" : undefined
+                  }
+                  className="min-h-[140px] resize-y"
+                />
+                {fieldErrors.message ? (
+                  <p
+                    id="contact-message-error"
+                    className="text-xs text-destructive"
+                  >
+                    {fieldErrors.message}
+                  </p>
+                ) : null}
+              </div>
 
-          {statusSuccess ? (
-            <p className="text-sm text-green-700 dark:text-green-400" role="status">
-              {statusSuccess}
-            </p>
-          ) : null}
-          {statusError ? (
-            <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-              {statusError}
-            </p>
-          ) : null}
+              {statusSuccess ? (
+                <p
+                  className="text-sm text-teal dark:text-teal-muted"
+                  role="status"
+                >
+                  {statusSuccess}
+                </p>
+              ) : null}
+              {statusError ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {statusError}
+                </p>
+              ) : null}
 
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-[0_3px_0_0_#000000] disabled:opacity-60"
-          >
-            {pending ? "Sending..." : "Send message"}
-          </button>
-        </form>
+              <Button type="submit" disabled={pending} className="min-w-[9rem]">
+                {pending ? "Sending…" : "Send message"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </section>
 
-      <aside className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">Contact Information</h2>
-        <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-          <li>
-            <span className="block text-foreground">Email</span>
-            <a href={siteFooterMailtoHref} className="hover:text-brand hover:underline">
-              {siteFooterContact.email}
-            </a>
-          </li>
-          <li>
-            <span className="block text-foreground">Phone</span>
-            <a href={siteFooterTelHref} className="hover:text-brand hover:underline">
-              {siteFooterContact.phoneDisplay}
-            </a>
-          </li>
-          <li>
-            <span className="block text-foreground">Address</span>
-            <address className="not-italic">
-              ByMed Medical &amp; Scientific
-              <br />
-              12 Healthway Avenue
-              <br />
-              Harare, Zimbabwe
-            </address>
-          </li>
-        </ul>
+      <aside className="lg:pt-14">
+        <Card className="border-border/80 bg-gradient-to-b from-card to-muted/20 shadow-premium-sm">
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">
+              Contact information
+            </CardTitle>
+            <CardDescription>
+              Prefer email or phone? Reach us directly.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5 text-sm">
+            <div className="flex gap-3">
+              <Mail
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-medium text-foreground">Email</p>
+                <a
+                  href={siteFooterMailtoHref}
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {siteFooterContact.email}
+                </a>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Phone
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-medium text-foreground">Phone</p>
+                <a
+                  href={siteFooterTelHref}
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {siteFooterContact.phoneDisplay}
+                </a>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Clock
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-medium text-foreground">Hours</p>
+                <p className="text-muted-foreground">
+                  {siteFooterContact.hoursLine}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 border-t border-border pt-5">
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-medium text-foreground">Address</p>
+                <address className="not-italic text-muted-foreground">
+                  ByMed Medical &amp; Scientific
+                  <br />
+                  12 Healthway Avenue
+                  <br />
+                  Harare, Zimbabwe
+                </address>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </aside>
     </div>
   );

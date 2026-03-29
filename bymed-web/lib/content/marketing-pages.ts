@@ -6,6 +6,11 @@
 
 export type CtaLink = { label: string; href: string };
 
+/** Optional CMS-driven hero slides; UI falls back to built-in three themes if empty. */
+export type HomeHeroSlide = { tag: string; title: string; subtitle: string };
+
+export type HomeTestimonial = { quote: string; author: string; role: string };
+
 export type HomeMarketingContent = {
   metaTitle: string;
   metaDescription: string;
@@ -14,6 +19,8 @@ export type HomeMarketingContent = {
   heroEyebrow: string;
   heroTitle: string;
   heroSubtitle: string;
+  /** When set (from CMS), replaces default three-slide hero copy. */
+  heroSlides: HomeHeroSlide[];
   primaryCta: CtaLink;
   secondaryCta: CtaLink;
   whatWeOfferHeading: string;
@@ -31,6 +38,7 @@ export type HomeMarketingContent = {
   contactHeading: string;
   contactIntro: string;
   contactCtaLabel: string;
+  testimonials: HomeTestimonial[];
 };
 
 export type AboutMarketingContent = {
@@ -99,6 +107,7 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
     "Dedicated to shaping the future of healthcare, scientific research, and engineering education in Zimbabwe.",
   heroSubtitle:
     "High-quality, durable products and services—from point of care and theatre to teaching labs and imaging—backed by trusted global brands and local expertise.",
+  heroSlides: [],
   primaryCta: { label: "More about us", href: "/about" },
   secondaryCta: { label: "Browse products", href: "/products" },
   whatWeOfferHeading: "What we offer",
@@ -162,6 +171,26 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   contactIntro:
     "Whether you need ECG technologies, science and research equipment, or training services, our team is here to help.",
   contactCtaLabel: "Contact us",
+  testimonials: [
+    {
+      quote:
+        "ByMed helped us standardise theatre consumables and shortened our procurement cycle without compromising quality.",
+      author: "Procurement lead",
+      role: "Harare hospital",
+    },
+    {
+      quote:
+        "Their training team made the difference—we went from unpacking boxes to confident daily use in under a week.",
+      author: "Lab manager",
+      role: "University research facility",
+    },
+    {
+      quote:
+        "Responsive support on imaging accessories and consumables; we trust them for critical care equipment.",
+      author: "Clinical director",
+      role: "Private clinic",
+    },
+  ],
 };
 
 export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
@@ -339,6 +368,37 @@ function pickCta(value: unknown, fallback: CtaLink): CtaLink {
   return { label, href };
 }
 
+function pickHeroSlides(value: unknown): HomeHeroSlide[] {
+  if (!Array.isArray(value)) return [];
+  const out: HomeHeroSlide[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const tag = asString(o.tag, "");
+    const title = asString(o.title, "");
+    const subtitle = asString(o.subtitle, "");
+    if (tag && title && subtitle) out.push({ tag, title, subtitle });
+  }
+  return out;
+}
+
+function pickTestimonials(
+  value: unknown,
+  fallback: HomeTestimonial[],
+): HomeTestimonial[] {
+  if (!Array.isArray(value)) return fallback;
+  const out: HomeTestimonial[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const quote = asString(o.quote, "");
+    const author = asString(o.author, "");
+    const role = asString(o.role, "");
+    if (quote && author && role) out.push({ quote, author, role });
+  }
+  return out.length > 0 ? out : fallback;
+}
+
 function pickOfferings(
   value: unknown,
   fallback: HomeMarketingContent["offerings"],
@@ -439,6 +499,7 @@ export function parseHomeMarketingContent(
       heroEyebrow: asString(p.heroEyebrow, defaults.heroEyebrow),
       heroTitle: asString(p.heroTitle, defaults.heroTitle),
       heroSubtitle: asString(p.heroSubtitle, defaults.heroSubtitle),
+      heroSlides: pickHeroSlides(p.heroSlides),
       primaryCta: pickCta(p.primaryCta, defaults.primaryCta),
       secondaryCta: pickCta(p.secondaryCta, defaults.secondaryCta),
       whatWeOfferHeading: asString(
@@ -468,10 +529,34 @@ export function parseHomeMarketingContent(
       contactHeading: asString(p.contactHeading, defaults.contactHeading),
       contactIntro: asString(p.contactIntro, defaults.contactIntro),
       contactCtaLabel: asString(p.contactCtaLabel, defaults.contactCtaLabel),
+      testimonials: pickTestimonials(p.testimonials, defaults.testimonials),
     };
   } catch {
     return defaults;
   }
+}
+
+/** Hero carousel: CMS `heroSlides` when present, else three default themes using core hero copy. */
+export function resolvedHeroSlides(data: HomeMarketingContent): HomeHeroSlide[] {
+  if (data.heroSlides.length > 0) return data.heroSlides;
+  return [
+    {
+      tag: "Medical equipment",
+      title: data.heroTitle,
+      subtitle: data.heroSubtitle,
+    },
+    {
+      tag: "Scientific solutions",
+      title: "Research-ready laboratory & imaging support",
+      subtitle:
+        "Trusted consumables, precision instruments, and partner brands for accurate diagnostics and discovery—aligned with how you work in Zimbabwe.",
+    },
+    {
+      tag: "Educational labs",
+      title: "Teaching systems for universities & colleges",
+      subtitle: `${data.whatWeOfferIntro} Practical training and durable lab solutions so students graduate ready for real equipment.`,
+    },
+  ];
 }
 
 /**
