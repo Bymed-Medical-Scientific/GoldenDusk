@@ -509,12 +509,15 @@ app.UseAuthorization();
 if (hangfireDashboardEnabled)
 
 {
+    var hangfireAuthorizationFilters = builder.Environment.IsDevelopment()
+        ? new IDashboardAuthorizationFilter[] { new LocalRequestsOnlyAuthorizationFilter() }
+        : new IDashboardAuthorizationFilter[] { new HangfireAdminAuthorizationFilter() };
 
     app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
     {
 
-        Authorization = [new HangfireAdminAuthorizationFilter()]
+        Authorization = hangfireAuthorizationFilters
 
     });
 

@@ -15,7 +15,7 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
   max-width: 40rem;
 }
@@ -26,11 +26,34 @@
 
 .form-card {
   max-width: 640px;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--surface-card);
+  padding: 1rem;
+}
+
+.field-group {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.field-group > label {
+  font-weight: 600;
+  color: #111111;
 }
 
 .full-width {
   width: 100%;
-  display: block;
+}
+
+.field-hint {
+  color: var(--text-color-secondary);
+}
+
+.field-error {
+  color: #b91c1c;
+  font-weight: 500;
 }
 
 .order-field {
@@ -39,10 +62,11 @@
 }
 
 .form-actions {
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 
   button[type='submit'] {
     display: inline-flex;
@@ -54,4 +78,14 @@
 .button-spinner {
   display: inline-block;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .form-card {
+    padding: 0.875rem;
+  }
+
+  .order-field {
+    max-width: 100%;
+  }
 }

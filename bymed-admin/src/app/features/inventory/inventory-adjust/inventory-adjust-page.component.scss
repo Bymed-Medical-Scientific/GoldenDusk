@@ -15,12 +15,27 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
 .card-block {
   margin-bottom: 1.25rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.section-subtitle {
+  margin: 0.3rem 0 0.85rem;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
 }
 
 .card-content {
@@ -39,19 +54,48 @@
   max-width: 280px;
 }
 
+.field-group {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .option-title {
   font-weight: 500;
 }
 
 .option-meta {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-icon {
+  color: var(--text-color-secondary);
+}
+
+.search-results {
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  padding: 0.35rem;
+}
+
+.search-result-item {
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
 }
 
 .selected-summary {
   padding: 1rem;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.02);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, #ffffff);
 }
 
 .summary-row {
@@ -62,7 +106,7 @@
 }
 
 .summary-label {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .summary-value {
@@ -79,7 +123,12 @@
   opacity: 0.85;
 }
 
-mat-spinner {
-  display: inline-block;
-  vertical-align: middle;
+.field-hint {
+  color: var(--text-color-secondary);
+  font-size: 0.78rem;
+}
+
+.field-error {
+  color: #b3261e;
+  font-size: 0.78rem;
 }

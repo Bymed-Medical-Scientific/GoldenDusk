@@ -15,7 +15,7 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -27,12 +27,22 @@
   align-items: start;
 }
 
-.search-field {
-  min-width: 200px;
+.search-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  min-height: 44px;
+  padding: 0 0.6rem;
 }
 
-.filter-field {
-  min-width: 140px;
+.search-box input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  width: 100%;
 }
 
 .filter-actions {
@@ -45,8 +55,9 @@
 
 .table-wrap {
   overflow: auto;
-  border-radius: 4px;
-  background: #fff;
+  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
 }
 
 .order-table {
@@ -68,7 +79,7 @@
 }
 
 .cell-subtext {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.75rem;
 }
 
@@ -108,7 +119,7 @@
 }
 
 .col-actions {
-  width: 4rem;
+  width: 8rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -116,13 +127,26 @@
 .empty-cell {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .export-progress {
   margin: 0 0 0.75rem;
-  border-radius: 4px;
+  border-radius: 10px;
   overflow: hidden;
+}
+
+.page-message {
+  margin: 0.25rem 0 1rem;
+  padding: 0.625rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 25%, #ffffff);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
+  color: #111111;
+}
+
+.mobile-cards {
+  display: none;
 }
 
 @media (max-width: 1200px) {
@@ -134,5 +158,42 @@
 @media (max-width: 700px) {
   .toolbar-filters {
     grid-template-columns: 1fr;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .order-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0.875rem;
+    background: color-mix(in srgb, var(--surface-card) 96%, #000000);
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .card-row {
+    margin: 0.45rem 0 0;
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+  }
+
+  .card-row span {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+
+  .card-actions {
+    margin-top: 0.75rem;
   }
 }

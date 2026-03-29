@@ -3,79 +3,77 @@
     <h1 class="page-title">Inventory history</h1>
     <p class="page-subtitle">Change log for a product: counts, reason, and who made the change.</p>
   </div>
-  <a mat-stroked-button routerLink="/inventory">
-    <mat-icon>arrow_back</mat-icon>
-    Back to inventory
-  </a>
+  <a pButton routerLink="/inventory" label="Back to inventory" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
 </div>
 
-<mat-card class="card-block">
-  <mat-card-header>
-    <mat-card-title>Product</mat-card-title>
-    <mat-card-subtitle>Search by name or SKU (at least two characters), then pick a product.</mat-card-subtitle>
-  </mat-card-header>
-  <mat-card-content class="card-content">
-    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-      <mat-label>Find product</mat-label>
+<section class="card-block">
+  <h2 class="section-title">Product</h2>
+  <p class="section-subtitle">Search by name or SKU (at least two characters), then pick a product.</p>
+  <div class="card-content">
+    <div class="search-wrap">
+      <i class="pi pi-search search-icon" aria-hidden="true"></i>
       <input
-        matInput
+        pInputText
         type="search"
         [formControl]="productSearch"
-        [matAutocomplete]="productAuto"
         aria-label="Search products for history"
+        placeholder="Find product by name or SKU"
+        class="full-width"
       />
       @if (isSearchingProducts()) {
-        <mat-spinner matSuffix diameter="20" />
+        <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
       }
-      <mat-autocomplete #productAuto="matAutocomplete" (optionSelected)="onProductOptionSelected($event)">
-        @for (p of searchResults(); track p.id) {
-          <mat-option [value]="p.id">
-            <span class="option-title">{{ p.name }}</span>
-            <span class="option-meta"> · SKU {{ p.sku }}</span>
-          </mat-option>
-        }
-      </mat-autocomplete>
-    </mat-form-field>
+    </div>
 
+    @if (!selectedProduct() && searchResults().length > 0) {
+      <div class="search-results">
+        @for (p of searchResults(); track p.id) {
+          <button pButton type="button" severity="secondary" [text]="true" class="search-result-item" (click)="chooseProduct(p.id)">
+            <span class="option-title">{{ p.name }}</span>
+            <span class="option-meta">SKU {{ p.sku }}</span>
+          </button>
+        }
+      </div>
+    }
     @if (selectedProduct(); as p) {
       <div class="selected-banner">
         <span class="cell-strong">{{ p.name }}</span>
         <span class="cell-sub">SKU {{ p.sku }}</span>
-        <button mat-button type="button" (click)="clearProductSelection()">Change product</button>
+        <button pButton type="button" severity="secondary" [text]="true" (click)="clearProductSelection()">Change product</button>
       </div>
     }
-  </mat-card-content>
-</mat-card>
+  </div>
+</section>
 
-<mat-card class="card-block">
-  <mat-card-header>
-    <mat-card-title>Date range</mat-card-title>
-    <mat-card-subtitle>Optional. Filters by when the change was recorded (UTC).</mat-card-subtitle>
-  </mat-card-header>
-  <mat-card-content class="filters-row">
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>From</mat-label>
+<section class="card-block">
+  <h2 class="section-title">Date range</h2>
+  <p class="section-subtitle">Optional. Filters by when the change was recorded (UTC).</p>
+  <div class="filters-row">
+    <div class="date-field">
+      <label for="dateFrom">From</label>
       <input
-        matInput
+        id="dateFrom"
+        pInputText
         type="date"
         [ngModel]="dateFrom()"
         (ngModelChange)="onDateFromChange($event)"
         aria-label="History from date"
       />
-    </mat-form-field>
-    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-      <mat-label>To</mat-label>
+    </div>
+    <div class="date-field">
+      <label for="dateTo">To</label>
       <input
-        matInput
+        id="dateTo"
+        pInputText
         type="date"
         [ngModel]="dateTo()"
         (ngModelChange)="onDateToChange($event)"
         aria-label="History to date"
       />
-    </mat-form-field>
-    <button mat-stroked-button type="button" (click)="clearDateRange()">Clear dates</button>
-  </mat-card-content>
-</mat-card>
+    </div>
+    <button pButton type="button" label="Clear dates" severity="secondary" [outlined]="true" (click)="clearDateRange()"></button>
+  </div>
+</section>
 
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
@@ -83,69 +81,65 @@
 
 @if (selectedProduct()) {
   @if (isLoading()) {
-    <div class="table-wrap mat-elevation-z1">
-      <app-table-skeleton
-        [columnCount]="displayedColumns.length"
-        [rowCount]="pageSize()"
-        ariaLabel="Loading inventory history"
-      />
+    <div class="table-wrap">
+      <app-table-skeleton [columnCount]="6" [rowCount]="pageSize()" ariaLabel="Loading inventory history" />
     </div>
   } @else {
-    <div class="table-wrap mat-elevation-z1">
-      <table mat-table [dataSource]="dataSource" matSort class="history-table">
-        <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">When</th>
-          <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'medium' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="previousCount">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Previous</th>
-          <td mat-cell *matCellDef="let row">{{ row.previousCount }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="newCount">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">New</th>
-          <td mat-cell *matCellDef="let row">{{ row.newCount }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="changeAmount">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Change</th>
-          <td mat-cell *matCellDef="let row">
+    <div class="table-wrap">
+      <p-table [value]="items()" styleClass="history-table desktop-table" [rowHover]="true">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>When</th>
+            <th>Previous</th>
+            <th>New</th>
+            <th>Change</th>
+            <th>Reason</th>
+            <th>User</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.createdAt | date: 'medium' }}</td>
+            <td>{{ row.previousCount }}</td>
+            <td>{{ row.newCount }}</td>
+            <td>
             <span [class.positive]="row.changeAmount > 0" [class.negative]="row.changeAmount < 0">
               {{ formatDelta(row.changeAmount) }}
             </span>
-          </td>
-        </ng-container>
+            </td>
+            <td class="reason-cell">{{ row.reason }}</td>
+            <td>{{ row.changedBy }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td class="empty-cell" [attr.colspan]="6">No history entries for this product in the selected range.</td>
+          </tr>
+        </ng-template>
+      </p-table>
 
-        <ng-container matColumnDef="reason">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Reason</th>
-          <td mat-cell *matCellDef="let row" class="reason-cell">{{ row.reason }}</td>
-        </ng-container>
+      <div class="mobile-cards">
+        @for (row of items(); track row.id) {
+          <article class="history-card">
+            <p class="card-row"><span>When:</span> {{ row.createdAt | date: 'medium' }}</p>
+            <p class="card-row"><span>Previous:</span> {{ row.previousCount }}</p>
+            <p class="card-row"><span>New:</span> {{ row.newCount }}</p>
+            <p class="card-row"><span>Change:</span> <span [class.positive]="row.changeAmount > 0" [class.negative]="row.changeAmount < 0">{{ formatDelta(row.changeAmount) }}</span></p>
+            <p class="card-row"><span>Reason:</span> {{ row.reason }}</p>
+            <p class="card-row"><span>User:</span> {{ row.changedBy }}</p>
+          </article>
+        } @empty {
+          <p class="empty-cell">No history entries for this product in the selected range.</p>
+        }
+      </div>
 
-        <ng-container matColumnDef="changedBy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">User</th>
-          <td mat-cell *matCellDef="let row">{{ row.changedBy }}</td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
-            No history entries for this product in the selected range.
-          </td>
-        </tr>
-      </table>
-
-      <mat-paginator
-        [length]="totalCount()"
-        [pageIndex]="pageNumber() - 1"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="pageSizeOptions"
-        showFirstLastButtons
-        aria-label="Select page of history"
-        (page)="onPageChange($event)"
-      />
+      <p-paginator
+        [first]="(pageNumber() - 1) * pageSize()"
+        [rows]="pageSize()"
+        [totalRecords]="totalCount()"
+        [rowsPerPageOptions]="pageSizeOptions"
+        (onPageChange)="onPageChange($event)"
+      ></p-paginator>
     </div>
   }
 } @else {

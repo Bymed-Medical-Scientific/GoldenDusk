@@ -3,20 +3,168 @@
   display: grid;
   place-items: center;
   padding: 1.5rem;
+  position: relative;
+  background:
+    radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--brand-primary) 20%, transparent), transparent 30%),
+    radial-gradient(circle at 90% 90%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent 30%),
+    var(--surface-ground);
 }
 
 .login-card {
   width: min(100%, 420px);
+  background: color-mix(in srgb, var(--surface-card) 92%, #000 8%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 45%, var(--surface-border));
+  border-radius: 1.75rem;
+  padding: 1.75rem;
+  box-shadow: 0 24px 54px rgba(2, 6, 23, 0.3);
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.theme-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  color: var(--text-color);
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+}
+
+.logo-wrap {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 0.9rem;
+  color: var(--brand-primary);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 48%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  font-size: 1.2rem;
+}
+
+h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 1.45rem;
+}
+
+.subtitle {
+  margin: 0.35rem 0 1.2rem;
+  text-align: center;
+  color: var(--text-color-secondary);
 }
 
 .login-form {
-  margin-top: 1rem;
   display: flex;
   flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+}
+
+.field-group label {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.remember-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.remember-wrap label {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}
+
+.forgot-link {
+  border: 0;
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.signin-btn {
+  height: 2.5rem;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.signin-btn:enabled:hover {
+  filter: brightness(1.08);
+}
+
+.signin-btn .p-progressspinner {
+  margin-right: 0.45rem;
 }
 
 .error-text {
-  color: #b00020;
+  color: #f87171;
   margin: 0;
+  font-size: 0.83rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .password-field .p-password-input {
+  width: 100%;
+  height: 2.55rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-card) 84%, #000 16%);
+  border-color: var(--surface-border);
+  color: var(--text-color);
+}
+
+:host ::ng-deep .p-inputtext::placeholder,
+:host ::ng-deep .password-field .p-password-input::placeholder {
+  color: color-mix(in srgb, var(--text-color-secondary) 78%, transparent);
+}
+
+:host ::ng-deep .p-inputtext:enabled:focus,
+:host ::ng-deep .password-field .p-password-input:enabled:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+:host ::ng-deep .password-field .p-password {
+  width: 100%;
+}
+
+:host ::ng-deep .password-field .p-password-toggle-mask-icon {
+  color: var(--text-color-secondary);
+}
+
+@media (max-width: 640px) {
+  .login-page {
+    padding: 1rem;
+  }
+
+  .login-card {
+    padding: 1.25rem;
+    border-radius: 1.1rem;
+  }
 }
