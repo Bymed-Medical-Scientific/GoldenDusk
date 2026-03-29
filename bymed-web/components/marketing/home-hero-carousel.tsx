@@ -17,6 +17,9 @@ import { useCallback, useEffect, useState } from "react";
 /** Full small-viewport height so the first screen hides the following section (was capped at ~88–96svh on larger breakpoints). */
 const heroMinHeightClass = "min-h-[100svh]";
 
+/** Time each hero slide stays visible before autoplay advances (read headline + subtitle comfortably). */
+const HERO_AUTOPLAY_DELAY_MS = 12_000;
+
 type HomeHeroCarouselProps = {
   slides: HomeHeroSlide[];
   primaryCta: CtaLink;
@@ -46,7 +49,10 @@ export function HomeHeroCarousel({
     };
   }, [api, onSelect]);
 
-  const plugin = Autoplay({ delay: 7000, stopOnInteraction: true });
+  const plugin = Autoplay({
+    delay: HERO_AUTOPLAY_DELAY_MS,
+    stopOnInteraction: true,
+  });
   const active = slides[index] ?? slides[0];
 
   return (

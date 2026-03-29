@@ -123,23 +123,23 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
     },
     {
       tag: "Technical teaching",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Empowering technical education",
+      subtitle: "Empower the next generation of innovators with industry-leading equipment, bridging the gap between classroom theory and real-world application, ensuring Zimbabwean students have the precision instruments they need to excel in a global landscape.",
     },
     {
       tag: "Medical teaching",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Advancing medical education through high-precision simulation.",
+      subtitle: "Equipping Zimbabwe’s medical students with the advanced tools needed for modern healthcare. Our solutions are engineered to enhance clinical skills, improve diagnostic accuracy, and foster a culture of excellence in medical research and patient care.",
     },
     {
       tag: "Industrial and lab scales",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Precision in every measurement",
+      subtitle: "Built for Zimbabwe’s toughest environments. We supply robust industrial scales and laboratory balances that deliver reliable data for mining, agriculture, and manufacturing",
     },
     {
       tag: "Hospital Equipment",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Elevating the Standard of Care",
+      subtitle: "From patient monitoring systems to advanced diagnostic imaging, we deliver the medical technology that powers Zimbabwe’s leading hospitals. Trusted by clinicians for 20+ years to improve patient outcomes and save lives.",
       imageSrc: "/images/tekno-operating.webp",
     },
   ],
@@ -578,10 +578,10 @@ export function parseHomeMarketingContent(
 }
 
 const DEFAULT_HERO_BACKGROUNDS = [
-  "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=2400&q=80",
-  "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=2400&q=80",
-  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=2400&q=80",
-  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=2400&q=80",
+  "/images/main-picture.jpg",
+  "/images/technical-teaching.jpg",
+  "/images/medical-teaching.jpg",
+  "/images/industrial-lab-scales.png",
   "/images/tekno-operating.webp",
 ] as const;
 
@@ -604,26 +604,26 @@ export function resolvedHeroSlides(data: HomeMarketingContent): HomeHeroSlide[] 
     },
     {
       tag: "Technical teaching",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Empowering technical education",
+      subtitle: "Empower the next generation of innovators with industry-leading equipment, bridging the gap between classroom theory and real-world application, ensuring Zimbabwean students have the precision instruments they need to excel in a global landscape.",
       imageSrc: DEFAULT_HERO_BACKGROUNDS[1],
     },
     {
       tag: "Medical teaching",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Advancing medical education through high-precision simulation.",
+      subtitle: "Equipping Zimbabwe’s medical students with the advanced tools needed for modern healthcare. Our solutions are engineered to enhance clinical skills, improve diagnostic accuracy, and foster a culture of excellence in medical research and patient care.",
       imageSrc: DEFAULT_HERO_BACKGROUNDS[2],
     },
     {
       tag: "Industrial and lab scales",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Precision in every measurement",
+      subtitle: "Built for Zimbabwe’s toughest environments. We supply robust industrial scales and laboratory balances that deliver reliable data for mining, agriculture, and manufacturing",
       imageSrc: DEFAULT_HERO_BACKGROUNDS[3],
     },
     {
       tag: "Hospital Equipment",
-      title: "Details coming soon",
-      subtitle: "We’re preparing messaging for this slide.",
+      title: "Elevating the Standard of Care",
+      subtitle: "From patient monitoring systems to advanced diagnostic imaging, we deliver the medical technology that powers Zimbabwe’s leading hospitals. Trusted by clinicians for 20+ years to improve patient outcomes and save lives.",
       imageSrc: "/images/tekno-operating.webp",
     },
   ];
