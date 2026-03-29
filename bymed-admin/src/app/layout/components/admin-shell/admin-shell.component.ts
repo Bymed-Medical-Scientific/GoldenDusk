@@ -1,4 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -13,41 +14,35 @@ import {
   RouterOutlet
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '@core/auth/auth.service';
 import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 
+interface NavItem {
+  readonly label: string;
+  readonly icon: string;
+  readonly route: string;
+  readonly exact?: boolean;
+}
+
 @Component({
-    selector: 'app-admin-shell',
-    imports: [
+  selector: 'app-admin-shell',
+  imports: [
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatMenuModule,
-    MatProgressBarModule,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatBadgeModule
-],
-    templateUrl: './admin-shell.component.html',
-    styleUrl: './admin-shell.component.scss'
+    RouterLinkActive
+  ],
+  templateUrl: './admin-shell.component.html',
+  styleUrl: './admin-shell.component.scss'
 })
 export class AdminShellComponent {
+  private readonly document = inject(DOCUMENT);
   private readonly lowStockAlerts = inject(LowStockAlertsService);
 
   protected readonly isNavigating = signal(false);
   protected readonly isHandset = signal(false);
-  protected readonly sidenavOpened = computed(() => !this.isHandset());
+  protected readonly sidebarOpen = signal(false);
+  protected readonly userMenuOpen = signal(false);
+  protected readonly isDarkMode = signal(false);
   protected readonly lowStockCount = computed(() => this.lowStockAlerts.items().length);
   protected readonly lowStockBadge = computed(() => {
     const n = this.lowStockCount();
@@ -61,6 +56,15 @@ export class AdminShellComponent {
     return items.slice(0, 3);
   });
   protected readonly lowStockOverflow = computed(() => Math.max(this.lowStockCount() - 3, 0));
+  protected readonly navItems: readonly NavItem[] = [
+    { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard', exact: true },
+    { label: 'Content', icon: 'pi pi-file-edit', route: '/content' },
+    { label: 'Categories', icon: 'pi pi-th-large', route: '/categories' },
+    { label: 'Products', icon: 'pi pi-box', route: '/products' },
+    { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
+    { label: 'Orders', icon: 'pi pi-shopping-cart', route: '/orders', exact: true },
+    { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' }
+  ];
 
   constructor(
     private readonly router: Router,
@@ -68,11 +72,15 @@ export class AdminShellComponent {
     private readonly authService: AuthService
   ) {
     this.lowStockAlerts.refresh();
+    this.syncThemeState();
     this.breakpointObserver
       .observe('(max-width: 960px)')
       .pipe(takeUntilDestroyed())
       .subscribe((state) => {
         this.isHandset.set(state.matches);
+        if (!state.matches) {
+          this.sidebarOpen.set(false);
+        }
       });
 
     this.router.events
@@ -91,7 +99,30 @@ export class AdminShellComponent {
   }
 
   protected logout(): void {
+    this.userMenuOpen.set(false);
     this.authService.logout().subscribe();
+  }
+
+  protected toggleSidebar(): void {
+    this.sidebarOpen.update((value) => !value);
+  }
+
+  protected closeSidebarForHandset(): void {
+    if (this.isHandset()) {
+      this.sidebarOpen.set(false);
+    }
+  }
+
+  protected toggleUserMenu(): void {
+    this.userMenuOpen.update((value) => !value);
+  }
+
+  protected toggleTheme(): void {
+    const next = !this.isDarkMode();
+    this.isDarkMode.set(next);
+    this.document.body.classList.toggle('app-dark', next);
+    this.document.body.classList.toggle('app-light', !next);
+    localStorage.setItem('bymed-admin-theme', next ? 'dark' : 'light');
   }
 
   private isNavigationEvent(event: Event): boolean {
@@ -101,5 +132,14 @@ export class AdminShellComponent {
       event instanceof NavigationCancel ||
       event instanceof NavigationError
     );
+  }
+
+  private syncThemeState(): void {
+    const storedTheme = localStorage.getItem('bymed-admin-theme');
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    const initialDark = storedTheme ? storedTheme === 'dark' : prefersDark;
+    this.isDarkMode.set(initialDark);
+    this.document.body.classList.toggle('app-dark', initialDark);
+    this.document.body.classList.toggle('app-light', !initialDark);
   }
 }

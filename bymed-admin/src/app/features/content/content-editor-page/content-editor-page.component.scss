@@ -15,7 +15,7 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -32,39 +32,65 @@
 
 .card-block {
   margin-bottom: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--surface-card);
+  padding: 1rem;
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.card-head p {
+  margin: 0.35rem 0 0;
+  color: var(--text-color-secondary);
+  font-size: 0.86rem;
 }
 
 .mode-toggle {
-  margin-top: 0.25rem;
+  margin-top: 0.65rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .editor-form .stack {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .full-width {
   width: 100%;
 }
 
+.field-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.field-help {
+  color: var(--text-color-secondary);
+  font-size: 0.77rem;
+}
+
 .publish-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.25rem;
 }
 
 .publish-hint {
   font-size: 0.8125rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   max-width: 36rem;
 }
 
 .quill-wrap {
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  border: 1px solid var(--surface-border);
   overflow: hidden;
 }
 
@@ -74,9 +100,10 @@
 }
 
 .preview-pane {
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 1rem 1.25rem;
-  background: #fff;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
   min-height: 220px;
   overflow: auto;
 }
@@ -91,7 +118,7 @@
 }
 
 .field-error {
-  color: var(--mat-form-field-error-text-color, #f44336);
+  color: #ef4444;
   font-size: 0.75rem;
   margin: 0.25rem 0 0;
 }
@@ -114,7 +141,7 @@
   gap: 0.75rem;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-color-secondary);
 }
 
 .og-actions {
@@ -145,7 +172,7 @@
 .featured-picker {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: 1px solid var(--surface-border);
 }
 
 .picker-title {
@@ -156,7 +183,7 @@
 
 .picker-subtitle {
   margin: 0.375rem 0 0.875rem;
-  color: rgba(0, 0, 0, 0.62);
+  color: var(--text-color-secondary);
   font-size: 0.85rem;
 }
 
@@ -178,10 +205,10 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 0.35rem 0.5rem 0.35rem 0.65rem;
-  background: rgba(0, 0, 0, 0.02);
+  background: color-mix(in srgb, var(--surface-hover) 80%, var(--surface-card));
 }
 
 .selected-meta {
@@ -193,7 +220,7 @@
 }
 
 .selected-sub {
-  color: rgba(0, 0, 0, 0.56);
+  color: var(--text-color-secondary);
 }
 
 .selected-actions {
@@ -203,6 +230,6 @@
 
 .picker-empty {
   margin: 0;
-  color: rgba(0, 0, 0, 0.56);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }

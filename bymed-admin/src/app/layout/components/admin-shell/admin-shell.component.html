@@ -1,133 +1,78 @@
-<mat-sidenav-container class="shell-container">
-  <mat-sidenav
-    #sidebar
-    [mode]="isHandset() ? 'over' : 'side'"
-    [opened]="sidenavOpened()"
-    class="shell-sidenav"
-  >
+<div class="shell-container">
+  @if (isHandset() && sidebarOpen()) {
+    <button class="sidebar-overlay" type="button" (click)="toggleSidebar()" aria-label="Close navigation"></button>
+  }
+
+  <aside class="shell-sidenav" [class.shell-sidenav--open]="sidebarOpen()" [class.shell-sidenav--mobile]="isHandset()">
     <div class="sidenav-brand">
-      <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+      <i class="pi pi-shield" aria-hidden="true"></i>
       <span>ByMed Admin</span>
     </div>
 
-    <nav aria-label="Admin navigation">
-      <mat-nav-list>
+    <nav class="nav-list" aria-label="Admin navigation">
+      @for (item of navItems; track item.route) {
         <a
-          mat-list-item
-          routerLink="/dashboard"
+          class="nav-link"
           routerLinkActive="active-link"
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="isHandset() && sidebar.close()"
+          [routerLink]="item.route"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+          (click)="closeSidebarForHandset()"
         >
-          <mat-icon matListItemIcon aria-hidden="true">dashboard</mat-icon>
-          <span matListItemTitle>Dashboard</span>
+          <span class="nav-icon-wrap">
+            <i [class]="item.icon" aria-hidden="true"></i>
+            @if (item.route === '/inventory' && lowStockCount() > 0) {
+              <span class="inline-badge">{{ lowStockBadge() }}</span>
+            }
+          </span>
+          <span>{{ item.label }}</span>
         </a>
-        <a
-          mat-list-item
-          routerLink="/content"
-          routerLinkActive="active-link"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">article</mat-icon>
-          <span matListItemTitle>Content</span>
-        </a>
-        <a
-          mat-list-item
-          routerLink="/categories"
-          routerLinkActive="active-link"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">category</mat-icon>
-          <span matListItemTitle>Categories</span>
-        </a>
-        <a
-          mat-list-item
-          routerLink="/products"
-          routerLinkActive="active-link"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">inventory_2</mat-icon>
-          <span matListItemTitle>Products</span>
-        </a>
-        <a
-          mat-list-item
-          routerLink="/inventory"
-          routerLinkActive="active-link"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon
-            matListItemIcon
-            aria-hidden="true"
-            [matBadge]="lowStockBadge()"
-            [matBadgeHidden]="lowStockCount() === 0"
-            matBadgeColor="warn"
-            matBadgeSize="small"
-            >warehouse</mat-icon
-          >
-          <span matListItemTitle>Inventory</span>
-        </a>
-        <a
-          mat-list-item
-          routerLink="/orders"
-          routerLinkActive="active-link"
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">receipt_long</mat-icon>
-          <span matListItemTitle>Orders</span>
-        </a>
-        <a
-          mat-list-item
-          routerLink="/orders/analytics"
-          routerLinkActive="active-link"
-          (click)="isHandset() && sidebar.close()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">bar_chart</mat-icon>
-          <span matListItemTitle>Sales analytics</span>
-        </a>
-      </mat-nav-list>
-    </nav>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-    <mat-toolbar color="primary" class="toolbar">
-      @if (isHandset()) {
-        <button
-          mat-icon-button
-          type="button"
-          (click)="sidebar.toggle()"
-          aria-label="Toggle navigation"
-        >
-          <mat-icon>menu</mat-icon>
-        </button>
       }
+    </nav>
+  </aside>
 
-      <div class="toolbar-title">Dashboard</div>
+  <div class="shell-main">
+    <header class="toolbar">
+      <div class="toolbar-left">
+        @if (isHandset()) {
+          <button class="icon-button" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation">
+            <i class="pi pi-bars" aria-hidden="true"></i>
+          </button>
+        }
+        <h1 class="toolbar-title">Dashboard</h1>
+      </div>
 
-      <button
-        mat-icon-button
-        type="button"
-        [matMenuTriggerFor]="userMenu"
-        aria-label="Open user menu"
-      >
-        <mat-icon>account_circle</mat-icon>
-      </button>
-    </mat-toolbar>
-
-    <mat-menu #userMenu="matMenu">
-      <button mat-menu-item type="button" (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        <span>Logout</span>
-      </button>
-    </mat-menu>
+      <div class="toolbar-actions">
+        <button
+          class="icon-button"
+          type="button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          <i class="pi" [class.pi-moon]="!isDarkMode()" [class.pi-sun]="isDarkMode()" aria-hidden="true"></i>
+        </button>
+        <div class="user-menu-wrap">
+          <button class="icon-button" type="button" (click)="toggleUserMenu()" aria-label="Open user menu">
+            <i class="pi pi-user" aria-hidden="true"></i>
+          </button>
+          @if (userMenuOpen()) {
+            <div class="user-menu-panel">
+              <button class="menu-item" type="button" (click)="logout()">
+                <i class="pi pi-sign-out" aria-hidden="true"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
 
     @if (isNavigating()) {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <div class="route-loading" role="status" aria-live="polite"></div>
     }
 
     @if (lowStockCount() > 0) {
       <div class="low-stock-banner" role="alert">
-        <mat-icon class="banner-icon" aria-hidden="true">warning</mat-icon>
+        <i class="pi pi-exclamation-triangle banner-icon" aria-hidden="true"></i>
         <div class="banner-body">
           <strong class="banner-title">Low stock: {{ lowStockCount() }} product(s)</strong>
           <p class="banner-detail">
@@ -143,11 +88,9 @@
           </p>
         </div>
         <a
-          mat-stroked-button
-          color="warn"
+          class="banner-action"
           routerLink="/inventory"
           [queryParams]="{ lowStock: '1' }"
-          class="banner-action"
         >
           View low stock
         </a>
@@ -157,5 +100,5 @@
     <main class="shell-content">
       <router-outlet />
     </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </div>
+</div>

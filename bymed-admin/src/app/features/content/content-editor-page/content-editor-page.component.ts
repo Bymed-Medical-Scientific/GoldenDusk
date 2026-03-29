@@ -9,15 +9,6 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Data, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
@@ -44,6 +35,12 @@ import { GlobalErrorComponent } from '@shared/components/global-error/global-err
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ContentImageUploadDto, PageContentSummaryDto } from '@shared/models';
 import { ProductDto } from '@shared/models';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TextareaModule } from 'primeng/textarea';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
 const TITLE_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
@@ -72,21 +69,18 @@ function nonEmptyHtmlValidator(control: AbstractControl): ValidationErrors | nul
   selector: 'app-content-editor-page',
   standalone: true,
   imports: [
+    ButtonModule,
     ReactiveFormsModule,
     RouterLink,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatCardModule,
+    InputTextModule,
+    TextareaModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressBarModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule,
     MatSnackBarModule,
     PageLoadingComponent,
+    ProgressBarModule,
+    ProgressSpinnerModule,
+    ToggleSwitchModule,
     QuillEditorComponent
   ],
   templateUrl: './content-editor-page.component.html',
