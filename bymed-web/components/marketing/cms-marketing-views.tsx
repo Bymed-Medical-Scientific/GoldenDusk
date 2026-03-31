@@ -7,6 +7,7 @@ import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { absoluteUrl } from "@/lib/site-url";
 import Image from "next/image";
 import Link from "next/link";
+import { AboutStatsStrip } from "@/components/marketing/about-stats-strip";
 import {
   HomeMarketingPremium,
   type HomeFeaturedProduct,
@@ -28,10 +29,9 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
   const canonical = absoluteUrl("/about");
   const description = data.metaDescription;
   const stats = [
-    { label: "Years of service", value: "15+" },
-    { label: "Healthcare partners", value: "450+" },
-    { label: "Installed systems", value: "1.2k" },
-    { label: "Support availability", value: "24/7" },
+    { label: "Years of service", value: 15, suffix: "+" },
+    { label: "Installed systems", value: 1200 },
+    { label: "Support availability", value: 24, suffix: "/7" },
   ];
   const jsonLd = {
     "@context": "https://schema.org",
@@ -234,41 +234,62 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
           </div>
         </section>
 
-        <section className="bg-brand py-8 text-brand-foreground">
-          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
-            {stats.map((item) => (
-              <div key={item.label} className="text-center">
-                <p className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-                  {item.value}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-brand-foreground/85">
-                  {item.label}
-                </p>
-              </div>
-            ))}
-          </div>
+        <section className="relative overflow-hidden bg-gradient-to-r from-black via-[#02024d] to-brand py-8 text-brand-foreground">
+          <div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(0,0,204,0.35),transparent_28%),radial-gradient(circle_at_right,rgba(255,255,255,0.08),transparent_22%)]"
+            aria-hidden
+          />
+          <AboutStatsStrip stats={stats} />
         </section>
 
-        <section className="bg-muted py-14 sm:py-20" aria-labelledby="we-aim-to">
+        <section className="bg-muted/35 py-14 sm:py-20" aria-labelledby="we-aim-to">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="max-w-3xl">
-              <h2
-                id="we-aim-to"
-                className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-              >
-                {data.aimsHeading}
-              </h2>
-            </div>
-            <ul className="mt-8 space-y-3">
-              {data.aims.map((item) => (
-                <li
-                  key={item}
-                  className="rounded-xl bg-card px-4 py-4 text-sm leading-relaxed text-muted-foreground ring-1 ring-border/70 sm:px-5 sm:text-base"
+            <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-gradient-to-br from-card via-card to-muted/40 p-6 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.22)] ring-1 ring-border/50 sm:p-8 lg:p-10">
+              <div className="mx-auto max-w-3xl text-center">
+                <p className="font-script text-2xl text-primary sm:text-3xl">
+                  What drives us
+                </p>
+                <h2
+                  id="we-aim-to"
+                  className="font-heading mt-3 text-balance text-3xl font-bold leading-[1.08] tracking-[-0.02em] text-foreground sm:text-4xl sm:leading-[1.06] lg:text-5xl"
                 >
-                  {item}
-                </li>
-              ))}
-            </ul>
+                  {data.aimsHeading}
+                </h2>
+                <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  Every goal reflects our commitment to better care, stronger institutions, and practical technical progress.
+                </p>
+              </div>
+
+              <ul className="mt-10 grid gap-4 lg:grid-cols-3">
+                {data.aims.map((item, index) => (
+                  <li
+                    key={item}
+                    className="group relative overflow-hidden rounded-[1.75rem] border border-primary/15 bg-gradient-to-br from-white via-white to-[#eef3ff] p-6 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.24)] ring-1 ring-primary/10 transition-transform duration-200 hover:-translate-y-1 dark:from-card dark:via-card dark:to-muted/60"
+                  >
+                    <div
+                      className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand via-brand to-primary/50"
+                      aria-hidden
+                    />
+                    <div
+                      className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand/15 blur-3xl"
+                      aria-hidden
+                    />
+                    <div
+                      className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,204,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(0,0,204,0.08),transparent_40%)] opacity-90"
+                      aria-hidden
+                    />
+                    <div className="relative">
+                      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/15">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <p className="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                        {item}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
@@ -276,51 +297,39 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
           className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20"
           aria-labelledby="about-contact-cta"
         >
-          <div className="mb-14 rounded-[2rem] bg-muted/45 p-6 sm:mb-16 sm:p-8">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="font-heading mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-                High quality products and trusted expertise
+          <div className="relative overflow-hidden rounded-[2rem] border border-primary/15 bg-gradient-to-br from-[#05060d] via-[#090b18] to-[#10142a] p-8 text-center shadow-[0_28px_70px_-32px_rgba(0,0,0,0.55)] ring-1 ring-primary/10 sm:p-12">
+            <div
+              className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-brand/20 blur-3xl"
+              aria-hidden
+            />
+            <div
+              className="absolute -right-16 bottom-0 h-56 w-56 rounded-full bg-brand/15 blur-3xl"
+              aria-hidden
+            />
+            <div
+              className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,204,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(0,0,204,0.12),transparent_34%)]"
+              aria-hidden
+            />
+            <div className="relative mx-auto max-w-3xl">
+              <p className="font-script text-2xl text-primary sm:text-3xl">
+                Let&apos;s connect
+              </p>
+              <h2
+                id="about-contact-cta"
+                className="font-heading mt-3 text-balance text-3xl font-bold leading-[1.08] tracking-[-0.02em] text-white sm:text-4xl sm:leading-[1.06] lg:text-5xl"
+              >
+                {data.ctaTitle}
               </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
+                {data.ctaBody}
+              </p>
+              <Link
+                href="/contact"
+                className="mt-8 inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-brand px-8 text-sm font-semibold text-brand-foreground shadow-[0_12px_30px_-12px_rgba(0,0,204,0.7)] transition-transform hover:scale-[1.02] hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
+              >
+                {data.ctaButtonLabel}
+              </Link>
             </div>
-            <ul
-              className="mt-10 grid gap-4 md:grid-cols-3"
-              aria-label="What defines Bymed"
-            >
-              {data.valueProps.map(({ title, body }) => (
-                <li
-                  key={title}
-                  className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border/70"
-                >
-                  <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                    Pillar
-                  </span>
-                  <h3 className="font-heading mt-4 text-xl font-semibold text-foreground">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {body}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-sm sm:p-10">
-            <h2
-              id="about-contact-cta"
-              className="font-heading text-2xl font-bold tracking-tight sm:text-3xl"
-            >
-              {data.ctaTitle}
-            </h2>
-            <p className="mt-3 max-w-3xl leading-relaxed text-muted-foreground">
-              {data.ctaBody}
-            </p>
-            <Link
-              href="/contact"
-              className="mt-7 inline-flex h-11 min-h-11 items-center justify-center rounded-full bg-brand px-7 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-            >
-              {data.ctaButtonLabel}
-            </Link>
           </div>
         </section>
       </div>
