@@ -68,10 +68,10 @@ function AnimatedStat({ stat }: { stat: AboutStat }) {
 
   return (
     <div ref={ref} className="text-center">
-      <p className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+      <p className="font-heading text-2xl font-bold tracking-tight sm:text-4xl">
         {formattedValue}
       </p>
-      <p className="mt-1 text-xs uppercase tracking-[0.14em] text-brand-foreground/85">
+      <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-brand-foreground/85 sm:text-xs sm:tracking-[0.14em]">
         {stat.label}
       </p>
     </div>
@@ -80,7 +80,7 @@ function AnimatedStat({ stat }: { stat: AboutStat }) {
 
 export function AboutStatsStrip({ stats }: { stats: AboutStat[] }) {
   return (
-    <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-3 sm:px-6">
+    <div className="relative mx-auto grid max-w-7xl grid-cols-3 gap-4 px-4 sm:gap-6 sm:px-6">
       {stats.map((stat) => (
         <AnimatedStat key={stat.label} stat={stat} />
       ))}
