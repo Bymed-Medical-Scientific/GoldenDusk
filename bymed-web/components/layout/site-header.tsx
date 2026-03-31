@@ -232,7 +232,8 @@ export function SiteHeader() {
   }, [searchOpen]);
 
   const isHome = pathname === "/";
-  const overlayNav = isHome && !scrolled;
+  const isAbout = pathname === "/about";
+  const overlayNav = (isHome || isAbout) && !scrolled;
   const iconBtnClass = overlayNav ? iconBtnOverlay : iconBtnBar;
 
   return (
@@ -240,7 +241,7 @@ export function SiteHeader() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 bg-transparent transition-[box-shadow,backdrop-filter,border-color] duration-300 ease-out",
         scrolled
-          ? "border-b border-border/40 text-foreground backdrop-blur-md dark:border-border/30"
+          ? "glass-header-scrolled"
           : "border-b-0",
       )}
     >

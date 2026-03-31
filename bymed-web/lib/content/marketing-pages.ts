@@ -290,8 +290,8 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
     "If you are in need of high-quality and professional medical or scientific products, look no further.",
   overviewHeading: "Company overview",
   overviewParagraphs: [
-    "ByMed Medical & Scientific is a dynamic, growth-driven company dedicated to delivering world-class medical, scientific, and engineering solutions across Africa. As a trusted importer and distributor, we supply high-quality medical equipment, consumables, point-of-care devices, laboratory tools, and digital imaging technologies to support critical care and minimally invasive procedures.",
-    "We empower healthcare providers, universities, research institutions, and individuals with advanced equipment, technical training, and expert support. With a strong focus on innovation, quality, and education, ByMed is helping shape the future of healthcare, science, and technical excellence across the continent.",
+    "Bymed Medical & Scientific is a dynamic, growth-driven company dedicated to delivering world-class medical, scientific, and engineering solutions across Africa. As a trusted importer and distributor, we supply high-quality medical equipment, consumables, point-of-care devices, laboratory tools, and digital imaging technologies to support critical care and minimally invasive procedures.",
+    "We empower healthcare providers, universities, research institutions, and individuals with advanced equipment, technical training, and expert support. With a strong focus on innovation, quality, and education, Bymed is helping shape the future of healthcare, science, and technical excellence across the continent.",
   ],
   valueProps: [
     {
