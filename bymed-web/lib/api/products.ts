@@ -17,6 +17,9 @@ export type ListProductsParams = {
   search?: string;
   inStock?: boolean;
   brand?: string;
+  clientType?: string;
+  minPrice?: number;
+  maxPrice?: number;
 };
 
 export async function listProducts(
@@ -30,6 +33,10 @@ export async function listProducts(
     q.set("search", params.search);
   if (params.inStock != null) q.set("inStock", String(params.inStock));
   if (params.brand != null && params.brand !== "") q.set("brand", params.brand);
+  if (params.clientType != null && params.clientType !== "")
+    q.set("clientType", params.clientType);
+  if (params.minPrice != null) q.set("minPrice", String(params.minPrice));
+  if (params.maxPrice != null) q.set("maxPrice", String(params.maxPrice));
   const qs = q.toString();
   const res = await apiFetch(
     apiPath(`/Products${qs ? `?${qs}` : ""}`),

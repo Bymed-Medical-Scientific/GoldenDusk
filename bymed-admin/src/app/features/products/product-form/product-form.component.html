@@ -168,6 +168,29 @@
             <small class="field-error">{{ fieldError('sku') }}</small>
           }
         </div>
+
+        <div class="field-group">
+          <label for="brand">Brand</label>
+          <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
+          <small class="field-hint">Optional</small>
+          @if (fieldError('brand')) {
+            <small class="field-error">{{ fieldError('brand') }}</small>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="clientType">Client type</label>
+          <p-select
+            inputId="clientType"
+            [options]="clientTypeOptions"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="clientType"
+            placeholder="Optional"
+            appendTo="body"
+            styleClass="full-width"
+          />
+        </div>
       </div>
 
       <div class="section-divider"></div>

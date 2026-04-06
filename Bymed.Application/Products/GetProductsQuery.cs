@@ -9,4 +9,7 @@ public sealed record GetProductsQuery(
     Guid? CategoryId,
     string? Search,
     bool? InStock,
-    string? Brand = null) : IRequest<PagedResult<ProductDto>>;
+    string? Brand = null,
+    string? ClientType = null,
+    decimal? MinPrice = null,
+    decimal? MaxPrice = null) : IRequest<PagedResult<ProductDto>>;

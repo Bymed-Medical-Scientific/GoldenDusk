@@ -62,6 +62,9 @@ public class ProductRepository : IProductRepository
         Guid? categoryId = null,
         bool? isAvailable = null,
         string? brand = null,
+        string? clientType = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
         string? search = null,
         CancellationToken cancellationToken = default)
     {
@@ -71,12 +74,19 @@ public class ProductRepository : IProductRepository
             query = query.Where(p => p.CategoryId == categoryId.Value);
         if (isAvailable.HasValue)
             query = query.Where(p => p.IsAvailable == isAvailable.Value);
+        if (minPrice.HasValue)
+            query = query.Where(p => p.Price >= minPrice.Value);
+        if (maxPrice.HasValue)
+            query = query.Where(p => p.Price <= maxPrice.Value);
         if (!string.IsNullOrWhiteSpace(brand))
         {
-            var brandTerm = brand.Trim().ToLowerInvariant();
-            query = query.Where(p =>
-                p.Name.ToLower().Contains(brandTerm) ||
-                (p.Sku != null && p.Sku.ToLower().Contains(brandTerm)));
+            var brandTerm = brand.Trim();
+            query = query.Where(p => p.Brand != null && EF.Functions.ILike(p.Brand, $"%{brandTerm}%"));
+        }
+        if (!string.IsNullOrWhiteSpace(clientType))
+        {
+            var clientTypeTerm = clientType.Trim();
+            query = query.Where(p => p.ClientType != null && EF.Functions.ILike(p.ClientType, $"%{clientTypeTerm}%"));
         }
         if (!string.IsNullOrWhiteSpace(search))
         {

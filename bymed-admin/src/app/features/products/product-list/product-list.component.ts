@@ -19,7 +19,7 @@ import { TableModule } from 'primeng/table';
 
 type AvailabilityFilter = 'all' | 'available' | 'unavailable';
 type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
-type ProductRow = ProductDto & { readonly categoryDisplay: string };
+type ProductRow = ProductDto & { readonly categoryDisplay: string; readonly clientTypeDisplay: string };
 
 @Component({
   selector: 'app-product-list',
@@ -83,14 +83,18 @@ export class ProductListComponent implements OnInit {
     return this.products()
       .map((row) => ({
         ...row,
-        categoryDisplay: row.categoryName ?? this.resolveCategoryName(row.categoryId)
+        categoryDisplay: row.categoryName ?? this.resolveCategoryName(row.categoryId),
+        clientTypeDisplay: this.formatClientType(row.clientType)
       }))
       .filter((row) => {
         const sku = row.sku ?? '';
+        const brand = row.brand ?? '';
         const matchesQuery =
           !q ||
           row.name.toLowerCase().includes(q) ||
           sku.toLowerCase().includes(q) ||
+          brand.toLowerCase().includes(q) ||
+          row.clientTypeDisplay.toLowerCase().includes(q) ||
           row.categoryDisplay.toLowerCase().includes(q);
         const matchesStock =
           stock === 'all' ||
@@ -361,5 +365,20 @@ export class ProductListComponent implements OnInit {
         this.products.set(products.items);
         this.clearSelection();
       });
+  }
+
+  private formatClientType(clientType: string | undefined): string {
+    switch (clientType) {
+      case 'school':
+        return 'School';
+      case 'university-college':
+        return 'University/College';
+      case 'hospital-clinic':
+        return 'Hospital/Clinic';
+      case 'nursing-school':
+        return 'Nursing School';
+      default:
+        return 'General';
+    }
   }
 }

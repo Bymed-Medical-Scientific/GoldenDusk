@@ -146,9 +146,15 @@ public sealed class DistributedCatalogReadCache : ICatalogReadCache
         var brand = query.Brand?.Trim() ?? string.Empty;
         if (brand.Length > 80)
             brand = brand[..80];
+        var clientType = query.ClientType?.Trim() ?? string.Empty;
+        if (clientType.Length > 80)
+            clientType = clientType[..80];
         var searchPart = string.IsNullOrEmpty(search) ? "none" : Uri.EscapeDataString(search);
         var brandPart = string.IsNullOrEmpty(brand) ? "none" : Uri.EscapeDataString(brand);
-        return $"bymed:catalog:{v}:products:p{query.PageNumber}:s{query.PageSize}:c{query.CategoryId}:i{query.InStock}:q{searchPart}:b{brandPart}";
+        var clientTypePart = string.IsNullOrEmpty(clientType) ? "none" : Uri.EscapeDataString(clientType);
+        var minPricePart = query.MinPrice?.ToString(CultureInfo.InvariantCulture) ?? "none";
+        var maxPricePart = query.MaxPrice?.ToString(CultureInfo.InvariantCulture) ?? "none";
+        return $"bymed:catalog:{v}:products:p{query.PageNumber}:s{query.PageSize}:c{query.CategoryId}:i{query.InStock}:q{searchPart}:b{brandPart}:ct{clientTypePart}:min{minPricePart}:max{maxPricePart}";
     }
 
     private async Task<string> BuildCategoriesKeyAsync(CancellationToken cancellationToken)

@@ -46,6 +46,8 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             req.Price,
             req.LowStockThreshold,
             req.Sku,
+            req.Brand,
+            req.ClientType,
             req.Specifications);
 
         _productRepository.Update(product);
@@ -66,6 +68,8 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             LowStockThreshold = product.LowStockThreshold,
             IsAvailable = product.IsAvailable,
             Sku = product.Sku,
+            Brand = product.Brand,
+            ClientType = product.ClientType,
             Specifications = product.Specifications
         };
 

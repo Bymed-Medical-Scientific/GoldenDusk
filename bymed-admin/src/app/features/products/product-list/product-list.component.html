@@ -82,7 +82,7 @@
 
   <div class="table-wrap">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="8" [rowCount]="pageSize()" ariaLabel="Loading products" />
+      <app-table-skeleton [columnCount]="10" [rowCount]="pageSize()" ariaLabel="Loading products" />
     } @else {
       <p-table [value]="filteredProducts()" styleClass="product-table desktop-table" [rowHover]="true">
         <ng-template pTemplate="header">
@@ -93,6 +93,8 @@
             <th>Product</th>
             <th>SKU</th>
             <th>Category</th>
+            <th>Brand</th>
+            <th>Client type</th>
             <th>Price</th>
             <th>Stock</th>
             <th>Availability</th>
@@ -112,6 +114,8 @@
             </td>
             <td>{{ row.sku ?? '—' }}</td>
             <td>{{ row.categoryDisplay }}</td>
+            <td>{{ row.brand ?? '—' }}</td>
+            <td>{{ row.clientTypeDisplay }}</td>
             <td>{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</td>
             <td>
               <span>{{ row.inventoryCount }}</span>
@@ -134,7 +138,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="empty-cell" [attr.colspan]="8">No products match your filters.</td>
+            <td class="empty-cell" [attr.colspan]="10">No products match your filters.</td>
           </tr>
         </ng-template>
       </p-table>
@@ -149,6 +153,8 @@
             @if (row.slug) { <p class="card-row"><span>Slug:</span> /{{ row.slug }}</p> }
             <p class="card-row"><span>SKU:</span> {{ row.sku ?? '—' }}</p>
             <p class="card-row"><span>Category:</span> {{ row.categoryDisplay }}</p>
+            <p class="card-row"><span>Brand:</span> {{ row.brand ?? '—' }}</p>
+            <p class="card-row"><span>Client type:</span> {{ row.clientTypeDisplay }}</p>
             <p class="card-row"><span>Price:</span> {{ row.price | currency: row.currency:'symbol':'1.2-2' }}</p>
             <p class="card-row"><span>Stock:</span> {{ row.inventoryCount }}</p>
             <p class="card-row"><span>Availability:</span> {{ row.isAvailable ? 'Available' : 'Unavailable' }}</p>

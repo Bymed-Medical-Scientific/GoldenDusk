@@ -33,6 +33,7 @@ import { SelectModule } from 'primeng/select';
 const NAME_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
 const SKU_MAX_LENGTH = 100;
+const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
@@ -61,6 +62,8 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     InventoryCount: 'inventoryCount',
     LowStockThreshold: 'lowStockThreshold',
     Sku: 'sku',
+    Brand: 'brand',
+    ClientType: 'clientType',
     Currency: 'currency'
   };
   return map[propertyName] ?? propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
@@ -105,6 +108,12 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly categoryOptions = signal<Array<{ label: string; value: string }>>([]);
   protected readonly imagePreviewUrl = signal<string | null>(null);
+  protected readonly clientTypeOptions: Array<{ label: string; value: string }> = [
+    { label: 'School', value: 'school' },
+    { label: 'University/College', value: 'university-college' },
+    { label: 'Hospital/Clinic', value: 'hospital-clinic' },
+    { label: 'Nursing School', value: 'nursing-school' }
+  ];
   /** 0–100 while primary image is uploading after save; null when idle. */
   protected readonly primaryImageUploadProgress = signal<number | null>(null);
   /** Set in edit mode after load — used for read-only availability. */
@@ -123,7 +132,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     currency: ['USD', [Validators.required, Validators.pattern(CURRENCY_PATTERN)]],
     inventoryCount: [0, [Validators.required, Validators.min(0)]],
     lowStockThreshold: [0, [Validators.required, Validators.min(0)]],
-    sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]]
+    sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]],
+    brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
+    clientType: ['']
   });
 
   public ngOnInit(): void {
@@ -270,6 +281,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (controlName === 'sku' && control.hasError('maxlength')) {
       return `SKU must not exceed ${SKU_MAX_LENGTH} characters.`;
     }
+    if (controlName === 'brand' && control.hasError('maxlength')) {
+      return `Brand must not exceed ${BRAND_MAX_LENGTH} characters.`;
+    }
 
     return null;
   }
@@ -321,13 +335,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       currency: product.currency,
       inventoryCount: product.inventoryCount,
       lowStockThreshold: product.lowStockThreshold,
-      sku: product.sku ?? ''
+      sku: product.sku ?? '',
+      brand: product.brand ?? '',
+      clientType: product.clientType ?? ''
     });
   }
 
   private buildCreatePayload(): CreateProductRequestDto {
     const raw = this.productForm.getRawValue();
     const sku = raw.sku.trim();
+    const brand = raw.brand.trim();
+    const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
       slug: raw.slug.trim(),
@@ -337,6 +355,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       inventoryCount: Math.floor(Number(raw.inventoryCount)),
       lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
       sku: sku.length > 0 ? sku : undefined,
+      brand: brand.length > 0 ? brand : undefined,
+      clientType: clientType.length > 0 ? clientType : undefined,
       currency: raw.currency.trim() || 'USD',
       specifications: undefined
     };
@@ -345,6 +365,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private buildUpdatePayload(): UpdateProductRequestDto {
     const raw = this.productForm.getRawValue();
     const sku = raw.sku.trim();
+    const brand = raw.brand.trim();
+    const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
       slug: raw.slug.trim(),
@@ -353,6 +375,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       price: Number(raw.price),
       lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
       sku: sku.length > 0 ? sku : undefined,
+      brand: brand.length > 0 ? brand : undefined,
+      clientType: clientType.length > 0 ? clientType : undefined,
       specifications: undefined
     };
   }

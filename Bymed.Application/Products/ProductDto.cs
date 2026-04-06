@@ -23,5 +23,7 @@ public sealed record ProductDto
     public int LowStockThreshold { get; init; }
     public bool IsAvailable { get; init; }
     public string? Sku { get; init; }
+    public string? Brand { get; init; }
+    public string? ClientType { get; init; }
     public IReadOnlyDictionary<string, string>? Specifications { get; init; }
 }

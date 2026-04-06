@@ -80,6 +80,10 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Price).HasPrecision(18, 2);
             entity.Property(e => e.Currency).HasMaxLength(Product.CurrencyMaxLength);
             entity.Property(e => e.Sku).HasMaxLength(Product.SkuMaxLength);
+            entity.Property(e => e.Brand).HasMaxLength(Product.BrandMaxLength);
+            entity.Property(e => e.ClientType).HasMaxLength(Product.ClientTypeMaxLength);
+            entity.HasIndex(e => e.Brand);
+            entity.HasIndex(e => e.ClientType);
 
             entity.HasOne(e => e.Category)
                 .WithMany()

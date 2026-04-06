@@ -1,4 +1,5 @@
 import { CatalogPagination } from "@/components/products/catalog-pagination";
+import { CategoryFilterSidebar } from "@/components/products/category-filter-sidebar";
 import { ProductGrid } from "@/components/products/product-grid";
 import { CurrencySelector } from "@/components/currency/currency-selector";
 import { Input } from "@/components/ui/input";
@@ -9,8 +10,10 @@ import {
 } from "@/lib/catalog/catalog-params";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
 import { listProducts } from "@/lib/api/products";
+import { listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/http";
 import { absoluteUrl } from "@/lib/site-url";
+import type { CategoryDto } from "@/types/category";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -22,7 +25,7 @@ type ProductsPageProps = {
 export async function generateMetadata({
   searchParams,
 }: ProductsPageProps): Promise<Metadata> {
-  const { q } = parseCatalogQuery(searchParams);
+  const { q, categoryId, brand, clientType } = parseCatalogQuery(searchParams);
   const title = q
     ? `Products — “${q}” | Bymed Medical & Scientific`
     : "Products | Bymed Medical & Scientific";
@@ -30,7 +33,7 @@ export async function generateMetadata({
     ? `Browse products matching “${q}” at Bymed Medical & Scientific.`
     : "Browse medical and scientific equipment and supplies at Bymed Medical & Scientific.";
   const canonical = absoluteUrl(
-    buildProductsHref({ q }),
+    buildProductsHref({ q, categoryId, brand, clientType }),
   );
   return {
     title,
@@ -44,12 +47,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const query = parseCatalogQuery(searchParams);
 
   let productResult;
+  let categories: CategoryDto[] = [];
   try {
-    productResult = await listProducts({
-      pageNumber: query.pageNumber,
-      pageSize: query.pageSize,
-      search: query.q,
-    });
+    [productResult, categories] = await Promise.all([
+      listProducts({
+        pageNumber: query.pageNumber,
+        pageSize: query.pageSize,
+        search: query.q,
+        categoryId: query.categoryId,
+        brand: query.brand,
+        clientType: query.clientType,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+      }),
+      listCategories(),
+    ]);
   } catch (e) {
     const message =
       e instanceof ApiError
@@ -84,6 +96,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect(
       buildProductsHref({
         q: query.q,
+        categoryId: query.categoryId,
+        brand: query.brand,
+        clientType: query.clientType,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
         page: productResult.totalPages,
       }),
     );
@@ -134,7 +151,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </form>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/products"
+              href={buildProductsHref({
+                brand: query.brand,
+                categoryId: query.categoryId,
+                clientType: query.clientType,
+                minPrice: query.minPrice,
+                maxPrice: query.maxPrice,
+              })}
               className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border/70 px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
               Clear search
@@ -147,25 +170,41 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </div>
         </div>
       </header>
-      <div className="min-w-0">
-        {productResult.items.length === 0 ? (
-          <EmptyState
-            message={
-              query.q
-                ? "No products match your search. Try a different term."
-                : "No products are available yet."
-            }
-          />
-        ) : (
-          <>
-            <ProductGrid products={cardProducts} />
-            <CatalogPagination
-              pageNumber={productResult.pageNumber}
-              totalPages={productResult.totalPages}
-              q={query.q}
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+        <CategoryFilterSidebar
+          categories={categories}
+          activeCategoryId={query.categoryId}
+          q={query.q}
+          brand={query.brand}
+          clientType={query.clientType}
+          minPrice={query.minPrice}
+          maxPrice={query.maxPrice}
+        />
+        <div className="min-w-0">
+          {productResult.items.length === 0 ? (
+            <EmptyState
+              message={
+                query.q || query.brand || query.clientType
+                  ? "No products match your filters. Try broadening your criteria."
+                  : "No products are available yet."
+              }
             />
-          </>
-        )}
+          ) : (
+            <>
+              <ProductGrid products={cardProducts} />
+              <CatalogPagination
+                pageNumber={productResult.pageNumber}
+                totalPages={productResult.totalPages}
+                q={query.q}
+                brand={query.brand}
+                clientType={query.clientType}
+                categoryId={query.categoryId}
+                minPrice={query.minPrice}
+                maxPrice={query.maxPrice}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

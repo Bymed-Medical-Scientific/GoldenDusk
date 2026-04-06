@@ -39,6 +39,9 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
                 request.CategoryId,
                 request.InStock,
                 request.Brand,
+                request.ClientType,
+                request.MinPrice,
+                request.MaxPrice,
                 request.Search,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -64,6 +67,8 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
                 LowStockThreshold = p.LowStockThreshold,
                 IsAvailable = p.IsAvailable,
                 Sku = p.Sku,
+                Brand = p.Brand,
+                ClientType = p.ClientType,
                 Specifications = p.Specifications
             })
             .ToList();
