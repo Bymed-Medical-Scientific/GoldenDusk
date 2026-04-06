@@ -233,7 +233,8 @@ export function SiteHeader() {
 
   const isHome = pathname === "/";
   const isAbout = pathname === "/about";
-  const overlayNav = (isHome || isAbout) && !scrolled;
+  const isServices = pathname === "/services";
+  const overlayNav = (isHome || isAbout || isServices) && !scrolled;
   const iconBtnClass = overlayNav ? iconBtnOverlay : iconBtnBar;
 
   return (
