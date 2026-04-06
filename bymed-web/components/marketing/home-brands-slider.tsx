@@ -7,80 +7,60 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import Autoplay from "embla-carousel-autoplay";
-import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 
-/** Partner / supplier brands: HTTPS sites only; logos loaded via Clearbit with text fallback. */
+/** Partner / supplier brands: HTTPS sites only; text tiles avoid third-party image failures. */
 export const HOME_BRAND_SLIDER_ITEMS = [
   {
     name: "Edibon",
     href: "https://www.edibon.com/en/",
-    logoDomain: "edibon.com",
   },
   {
     name: "Tekno",
     href: "https://www.tekno-medical.com/en/",
-    logoDomain: "tekno-medical.com",
   },
   {
     name: "3B Scientific",
     href: "https://www.3bscientific.com/",
-    logoDomain: "3bscientific.com",
   },
   {
     name: "Adam Equipment",
     href: "https://www.adamequipment.com/",
-    logoDomain: "adamequipment.com",
   },
   {
     name: "Narang",
     href: "https://www.narang.com/",
-    logoDomain: "narang.com",
   },
   {
     name: "Roche",
     href: "https://www.roche.com/",
-    logoDomain: "roche.com",
   },
   {
     name: "Philips",
     href: "https://www.philips.com/",
-    logoDomain: "philips.com",
   },
   {
     name: "GE Healthcare",
     href: "https://www.gehealthcare.com/",
-    logoDomain: "gehealthcare.com",
   },
   {
     name: "Terumo",
     href: "https://www.terumo.com/",
-    logoDomain: "terumo.com",
   },
   {
     name: "Olympus",
     href: "https://www.olympus-lifescience.com/",
-    logoDomain: "olympus-lifescience.com",
   },
 ] as const;
-
-function clearbitLogoUrl(domain: string) {
-  return `https://logo.clearbit.com/${domain}`;
-}
 
 function BrandSlide({
   name,
   href,
-  logoDomain,
 }: {
   name: string;
   href: string;
-  logoDomain: string;
 }) {
-  const [logoFailed, setLogoFailed] = useState(false);
-  const src = clearbitLogoUrl(logoDomain);
-
   return (
     <a
       href={href}
@@ -92,21 +72,9 @@ function BrandSlide({
       )}
       aria-label={`${name} website (opens in new tab)`}
     >
-      {logoFailed ? (
-        <span className="font-heading text-center text-lg font-semibold tracking-tight text-foreground/80">
-          {name}
-        </span>
-      ) : (
-        <Image
-          src={src}
-          alt=""
-          width={160}
-          height={56}
-          sizes="(max-width: 400px) 70vw, (max-width: 640px) 45vw, (max-width: 768px) 35vw, (max-width: 1024px) 28vw, 18vw"
-          className="h-11 w-auto max-w-[9.5rem] object-contain opacity-85 grayscale transition-[filter,opacity] hover:opacity-100 dark:opacity-90 dark:hover:opacity-100 [.dark_&]:brightness-110 [.dark_&]:contrast-95"
-          onError={() => setLogoFailed(true)}
-        />
-      )}
+      <span className="font-heading text-center text-lg font-semibold tracking-tight text-foreground/80">
+        {name}
+      </span>
     </a>
   );
 }
@@ -165,7 +133,6 @@ export function HomeBrandsSlider() {
                     <BrandSlide
                       name={brand.name}
                       href={brand.href}
-                      logoDomain={brand.logoDomain}
                     />
                   </MotionFadeUp>
                 </CarouselItem>

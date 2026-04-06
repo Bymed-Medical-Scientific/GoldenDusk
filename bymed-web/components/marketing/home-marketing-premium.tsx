@@ -20,37 +20,49 @@ export type HomeFeaturedProduct = {
   imageAlt: string;
 };
 
+function featuredPlaceholderDataUrl(title: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="${title}">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f3ab8"/>
+      <stop offset="100%" stop-color="#0000cc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g)"/>
+  <circle cx="170" cy="170" r="110" fill="rgba(255,255,255,0.14)"/>
+  <circle cx="1040" cy="760" r="160" fill="rgba(255,255,255,0.12)"/>
+  <text x="600" y="470" text-anchor="middle" fill="#ffffff" font-size="56" font-family="Arial, sans-serif" font-weight="700">${title}</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 const PLACEHOLDER_FEATURED: HomeFeaturedProduct[] = [
   {
     id: "placeholder-1",
     name: "Ultrasound X-PRO 500",
     categoryName: "Diagnostic imaging",
-    imageUrl:
-      "https://images.unsplash.com/photo-1516549655169-df83a0774519?auto=format&fit=crop&w=600&q=80",
+    imageUrl: featuredPlaceholderDataUrl("Diagnostic Imaging"),
     imageAlt: "Medical imaging equipment",
   },
   {
     id: "placeholder-2",
     name: "Lab Analyzer LX-200",
     categoryName: "Laboratory",
-    imageUrl:
-      "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80",
+    imageUrl: featuredPlaceholderDataUrl("Laboratory"),
     imageAlt: "Laboratory equipment",
   },
   {
     id: "placeholder-3",
     name: "Patient Monitor V9",
     categoryName: "Patient monitoring",
-    imageUrl:
-      "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80",
+    imageUrl: featuredPlaceholderDataUrl("Patient Monitoring"),
     imageAlt: "Patient monitor",
   },
   {
     id: "placeholder-4",
     name: "Surgical Light LED-4K",
     categoryName: "Theatre",
-    imageUrl:
-      "https://images.unsplash.com/photo-1551190822-a9333d879a1f?auto=format&fit=crop&w=600&q=80",
+    imageUrl: featuredPlaceholderDataUrl("Surgical Environment"),
     imageAlt: "Surgical environment",
   },
 ];
