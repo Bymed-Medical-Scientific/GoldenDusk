@@ -55,6 +55,7 @@ public class CategoryFilteringCompletenessPropertyTests
                     categoryId,
                     Arg.Any<bool?>(),
                     Arg.Any<string?>(),
+                    Arg.Any<string?>(),
                     Arg.Any<CancellationToken>())
                 .Returns(ci =>
                 {

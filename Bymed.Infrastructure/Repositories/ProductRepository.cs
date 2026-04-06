@@ -62,6 +62,7 @@ public class ProductRepository : IProductRepository
         Guid? categoryId = null,
         bool? isAvailable = null,
         string? brand = null,
+        string? search = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Products.AsNoTracking().Include(p => p.Category).AsQueryable();
@@ -76,6 +77,14 @@ public class ProductRepository : IProductRepository
             query = query.Where(p =>
                 p.Name.ToLower().Contains(brandTerm) ||
                 (p.Sku != null && p.Sku.ToLower().Contains(brandTerm)));
+        }
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim();
+            query = query.Where(p =>
+                EF.Functions.ILike(p.Name, $"%{searchTerm}%") ||
+                EF.Functions.ILike(p.Description, $"%{searchTerm}%") ||
+                (p.Sku != null && EF.Functions.ILike(p.Sku, $"%{searchTerm}%")));
         }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);

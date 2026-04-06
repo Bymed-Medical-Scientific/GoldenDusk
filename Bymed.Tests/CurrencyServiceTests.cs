@@ -22,7 +22,7 @@ public sealed class CurrencyServiceTests
                     StatusCode = System.Net.HttpStatusCode.OK,
                     Content = new StringContent(
                         """
-                        {"amount":1.0,"base":"USD","date":"2025-03-21","rates":{"ZAR":18.5,"KES":129.0,"NGN":1500.0}}
+                        {"amount":1.0,"base":"USD","date":"2025-03-21","rates":{"ZAR":18.5}}
                         """,
                         System.Text.Encoding.UTF8,
                         "application/json")
@@ -41,13 +41,11 @@ public sealed class CurrencyServiceTests
 
         rates.BaseCurrency.Should().Be("USD");
         rates.Rates["ZAR"].Should().Be(18.5m);
-        rates.Rates["KES"].Should().Be(129.0m);
-        rates.Rates["NGN"].Should().Be(1500.0m);
         rates.Rates["USD"].Should().Be(1m);
     }
 
     [Fact]
-    public async Task ConvertAsync_ZarToKes_UsesUsdPivot()
+    public async Task ConvertAsync_UsdToZar_UsesUsdBaseRates()
     {
         var handler = new FakeHttpMessageHandler(req =>
         {
@@ -56,7 +54,7 @@ public sealed class CurrencyServiceTests
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(
                     """
-                    {"amount":1.0,"base":"USD","date":"2025-03-21","rates":{"ZAR":20,"KES":100,"NGN":1500}}
+                    {"amount":1.0,"base":"USD","date":"2025-03-21","rates":{"ZAR":20}}
                     """,
                     System.Text.Encoding.UTF8,
                     "application/json")
@@ -68,13 +66,12 @@ public sealed class CurrencyServiceTests
         var options = Options.Create(new CurrencyOptions());
         var sut = new CurrencyService(http, cache, options, NullLogger<CurrencyService>.Instance);
 
-        // 20 ZAR = 1 USD = 100 KES  =>  40 ZAR = 2 USD = 200 KES
-        var result = await sut.ConvertAsync(40m, "ZAR", "KES");
-        result.Should().Be(200m);
+        var result = await sut.ConvertAsync(2m, "USD", "ZAR");
+        result.Should().Be(40m);
     }
 
     [Fact]
-    public async Task DetectCurrencyAsync_ReturnsNgn_ForNigeria()
+    public async Task DetectCurrencyAsync_ReturnsUsd_ForNigeria()
     {
         var handler = new FakeHttpMessageHandler(req =>
         {
@@ -99,7 +96,7 @@ public sealed class CurrencyServiceTests
         var sut = new CurrencyService(http, cache, options, NullLogger<CurrencyService>.Instance);
 
         var currency = await sut.DetectCurrencyAsync("41.190.0.0");
-        currency.Should().Be("NGN");
+        currency.Should().Be("USD");
     }
 
     private sealed class FakeHttpMessageHandler : HttpMessageHandler

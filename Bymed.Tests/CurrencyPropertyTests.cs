@@ -32,21 +32,17 @@ public sealed class CurrencySelectionPropertyTests
     {
         var amountGen = ArbMap.Default.GeneratorFor<decimal>().Where(v => v >= 0m && v <= 50_000m);
         var zargen = ArbMap.Default.GeneratorFor<decimal>().Where(v => v >= 10m && v <= 30m);
-        var kesGen = ArbMap.Default.GeneratorFor<decimal>().Where(v => v >= 80m && v <= 220m);
-        var ngnGen = ArbMap.Default.GeneratorFor<decimal>().Where(v => v >= 800m && v <= 2500m);
         var selectedCurrencyGen = Gen.Elements(CurrencyCodes.Supported.ToArray());
 
         var scenarioArb =
             (from amount in amountGen
              from zar in zargen
-             from kes in kesGen
-             from ngn in ngnGen
              from selected in selectedCurrencyGen
-             select new SelectionScenario(amount, zar, kes, ngn, selected)).ToArbitrary();
+             select new SelectionScenario(amount, zar, selected)).ToArbitrary();
 
         return Prop.ForAll(scenarioArb, scenario =>
         {
-            var sut = CreateServiceForRates(scenario.ZarRate, scenario.KesRate, scenario.NgnRate);
+            var sut = CreateServiceForRates(scenario.ZarRate);
             var converted = sut.ConvertAsync(scenario.Amount, "USD", scenario.SelectedCurrency, CancellationToken.None)
                 .GetAwaiter().GetResult();
 
@@ -54,8 +50,6 @@ public sealed class CurrencySelectionPropertyTests
             {
                 "USD" => scenario.Amount,
                 "ZAR" => scenario.Amount * scenario.ZarRate,
-                "KES" => scenario.Amount * scenario.KesRate,
-                "NGN" => scenario.Amount * scenario.NgnRate,
                 _ => throw new InvalidOperationException("Unexpected selected currency.")
             };
 
@@ -64,10 +58,10 @@ public sealed class CurrencySelectionPropertyTests
         });
     }
 
-    private static CurrencyService CreateServiceForRates(decimal zar, decimal kes, decimal ngn)
+    private static CurrencyService CreateServiceForRates(decimal zar)
     {
         var payload = FormattableString.Invariant(
-            $"{{\"amount\":1.0,\"base\":\"USD\",\"date\":\"2026-03-21\",\"rates\":{{\"ZAR\":{zar},\"KES\":{kes},\"NGN\":{ngn}}}}}");
+            $"{{\"amount\":1.0,\"base\":\"USD\",\"date\":\"2026-03-21\",\"rates\":{{\"ZAR\":{zar}}}}}");
 
         var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage
         {
@@ -81,7 +75,7 @@ public sealed class CurrencySelectionPropertyTests
         return new CurrencyService(http, cache, options, NullLogger<CurrencyService>.Instance);
     }
 
-    private sealed record SelectionScenario(decimal Amount, decimal ZarRate, decimal KesRate, decimal NgnRate, string SelectedCurrency);
+    private sealed record SelectionScenario(decimal Amount, decimal ZarRate, string SelectedCurrency);
 }
 
 /// <summary>
@@ -118,8 +112,6 @@ public sealed class CurrencyDetectionPropertyTests
 
             var expected = scenario.CountryCode switch
             {
-                "NG" => "NGN",
-                "KE" => "KES",
                 "ZA" or "BW" or "LS" or "SZ" or "NA" => "ZAR",
                 _ => "USD"
             };

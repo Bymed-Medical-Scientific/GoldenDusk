@@ -20,6 +20,7 @@ public interface IProductRepository
         Guid? categoryId = null,
         bool? isAvailable = null,
         string? brand = null,
+        string? search = null,
         CancellationToken cancellationToken = default);
     Task<PagedResult<Product>> GetInventoryPagedAsync(
         PaginationParams pagination,

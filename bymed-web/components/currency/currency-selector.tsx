@@ -2,7 +2,6 @@
 
 import {
   SUPPORTED_CURRENCY_CODES,
-  SUPPORTED_CURRENCY_LABELS,
   type SupportedCurrencyCode,
 } from "@/lib/supported-currencies";
 import { useCurrency } from "./currency-context";
@@ -90,7 +89,9 @@ export function CurrencySelector({
         className={
           variant === "header"
             ? "sr-only"
-            : "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+            : variant === "drawer"
+              ? "sr-only"
+              : "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
         }
       >
         Currency
@@ -106,9 +107,7 @@ export function CurrencySelector({
       >
         {SUPPORTED_CURRENCY_CODES.map((code) => (
           <option key={code} value={code}>
-            {variant === "drawer"
-              ? SUPPORTED_CURRENCY_LABELS[code]
-              : code}
+            {code}
           </option>
         ))}
       </select>

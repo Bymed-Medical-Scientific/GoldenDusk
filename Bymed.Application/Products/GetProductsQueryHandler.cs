@@ -39,6 +39,7 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
                 request.CategoryId,
                 request.InStock,
                 request.Brand,
+                request.Search,
                 cancellationToken)
             .ConfigureAwait(false);
 
