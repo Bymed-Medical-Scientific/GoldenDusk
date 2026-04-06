@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { listCategories } from "@/lib/api/categories";
 import { submitContactForm } from "@/lib/api/contact";
 import { ApiError } from "@/lib/api/http";
 import { validateEmail } from "@/lib/auth/credentials-validation";
+import type { CategoryDto } from "@/types/category";
 import {
   siteFooterContact,
   siteFooterMailtoHref,
@@ -23,7 +25,7 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type FormState = {
   name: string;
@@ -41,14 +43,7 @@ const initialForm: FormState = {
   message: "",
 };
 
-const interestOptions = [
-  "Clinical diagnostics",
-  "Laboratory systems",
-  "Point-of-care devices",
-  "Imaging technologies",
-  "Training services",
-  "General inquiry",
-] as const;
+const fallbackInterestOptions = ["General inquiry"] as const;
 
 function ContactItem({
   icon: Icon,
@@ -128,6 +123,39 @@ export default function ContactPage() {
   const [statusError, setStatusError] = useState<string | null>(null);
   const [statusSuccess, setStatusSuccess] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [interestOptions, setInterestOptions] = useState<string[]>([]);
+  const [isOptionsReady, setIsOptionsReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const categories = await listCategories();
+        if (!active) return;
+        const ordered = [...categories]
+          .sort(
+            (a: CategoryDto, b: CategoryDto) =>
+              a.displayOrder - b.displayOrder || a.name.localeCompare(b.name),
+          )
+          .map((category) => category.name.trim())
+          .filter((name) => name.length > 0);
+        setInterestOptions(
+          ordered.length > 0
+            ? [...ordered, ...fallbackInterestOptions]
+            : [...fallbackInterestOptions],
+        );
+        setIsOptionsReady(true);
+      } catch {
+        if (active) {
+          setInterestOptions([...fallbackInterestOptions]);
+          setIsOptionsReady(true);
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function updateField<K extends keyof FormState>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -174,7 +202,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+    <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:py-16 [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading">
       <section className="max-w-4xl">
         <h1 className="font-heading text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           Connect with Bymed <span className="text-primary">Scientific</span>
@@ -272,11 +300,13 @@ export default function ContactPage() {
                   className="h-11 w-full rounded-xl border border-input bg-muted/35 px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
                 >
                   <option value="">Select category</option>
-                  {interestOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
+                  {isOptionsReady
+                    ? interestOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))
+                    : null}
                 </select>
                 {fieldErrors.subject ? (
                   <p id="contact-subject-error" className="text-xs text-destructive">
@@ -353,7 +383,7 @@ export default function ContactPage() {
         <aside className="space-y-5">
           <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-7">
             <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-              Scientific HQ
+              Bymed Medical & Scientific HQ
             </h2>
             <div className="mt-6 space-y-5">
               <ContactItem icon={MapPin} label="Address">
