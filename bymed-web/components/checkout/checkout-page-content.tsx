@@ -216,7 +216,7 @@ export function CheckoutPageContent() {
       });
 
       try {
-        await clearCart();
+        await clearCart({ forceProxy: isAuthenticated });
       } catch {
         /* order exists; cart clear is best-effort */
       }

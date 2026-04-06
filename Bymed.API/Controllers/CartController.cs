@@ -44,7 +44,8 @@ public sealed class CartController : ControllerBase
             new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                // Secure cookies are not persisted over http://localhost during development.
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Lax,
                 IsEssential = true,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
