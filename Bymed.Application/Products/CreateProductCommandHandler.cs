@@ -42,6 +42,8 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
             req.InventoryCount,
             req.LowStockThreshold,
             req.Sku,
+            req.Brand,
+            req.ClientType,
             req.Currency,
             req.Specifications);
 
@@ -64,6 +66,8 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
             LowStockThreshold = product.LowStockThreshold,
             IsAvailable = product.IsAvailable,
             Sku = product.Sku,
+            Brand = product.Brand,
+            ClientType = product.ClientType,
             Specifications = product.Specifications
         };
 

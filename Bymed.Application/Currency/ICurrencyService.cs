@@ -11,7 +11,7 @@ public interface ICurrencyService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resolves a display currency (USD, ZAR, KES, or NGN) from the client IP using HTTPS geolocation.
+    /// Resolves a display currency (USD or ZAR) from the client IP using HTTPS geolocation.
     /// </summary>
     Task<string> DetectCurrencyAsync(string ipAddress, CancellationToken cancellationToken = default);
 }

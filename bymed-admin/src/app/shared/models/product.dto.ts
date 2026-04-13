@@ -21,6 +21,8 @@ export interface ProductDto {
   readonly inventoryCount: number;
   readonly lowStockThreshold: number;
   readonly isAvailable: boolean;
+  readonly brand?: string;
+  readonly clientType?: string;
 }
 
 export interface CreateProductRequestDto {
@@ -32,6 +34,8 @@ export interface CreateProductRequestDto {
   readonly inventoryCount: number;
   readonly lowStockThreshold: number;
   readonly sku?: string | null;
+  readonly brand?: string | null;
+  readonly clientType?: string | null;
   readonly currency?: string | null;
   readonly specifications?: Record<string, string> | null;
 }
@@ -44,6 +48,8 @@ export interface UpdateProductRequestDto {
   readonly price: number;
   readonly lowStockThreshold: number;
   readonly sku?: string | null;
+  readonly brand?: string | null;
+  readonly clientType?: string | null;
   readonly specifications?: Record<string, string> | null;
 }
 

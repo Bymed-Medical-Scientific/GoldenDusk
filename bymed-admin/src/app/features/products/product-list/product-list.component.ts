@@ -1,81 +1,58 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { CurrencyPipe } from '@angular/common';
-import { AfterViewInit, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, computed, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, EMPTY, filter, finalize, forkJoin, map, tap } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { CategoryDto, ImportProductsResultDto, ProductDto } from '@shared/models';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 
 type AvailabilityFilter = 'all' | 'available' | 'unavailable';
 type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
+type ProductRow = ProductDto & { readonly categoryDisplay: string; readonly clientTypeDisplay: string };
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
   imports: [
+    ButtonModule,
+    CheckboxModule,
     CurrencyPipe,
     FormsModule,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatSortModule,
-    MatTableModule,
-    MatTooltipModule,
+    InputTextModule,
+    PaginatorModule,
+    ProgressBarModule,
+    SelectModule,
+    TableModule,
     TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
-export class ProductListComponent implements OnInit, AfterViewInit {
+export class ProductListComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly pageMessage = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly selectedCategoryId = signal<string>('all');
   protected readonly availabilityFilter = signal<AvailabilityFilter>('all');
   protected readonly stockFilter = signal<StockFilter>('all');
   protected readonly categories = signal<CategoryDto[]>([]);
-  protected readonly dataSource = new MatTableDataSource<ProductDto>([]);
-  protected readonly displayedColumns: string[] = [
-    'select',
-    'name',
-    'sku',
-    'category',
-    'price',
-    'inventory',
-    'availability',
-    'actions'
-  ];
+  protected readonly products = signal<ProductDto[]>([]);
   protected readonly deletingId = signal<string | null>(null);
   protected readonly isBulkProcessing = signal(false);
   protected readonly importUploadProgress = signal<number | null>(null);
@@ -84,69 +61,62 @@ export class ProductListComponent implements OnInit, AfterViewInit {
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);
   protected readonly pageSizeOptions = [10, 25, 50];
+  protected readonly categoryOptions = computed(() => [
+    { label: 'All categories', value: 'all' },
+    ...this.categories().map((category) => ({ label: category.name, value: category.id }))
+  ]);
+  protected readonly availabilityOptions: Array<{ label: string; value: AvailabilityFilter }> = [
+    { label: 'All', value: 'all' },
+    { label: 'Available', value: 'available' },
+    { label: 'Unavailable', value: 'unavailable' }
+  ];
+  protected readonly stockOptions: Array<{ label: string; value: StockFilter }> = [
+    { label: 'All', value: 'all' },
+    { label: 'In stock', value: 'in-stock' },
+    { label: 'Out of stock', value: 'out-of-stock' },
+    { label: 'Low stock', value: 'low-stock' }
+  ];
+  protected readonly filteredProducts = computed<ProductRow[]>(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const stock = this.stockFilter();
 
-  @ViewChild(MatPaginator) private paginator?: MatPaginator;
-  @ViewChild(MatSort) private sort?: MatSort;
+    return this.products()
+      .map((row) => ({
+        ...row,
+        categoryDisplay: row.categoryName ?? this.resolveCategoryName(row.categoryId),
+        clientTypeDisplay: this.formatClientType(row.clientType)
+      }))
+      .filter((row) => {
+        const sku = row.sku ?? '';
+        const brand = row.brand ?? '';
+        const matchesQuery =
+          !q ||
+          row.name.toLowerCase().includes(q) ||
+          sku.toLowerCase().includes(q) ||
+          brand.toLowerCase().includes(q) ||
+          row.clientTypeDisplay.toLowerCase().includes(q) ||
+          row.categoryDisplay.toLowerCase().includes(q);
+        const matchesStock =
+          stock === 'all' ||
+          (stock === 'in-stock' && row.inventoryCount > 0) ||
+          (stock === 'out-of-stock' && row.inventoryCount <= 0) ||
+          (stock === 'low-stock' &&
+            row.inventoryCount > 0 &&
+            row.inventoryCount <= row.lowStockThreshold);
+        return matchesQuery && matchesStock;
+      });
+  });
 
   public ngOnInit(): void {
-    this.dataSource.sortingDataAccessor = (row, property) => {
-      switch (property) {
-        case 'name':
-          return row.name;
-        case 'sku':
-          return row.sku ?? '';
-        case 'category':
-          return row.categoryName ?? this.resolveCategoryName(row.categoryId);
-        case 'price':
-          return row.price;
-        case 'inventory':
-          return row.inventoryCount;
-        case 'availability':
-          return row.isAvailable ? 1 : 0;
-        default:
-          return '';
-      }
-    };
-
-    this.dataSource.filterPredicate = (row, filter) => {
-      const parsed = JSON.parse(filter) as { q: string; stockFilter: StockFilter };
-      const q = parsed.q.trim().toLowerCase();
-      const categoryName = row.categoryName ?? this.resolveCategoryName(row.categoryId);
-      const sku = row.sku ?? '';
-      const matchesQuery =
-        !q ||
-        row.name.toLowerCase().includes(q) ||
-        sku.toLowerCase().includes(q) ||
-        categoryName.toLowerCase().includes(q);
-      const matchesStock =
-        parsed.stockFilter === 'all' ||
-        (parsed.stockFilter === 'in-stock' && row.inventoryCount > 0) ||
-        (parsed.stockFilter === 'out-of-stock' && row.inventoryCount <= 0) ||
-        (parsed.stockFilter === 'low-stock' &&
-          row.inventoryCount > 0 &&
-          row.inventoryCount <= row.lowStockThreshold);
-      return matchesQuery && matchesStock;
-    };
-
     this.loadPage();
-  }
-
-  public ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort ?? null;
-  }
-
-  protected resolveCategoryName(categoryId: string): string {
-    return this.categories().find((c) => c.id === categoryId)?.name ?? 'Uncategorized';
   }
 
   protected onSearchChange(value: string): void {
     this.searchQuery.set(value);
-    this.applyClientFilter();
   }
 
   protected clearSearch(): void {
     this.searchQuery.set('');
-    this.applyClientFilter();
   }
 
   protected onCategoryChange(value: string): void {
@@ -163,46 +133,36 @@ export class ProductListComponent implements OnInit, AfterViewInit {
 
   protected onStockFilterChange(value: StockFilter): void {
     this.stockFilter.set(value);
-    this.applyClientFilter();
   }
 
-  protected onPageChange(event: PageEvent): void {
-    this.pageNumber.set(event.pageIndex + 1);
-    this.pageSize.set(event.pageSize);
+  protected onPageChange(event: PaginatorState): void {
+    this.pageNumber.set((event.page ?? 0) + 1);
+    this.pageSize.set(event.rows ?? this.pageSize());
     this.loadPage();
   }
 
   protected deleteProduct(product: ProductDto): void {
-    const data: ConfirmDialogData = {
-      title: 'Delete product',
-      message: `Delete "${product.name}"? This action deactivates the product from the catalog.`,
-      confirmLabel: 'Delete',
-      confirmColor: 'warn'
-    };
+    const confirmed = window.confirm(
+      `Delete "${product.name}"?\n\nThis action deactivates the product from the catalog.`
+    );
+    if (!confirmed) {
+      return;
+    }
 
-    this.dialog
-      .open(ConfirmDialogComponent, { data, width: 'min(440px, 92vw)' })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed !== true) {
-          return;
-        }
-
-        this.deletingId.set(product.id);
-        this.adminApi
-          .deleteProduct(product.id)
-          .pipe(
-            catchError((err: unknown) => {
-              const message = err instanceof ApiError ? err.message : 'Could not delete the product.';
-              this.snackBar.open(message, 'Dismiss', { duration: 8000 });
-              return EMPTY;
-            }),
-            finalize(() => this.deletingId.set(null))
-          )
-          .subscribe(() => {
-            this.snackBar.open('Product deleted.', 'Dismiss', { duration: 4000 });
-            this.loadPage();
-          });
+    this.deletingId.set(product.id);
+    this.pageMessage.set(null);
+    this.adminApi
+      .deleteProduct(product.id)
+      .pipe(
+        catchError((err: unknown) => {
+          this.pageMessage.set(err instanceof ApiError ? err.message : 'Could not delete the product.');
+          return EMPTY;
+        }),
+        finalize(() => this.deletingId.set(null))
+      )
+      .subscribe(() => {
+        this.pageMessage.set('Product deleted.');
+        this.loadPage();
       });
   }
 
@@ -211,11 +171,10 @@ export class ProductListComponent implements OnInit, AfterViewInit {
   }
 
   protected isAllRowsSelected(): boolean {
-    const rows = this.dataSource.filteredData;
+    const rows = this.filteredProducts();
     if (rows.length === 0) {
       return false;
     }
-
     const selected = this.selectedProductIds();
     return rows.every((row) => selected.has(row.id));
   }
@@ -227,7 +186,6 @@ export class ProductListComponent implements OnInit, AfterViewInit {
     } else {
       current.delete(productId);
     }
-
     this.selectedProductIds.set(current);
   }
 
@@ -236,8 +194,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
       this.selectedProductIds.set(new Set<string>());
       return;
     }
-
-    const allIds = this.dataSource.filteredData.map((row) => row.id);
+    const allIds = this.filteredProducts().map((row) => row.id);
     this.selectedProductIds.set(new Set(allIds));
   }
 
@@ -248,99 +205,65 @@ export class ProductListComponent implements OnInit, AfterViewInit {
   protected bulkDeleteSelected(): void {
     const selectedIds = Array.from(this.selectedProductIds());
     if (selectedIds.length === 0) {
-      this.snackBar.open('Select at least one product.', 'Dismiss', { duration: 4000 });
+      this.pageMessage.set('Select at least one product.');
       return;
     }
 
-    const data: ConfirmDialogData = {
-      title: 'Bulk delete products',
-      message: `Delete ${selectedIds.length} selected product(s)? This action deactivates them from the catalog.`,
-      confirmLabel: 'Delete all',
-      confirmColor: 'warn'
-    };
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.length} selected product(s)?\n\nThis action deactivates them from the catalog.`
+    );
+    if (!confirmed) {
+      return;
+    }
 
-    this.dialog
-      .open(ConfirmDialogComponent, { data, width: 'min(480px, 92vw)' })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed !== true) {
-          return;
-        }
-
-        this.isBulkProcessing.set(true);
-        this.adminApi
-          .bulkDeleteProducts({ productIds: selectedIds })
-          .pipe(
-            catchError((err: unknown) => {
-              const message = err instanceof ApiError ? err.message : 'Could not bulk delete products.';
-              this.snackBar.open(message, 'Dismiss', { duration: 8000 });
-              return EMPTY;
-            }),
-            finalize(() => this.isBulkProcessing.set(false))
-          )
-          .subscribe((result) => {
-            this.snackBar.open(
-              `Processed ${result.processedCount}/${result.requestedCount} product(s).`,
-              'Dismiss',
-              { duration: 5000 }
-            );
-            this.clearSelection();
-            this.loadPage();
-          });
+    this.isBulkProcessing.set(true);
+    this.pageMessage.set(null);
+    this.adminApi
+      .bulkDeleteProducts({ productIds: selectedIds })
+      .pipe(
+        catchError((err: unknown) => {
+          this.pageMessage.set(err instanceof ApiError ? err.message : 'Could not bulk delete products.');
+          return EMPTY;
+        }),
+        finalize(() => this.isBulkProcessing.set(false))
+      )
+      .subscribe((result) => {
+        this.pageMessage.set(`Processed ${result.processedCount}/${result.requestedCount} product(s).`);
+        this.clearSelection();
+        this.loadPage();
       });
   }
 
   protected bulkSetAvailability(isAvailable: boolean): void {
     const selectedIds = Array.from(this.selectedProductIds());
     if (selectedIds.length === 0) {
-      this.snackBar.open('Select at least one product.', 'Dismiss', { duration: 4000 });
+      this.pageMessage.set('Select at least one product.');
       return;
     }
 
-    const count = selectedIds.length;
-    const data: ConfirmDialogData = isAvailable
-      ? {
-          title: 'Mark products as available?',
-          message: `Mark ${count} selected product(s) as available? Visible to customers when in stock and inventory rules allow.`,
-          confirmLabel: 'Mark available',
-          confirmColor: 'primary'
-        }
-      : {
-          title: 'Mark products as unavailable?',
-          message: `Mark ${count} selected product(s) as unavailable? They will be hidden from the catalog.`,
-          confirmLabel: 'Mark unavailable',
-          confirmColor: 'warn'
-        };
+    const verb = isAvailable ? 'available' : 'unavailable';
+    const confirmed = window.confirm(`Mark ${selectedIds.length} selected product(s) as ${verb}?`);
+    if (!confirmed) {
+      return;
+    }
 
-    this.dialog
-      .open(ConfirmDialogComponent, { data, width: 'min(480px, 92vw)' })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed !== true) {
-          return;
-        }
-
-        this.isBulkProcessing.set(true);
-        this.adminApi
-          .bulkSetProductAvailability({ productIds: selectedIds, isAvailable })
-          .pipe(
-            catchError((err: unknown) => {
-              const message = err instanceof ApiError ? err.message : 'Could not update availability.';
-              this.snackBar.open(message, 'Dismiss', { duration: 8000 });
-              return EMPTY;
-            }),
-            finalize(() => this.isBulkProcessing.set(false))
-          )
-          .subscribe((result) => {
-            const label = isAvailable ? 'available' : 'unavailable';
-            this.snackBar.open(
-              `Marked ${result.processedCount}/${result.requestedCount} product(s) as ${label}.`,
-              'Dismiss',
-              { duration: 5000 }
-            );
-            this.clearSelection();
-            this.loadPage();
-          });
+    this.isBulkProcessing.set(true);
+    this.pageMessage.set(null);
+    this.adminApi
+      .bulkSetProductAvailability({ productIds: selectedIds, isAvailable })
+      .pipe(
+        catchError((err: unknown) => {
+          this.pageMessage.set(err instanceof ApiError ? err.message : 'Could not update availability.');
+          return EMPTY;
+        }),
+        finalize(() => this.isBulkProcessing.set(false))
+      )
+      .subscribe((result) => {
+        this.pageMessage.set(
+          `Marked ${result.processedCount}/${result.requestedCount} product(s) as ${verb}.`
+        );
+        this.clearSelection();
+        this.loadPage();
       });
   }
 
@@ -351,8 +274,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
       .exportProducts(selectedIds.length > 0 ? selectedIds : undefined)
       .pipe(
         catchError((err: unknown) => {
-          const message = err instanceof ApiError ? err.message : 'Could not export products.';
-          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          this.pageMessage.set(err instanceof ApiError ? err.message : 'Could not export products.');
           return EMPTY;
         })
       )
@@ -363,8 +285,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
         anchor.download = 'products-export.csv';
         anchor.click();
         URL.revokeObjectURL(url);
-
-        this.snackBar.open('Export completed.', 'Dismiss', { duration: 3500 });
+        this.pageMessage.set('Export completed.');
       });
   }
 
@@ -377,19 +298,19 @@ export class ProductListComponent implements OnInit, AfterViewInit {
 
     this.isBulkProcessing.set(true);
     this.importUploadProgress.set(0);
+    this.pageMessage.set(null);
     this.adminApi
       .importProductsWithProgress(file)
       .pipe(
-        tap((event) => {
-          if (event.type === HttpEventType.UploadProgress && event.total && event.total > 0) {
-            this.importUploadProgress.set(Math.round((100 * event.loaded) / event.total));
+        tap((evt) => {
+          if (evt.type === HttpEventType.UploadProgress && evt.total && evt.total > 0) {
+            this.importUploadProgress.set(Math.round((100 * evt.loaded) / evt.total));
           }
         }),
-        filter((e): e is HttpResponse<ImportProductsResultDto> => e.type === HttpEventType.Response),
-        map((e) => e.body!),
+        filter((evt): evt is HttpResponse<ImportProductsResultDto> => evt.type === HttpEventType.Response),
+        map((evt) => evt.body!),
         catchError((err: unknown) => {
-          const message = err instanceof ApiError ? err.message : 'Could not import products.';
-          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          this.pageMessage.set(err instanceof ApiError ? err.message : 'Could not import products.');
           return EMPTY;
         }),
         finalize(() => {
@@ -401,14 +322,16 @@ export class ProductListComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe((result) => {
-        this.snackBar.open(
-          `Import complete: ${result.importedCount} added, ${result.updatedCount} updated, ${result.failedCount} failed.`,
-          'Dismiss',
-          { duration: 8000 }
+        this.pageMessage.set(
+          `Import complete: ${result.importedCount} added, ${result.updatedCount} updated, ${result.failedCount} failed.`
         );
         this.clearSelection();
         this.loadPage();
       });
+  }
+
+  private resolveCategoryName(categoryId: string): string {
+    return this.categories().find((c) => c.id === categoryId)?.name ?? 'Uncategorized';
   }
 
   private loadPage(): void {
@@ -417,9 +340,7 @@ export class ProductListComponent implements OnInit, AfterViewInit {
 
     const categoryId = this.selectedCategoryId() === 'all' ? null : this.selectedCategoryId();
     const inStock =
-      this.availabilityFilter() === 'all'
-        ? null
-        : this.availabilityFilter() === 'available';
+      this.availabilityFilter() === 'all' ? null : this.availabilityFilter() === 'available';
 
     forkJoin({
       products: this.adminApi.getProducts(this.pageNumber(), this.pageSize(), {
@@ -441,23 +362,23 @@ export class ProductListComponent implements OnInit, AfterViewInit {
         this.totalCount.set(products.totalCount);
         this.pageNumber.set(products.pageNumber);
         this.pageSize.set(products.pageSize);
-        this.dataSource.data = products.items;
-        this.dataSource.sort = this.sort ?? null;
-        this.applyClientFilter();
+        this.products.set(products.items);
         this.clearSelection();
-
-        if (this.paginator) {
-          this.paginator.pageIndex = Math.max(products.pageNumber - 1, 0);
-          this.paginator.pageSize = products.pageSize;
-          this.paginator.length = products.totalCount;
-        }
       });
   }
 
-  private applyClientFilter(): void {
-    this.dataSource.filter = JSON.stringify({
-      q: this.searchQuery(),
-      stockFilter: this.stockFilter()
-    });
+  private formatClientType(clientType: string | undefined): string {
+    switch (clientType) {
+      case 'school':
+        return 'School';
+      case 'university-college':
+        return 'University/College';
+      case 'hospital-clinic':
+        return 'Hospital/Clinic';
+      case 'nursing-school':
+        return 'Nursing School';
+      default:
+        return 'General';
+    }
   }
 }

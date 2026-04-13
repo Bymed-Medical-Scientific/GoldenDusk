@@ -3,10 +3,7 @@
 } @else if (initError()) {
   <app-global-error [message]="initError() ?? ''" />
   <p class="actions-row">
-    <a mat-stroked-button routerLink="/products">
-      <mat-icon>arrow_back</mat-icon>
-      Back to products
-    </a>
+    <a pButton routerLink="/products" label="Back to products" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
   </p>
 } @else {
   <div class="page-header">
@@ -20,178 +17,224 @@
         }}
       </p>
     </div>
-    <a mat-stroked-button routerLink="/products">
-      <mat-icon>arrow_back</mat-icon>
-      Cancel
-    </a>
+    <a pButton routerLink="/products" label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true"></a>
   </div>
 
   @if (generalError()) {
     <app-global-error [message]="generalError() ?? ''" />
   }
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
 
-  <mat-card class="form-card">
-    <mat-card-content>
-      <form [formGroup]="productForm" (ngSubmit)="submit()" novalidate>
-        <h2 class="section-title">Basics</h2>
+  <section class="form-card">
+    <form [formGroup]="productForm" (ngSubmit)="submit()" novalidate>
+      <h2 class="section-title">Basics</h2>
 
-        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" autocomplete="off" [maxlength]="500" />
-          @if (fieldError('name')) {
-            <mat-error>{{ fieldError('name') }}</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-          <mat-label>Slug</mat-label>
-          <input matInput formControlName="slug" autocomplete="off" [maxlength]="200" />
-          <mat-hint>URL segment, e.g. infusion-pump</mat-hint>
-          @if (fieldError('slug')) {
-            <mat-error>{{ fieldError('slug') }}</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-          <mat-label>Category</mat-label>
-          <mat-select formControlName="categoryId" placeholder="Select a category">
-            @for (c of categories(); track c.id) {
-              <mat-option [value]="c.id">{{ c.name }}</mat-option>
-            }
-          </mat-select>
-          @if (fieldError('categoryId')) {
-            <mat-error>{{ fieldError('categoryId') }}</mat-error>
-          }
-        </mat-form-field>
-
-        @if (isEditMode && loadedProduct()) {
-          <div class="read-only-row">
-            <span class="read-only-label">Availability</span>
-            <span
-              class="chip"
-              [class.chip-muted]="!loadedProduct()!.isAvailable"
-            >
-              {{ loadedProduct()!.isAvailable ? 'Available' : 'Unavailable' }}
-            </span>
-            <span class="read-only-hint">Controlled by inventory and availability rules on the server.</span>
-          </div>
+      <div class="field-group">
+        <label for="name">Name</label>
+        <input id="name" pInputText formControlName="name" autocomplete="off" [maxlength]="500" class="full-width" />
+        @if (fieldError('name')) {
+          <small class="field-error">{{ fieldError('name') }}</small>
         }
+      </div>
 
-        <mat-divider class="section-divider" />
-
-        <h2 class="section-title">Description</h2>
-        <p class="section-hint">Use the toolbar for headings, lists, and links.</p>
-
-        <div class="quill-wrap">
-          <quill-editor formControlName="description" [theme]="'snow'" />
-        </div>
-        @if (fieldError('description')) {
-          <p class="field-error">{{ fieldError('description') }}</p>
+      <div class="field-group">
+        <label for="slug">Slug</label>
+        <input id="slug" pInputText formControlName="slug" autocomplete="off" [maxlength]="200" class="full-width" />
+        <small class="field-hint">URL segment, e.g. infusion-pump</small>
+        @if (fieldError('slug')) {
+          <small class="field-error">{{ fieldError('slug') }}</small>
         }
+      </div>
 
-        <mat-divider class="section-divider" />
+      <div class="field-group">
+        <label for="categoryId">Category</label>
+        <p-select
+          inputId="categoryId"
+          [options]="categoryOptions()"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="categoryId"
+          placeholder="Select a category"
+          appendTo="body"
+          styleClass="full-width"
+        />
+        @if (fieldError('categoryId')) {
+          <small class="field-error">{{ fieldError('categoryId') }}</small>
+        }
+      </div>
 
-        <h2 class="section-title">Pricing & inventory</h2>
-
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="grid-span-2" subscriptSizing="dynamic">
-            <mat-label>Price</mat-label>
-            <input matInput type="number" formControlName="price" min="0" step="0.01" />
-            @if (fieldError('price')) {
-              <mat-error>{{ fieldError('price') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Currency</mat-label>
-            <input
-              matInput
-              formControlName="currency"
-              maxlength="3"
-              (blur)="onCurrencyBlur()"
-              [readonly]="isEditMode"
-            />
-            <mat-hint>ISO 4217 (e.g. USD)</mat-hint>
-            @if (fieldError('currency')) {
-              <mat-error>{{ fieldError('currency') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Inventory</mat-label>
-            <input matInput type="number" formControlName="inventoryCount" min="0" step="1" />
-            @if (fieldError('inventoryCount')) {
-              <mat-error>{{ fieldError('inventoryCount') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="grid-span-2" subscriptSizing="dynamic">
-            <mat-label>Low stock threshold</mat-label>
-            <input matInput type="number" formControlName="lowStockThreshold" min="0" step="1" />
-            <mat-hint>When on-hand count is at or below this value, the product appears in low-stock alerts.</mat-hint>
-            @if (fieldError('lowStockThreshold')) {
-              <mat-error>{{ fieldError('lowStockThreshold') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="grid-span-2" subscriptSizing="dynamic">
-            <mat-label>SKU</mat-label>
-            <input matInput formControlName="sku" autocomplete="off" [maxlength]="100" />
-            <mat-hint>Optional</mat-hint>
-            @if (fieldError('sku')) {
-              <mat-error>{{ fieldError('sku') }}</mat-error>
-            }
-          </mat-form-field>
+      @if (isEditMode && loadedProduct()) {
+        <div class="read-only-row">
+          <span class="read-only-label">Availability</span>
+          <span class="chip" [class.chip-muted]="!loadedProduct()!.isAvailable">
+            {{ loadedProduct()!.isAvailable ? 'Available' : 'Unavailable' }}
+          </span>
+          <span class="read-only-hint">Controlled by inventory and availability rules on the server.</span>
         </div>
+      }
 
-        <mat-divider class="section-divider" />
+      <div class="section-divider"></div>
 
-        <h2 class="section-title">Primary image</h2>
-        <p class="section-hint">Upload a JPEG or PNG. Shown as the main image on listings and detail pages.</p>
+      <h2 class="section-title">Description</h2>
+      <p class="section-hint">Use the toolbar for headings, lists, and links.</p>
 
-        <div class="image-row">
-          <input
-            #fileInput
-            type="file"
-            accept="image/*"
-            hidden
-            (change)="onImageSelected($event)"
+      <div class="quill-wrap">
+        <quill-editor formControlName="description" [theme]="'snow'" />
+      </div>
+      @if (fieldError('description')) {
+        <p class="field-error">{{ fieldError('description') }}</p>
+      }
+
+      <div class="section-divider"></div>
+
+      <h2 class="section-title">Pricing & inventory</h2>
+
+      <div class="form-grid">
+        <div class="field-group grid-span-2">
+          <label for="price">Price</label>
+          <p-inputNumber
+            inputId="price"
+            formControlName="price"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            styleClass="full-width"
           />
-          <button mat-stroked-button type="button" (click)="fileInput.click()">
-            <mat-icon>upload</mat-icon>
-            Choose image
-          </button>
-          @if (imagePreviewUrl()) {
-            <button mat-button type="button" color="warn" (click)="clearImageSelection()">
-              Clear selection
-            </button>
+          @if (fieldError('price')) {
+            <small class="field-error">{{ fieldError('price') }}</small>
           }
         </div>
 
-        @if (imagePreviewUrl()) {
-          <div class="image-preview">
-            <img [src]="imagePreviewUrl()!" [alt]="productForm.get('name')?.value || 'Product preview'" />
-          </div>
-        }
-
-        @if (primaryImageUploadProgress() !== null) {
-          <div class="upload-progress">
-            <span class="upload-progress-label">Uploading image…</span>
-            <mat-progress-bar mode="determinate" [value]="primaryImageUploadProgress()!" />
-          </div>
-        }
-
-        <div class="form-actions">
-          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
-            @if (isSubmitting()) {
-              <mat-spinner class="button-spinner" diameter="20" />
-              <span>Saving…</span>
-            } @else {
-              <span>{{ isEditMode ? 'Save changes' : 'Create product' }}</span>
-            }
-          </button>
+        <div class="field-group">
+          <label for="currency">Currency</label>
+          <input
+            id="currency"
+            pInputText
+            formControlName="currency"
+            maxlength="3"
+            (blur)="onCurrencyBlur()"
+            [readonly]="isEditMode"
+            class="full-width"
+          />
+          <small class="field-hint">ISO 4217 (e.g. USD)</small>
+          @if (fieldError('currency')) {
+            <small class="field-error">{{ fieldError('currency') }}</small>
+          }
         </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
+
+        <div class="field-group">
+          <label for="inventoryCount">Inventory</label>
+          <p-inputNumber
+            inputId="inventoryCount"
+            formControlName="inventoryCount"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            [useGrouping]="false"
+            styleClass="full-width"
+          />
+          @if (fieldError('inventoryCount')) {
+            <small class="field-error">{{ fieldError('inventoryCount') }}</small>
+          }
+        </div>
+
+        <div class="field-group grid-span-2">
+          <label for="lowStockThreshold">Low stock threshold</label>
+          <p-inputNumber
+            inputId="lowStockThreshold"
+            formControlName="lowStockThreshold"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            [useGrouping]="false"
+            styleClass="full-width"
+          />
+          <small class="field-hint">When on-hand count is at or below this value, the product appears in low-stock alerts.</small>
+          @if (fieldError('lowStockThreshold')) {
+            <small class="field-error">{{ fieldError('lowStockThreshold') }}</small>
+          }
+        </div>
+
+        <div class="field-group grid-span-2">
+          <label for="sku">SKU</label>
+          <input id="sku" pInputText formControlName="sku" autocomplete="off" [maxlength]="100" class="full-width" />
+          <small class="field-hint">Optional</small>
+          @if (fieldError('sku')) {
+            <small class="field-error">{{ fieldError('sku') }}</small>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="brand">Brand</label>
+          <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
+          <small class="field-hint">Optional</small>
+          @if (fieldError('brand')) {
+            <small class="field-error">{{ fieldError('brand') }}</small>
+          }
+        </div>
+
+        <div class="field-group">
+          <label for="clientType">Client type</label>
+          <p-select
+            inputId="clientType"
+            [options]="clientTypeOptions"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="clientType"
+            placeholder="Optional"
+            appendTo="body"
+            styleClass="full-width"
+          />
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h2 class="section-title">Primary image</h2>
+      <p class="section-hint">Upload a JPEG or PNG. Shown as the main image on listings and detail pages.</p>
+
+      <div class="image-row">
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="onImageSelected($event)"
+        />
+        <button pButton type="button" (click)="fileInput.click()" label="Choose image" icon="pi pi-upload" severity="secondary" [outlined]="true"></button>
+        @if (imagePreviewUrl()) {
+          <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearImageSelection()"></button>
+        }
+      </div>
+
+      @if (imagePreviewUrl()) {
+        <div class="image-preview">
+          <img [src]="imagePreviewUrl()!" [alt]="productForm.get('name')?.value || 'Product preview'" />
+        </div>
+      }
+
+      @if (primaryImageUploadProgress() !== null) {
+        <div class="upload-progress">
+          <span class="upload-progress-label">Uploading image...</span>
+          <p-progressBar [value]="primaryImageUploadProgress() ?? 0" />
+        </div>
+      }
+
+      <div class="form-actions">
+        <button pButton type="submit" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
+            <span>Saving...</span>
+          } @else {
+            <span>{{ isEditMode ? 'Save changes' : 'Create product' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
 }

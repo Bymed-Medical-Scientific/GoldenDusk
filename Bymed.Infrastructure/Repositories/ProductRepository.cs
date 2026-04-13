@@ -57,7 +57,16 @@ public class ProductRepository : IProductRepository
             .ConfigureAwait(false);
     }
 
-    public async Task<PagedResult<Product>> GetPagedAsync(PaginationParams pagination, Guid? categoryId = null, bool? isAvailable = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Product>> GetPagedAsync(
+        PaginationParams pagination,
+        Guid? categoryId = null,
+        bool? isAvailable = null,
+        string? brand = null,
+        string? clientType = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Products.AsNoTracking().Include(p => p.Category).AsQueryable();
 
@@ -65,6 +74,28 @@ public class ProductRepository : IProductRepository
             query = query.Where(p => p.CategoryId == categoryId.Value);
         if (isAvailable.HasValue)
             query = query.Where(p => p.IsAvailable == isAvailable.Value);
+        if (minPrice.HasValue)
+            query = query.Where(p => p.Price >= minPrice.Value);
+        if (maxPrice.HasValue)
+            query = query.Where(p => p.Price <= maxPrice.Value);
+        if (!string.IsNullOrWhiteSpace(brand))
+        {
+            var brandTerm = brand.Trim();
+            query = query.Where(p => p.Brand != null && EF.Functions.ILike(p.Brand, $"%{brandTerm}%"));
+        }
+        if (!string.IsNullOrWhiteSpace(clientType))
+        {
+            var clientTypeTerm = clientType.Trim();
+            query = query.Where(p => p.ClientType != null && EF.Functions.ILike(p.ClientType, $"%{clientTypeTerm}%"));
+        }
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim();
+            query = query.Where(p =>
+                EF.Functions.ILike(p.Name, $"%{searchTerm}%") ||
+                EF.Functions.ILike(p.Description, $"%{searchTerm}%") ||
+                (p.Sku != null && EF.Functions.ILike(p.Sku, $"%{searchTerm}%")));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
 

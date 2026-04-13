@@ -25,7 +25,7 @@ function isDirectBrowserApiPath(path: string, method: string): boolean {
   return false;
 }
 
-function resolveRequestUrl(path: string, method: string): string {
+function resolveRequestUrl(path: string, method: string, forceProxy = false): string {
   const base =
     typeof window === "undefined"
       ? getServerSideApiOrigin()
@@ -38,7 +38,7 @@ function resolveRequestUrl(path: string, method: string): string {
   if (typeof window === "undefined") {
     return joinUrl(base, path);
   }
-  if (isDirectBrowserApiPath(path, method)) {
+  if (!forceProxy && isDirectBrowserApiPath(path, method)) {
     return joinUrl(base, path);
   }
   return joinUrl("", joinUrl(BYMED_BROWSER_PROXY_PREFIX, path));
@@ -159,6 +159,8 @@ export type ApiFetchOptions = {
     revalidate?: number;
     tags?: string[];
   };
+  /** Force browser requests through Next.js BFF proxy (cookie-backed auth). */
+  forceProxy?: boolean;
 };
 
 export async function apiFetch(
@@ -167,14 +169,15 @@ export async function apiFetch(
   options: ApiFetchOptions = {},
 ): Promise<Response> {
   const method = (init.method ?? "GET").toUpperCase();
-  const url = resolveRequestUrl(path, method);
+  const url = resolveRequestUrl(path, method, options.forceProxy === true);
   const idempotent = ["GET", "HEAD", "OPTIONS"].includes(method);
   const allowRetry = options.retry !== false && idempotent;
   const maxRetries = options.maxRetries ?? 3;
   const maxAttempts = allowRetry ? maxRetries + 1 : 1;
 
   const useProxy =
-    typeof window !== "undefined" && !isDirectBrowserApiPath(path, method);
+    typeof window !== "undefined" &&
+    (options.forceProxy === true || !isDirectBrowserApiPath(path, method));
 
   const headers = new Headers(init.headers);
   if (!options.skipAuth && !useProxy) {
@@ -192,10 +195,10 @@ export async function apiFetch(
   let lastNetworkError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const { next, ...initRest } = init as RequestInit & {
+      const { next: droppedNext, ...initRest } = init as RequestInit & {
         next?: unknown;
       };
-      void next;
+      void droppedNext;
       const requestInit: RequestInit = {
         ...initRest,
         headers,

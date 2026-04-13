@@ -1,108 +1,139 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-    <div class="page-header">
-      <div class="page-header-text">
-        <h1 class="page-title">Categories</h1>
-        <p class="page-subtitle">Manage product categories and display order.</p>
-      </div>
-      <a mat-flat-button color="primary" routerLink="/categories/new">
-        <mat-icon>add</mat-icon>
-        New category
-      </a>
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Categories</h1>
+      <p class="page-subtitle">Manage product categories and display order.</p>
     </div>
+    <a pButton routerLink="/categories/new" label="New category" icon="pi pi-plus"></a>
+  </div>
 
-    <div class="toolbar-filters">
-      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-        <mat-label>Search</mat-label>
-        <input
-          matInput
-          type="search"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-          placeholder="Name, slug, or description"
-          aria-label="Search categories"
-        />
-        @if (searchQuery()) {
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="clearSearch()"
-            aria-label="Clear search"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
-        }
-      </mat-form-field>
-    </div>
+  @if (infoMessage()) {
+    <div class="info-banner" role="status" aria-live="polite">{{ infoMessage() }}</div>
+  }
 
-    <div class="table-wrap mat-elevation-z1">
-      @if (isLoading()) {
-        <app-table-skeleton
-          [columnCount]="displayedColumns.length"
-          [rowCount]="8"
-          ariaLabel="Loading categories"
-        />
-      } @else {
-      <table mat-table [dataSource]="dataSource" matSort class="category-table">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Name</th>
-          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="slug">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Slug</th>
-          <td mat-cell *matCellDef="let row">
-            <code class="slug">{{ row.slug }}</code>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="displayOrder">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Order</th>
-          <td mat-cell *matCellDef="let row">{{ row.displayOrder }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef class="col-actions" scope="col">Actions</th>
-          <td mat-cell *matCellDef="let row" class="col-actions">
-            <a
-              mat-icon-button
-              [routerLink]="['/categories', row.id, 'edit']"
-              matTooltip="Edit category"
-              [attr.aria-label]="'Edit category ' + row.name"
-            >
-              <mat-icon>edit</mat-icon>
-            </a>
-            <button
-              mat-icon-button
-              type="button"
-              color="warn"
-              (click)="deleteCategory(row)"
-              [disabled]="deletingId() === row.id"
-              matTooltip="Delete category"
-              [attr.aria-label]="'Delete category ' + row.name"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
-            No categories to display. Adjust filters or create a category.
-          </td>
-        </tr>
-      </table>
-
-      <mat-paginator
-        [pageSizeOptions]="[5, 10, 25, 50]"
-        showFirstLastButtons
-        aria-label="Select page of categories"
+  <div class="toolbar-filters">
+    <span class="p-input-icon-left search-wrap">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        pInputText
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search name, slug, or description"
+        aria-label="Search categories"
+        class="search-input"
       />
-      }
-    </div>
+    </span>
+    @if (searchQuery()) {
+      <button
+        pButton
+        type="button"
+        label="Clear"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        (click)="clearSearch()"
+      ></button>
+    }
+  </div>
+
+  <div class="table-wrap">
+    @if (isLoading()) {
+      <app-table-skeleton [columnCount]="4" [rowCount]="8" ariaLabel="Loading categories" />
+    } @else {
+      <p-table
+        [value]="filteredCategories()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[5, 10, 25, 50]"
+        [rowHover]="true"
+        sortField="displayOrder"
+        [sortOrder]="1"
+        styleClass="category-table desktop-table"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="slug">Slug <p-sortIcon field="slug"></p-sortIcon></th>
+            <th pSortableColumn="displayOrder">Order <p-sortIcon field="displayOrder"></p-sortIcon></th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.name }}</td>
+            <td><code class="slug">{{ row.slug }}</code></td>
+            <td>{{ row.displayOrder }}</td>
+            <td class="col-actions">
+              <div class="action-buttons">
+                <a
+                  pButton
+                  [routerLink]="['/categories', row.id, 'edit']"
+                  severity="secondary"
+                  [outlined]="true"
+                  icon="pi pi-pencil"
+                  label="Edit"
+                  [attr.aria-label]="'Edit category ' + row.name"
+                ></a>
+                <button
+                  pButton
+                  type="button"
+                  severity="danger"
+                  [outlined]="true"
+                  icon="pi pi-trash"
+                  label="Delete"
+                  (click)="deleteCategory(row)"
+                  [disabled]="deletingId() === row.id"
+                  [attr.aria-label]="'Delete category ' + row.name"
+                ></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td class="empty-cell" [attr.colspan]="4">
+              No categories to display. Adjust filters or create a category.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="mobile-cards" aria-label="Categories list">
+        @for (row of filteredCategories(); track row.id) {
+          <article class="category-card">
+            <h3 class="card-title">{{ row.name }}</h3>
+            <p class="card-row"><span>Slug:</span> <code class="slug">{{ row.slug }}</code></p>
+            <p class="card-row"><span>Order:</span> {{ row.displayOrder }}</p>
+            <div class="action-buttons">
+              <a
+                pButton
+                [routerLink]="['/categories', row.id, 'edit']"
+                severity="secondary"
+                [outlined]="true"
+                icon="pi pi-pencil"
+                label="Edit"
+              ></a>
+              <button
+                pButton
+                type="button"
+                severity="danger"
+                [outlined]="true"
+                icon="pi pi-trash"
+                label="Delete"
+                (click)="deleteCategory(row)"
+                [disabled]="deletingId() === row.id"
+              ></button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-cell">No categories to display. Adjust filters or create a category.</p>
+        }
+      </div>
+    }
+  </div>
 }

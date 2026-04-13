@@ -18,8 +18,6 @@ public sealed class CurrencyService : ICurrencyService
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["US"] = "USD",
-            ["NG"] = "NGN",
-            ["KE"] = "KES",
             ["ZA"] = "ZAR",
             ["NA"] = "ZAR",
             ["BW"] = "ZAR",
@@ -67,7 +65,7 @@ public sealed class CurrencyService : ICurrencyService
         var to = NormalizeCurrency(toCurrency);
 
         if (from is null || to is null)
-            throw new ArgumentException("Currency must be one of USD, ZAR, KES, NGN.");
+            throw new ArgumentException("Currency must be one of USD, ZAR.");
 
         if (from == to)
             return amount;

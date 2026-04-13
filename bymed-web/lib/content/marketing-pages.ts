@@ -6,6 +6,27 @@
 
 export type CtaLink = { label: string; href: string };
 
+/** Optional CMS-driven hero slides; UI falls back to built-in themes if empty. */
+export type HomeHeroSlide = {
+  tag: string;
+  title: string;
+  subtitle: string;
+  /** Optional background image URL (HTTPS). */
+  imageSrc?: string;
+};
+
+export type HomeTestimonial = { quote: string; author: string; role: string };
+
+/** Optional manufacturer / partner callout on a home offering (external HTTPS links only). */
+export type HomeOfferingPartner = { label: string; href: string };
+
+export type HomeOffering = {
+  title: string;
+  blurb: string;
+  /** Featured manufacturer links (HTTPS). CMS may send `partner` (single) or `partners` (array). */
+  partners?: HomeOfferingPartner[];
+};
+
 export type HomeMarketingContent = {
   metaTitle: string;
   metaDescription: string;
@@ -14,11 +35,15 @@ export type HomeMarketingContent = {
   heroEyebrow: string;
   heroTitle: string;
   heroSubtitle: string;
+  /** When set (from CMS), replaces default hero carousel slides. */
+  heroSlides: HomeHeroSlide[];
   primaryCta: CtaLink;
   secondaryCta: CtaLink;
   whatWeOfferHeading: string;
   whatWeOfferIntro: string;
-  offerings: { title: string; blurb: string }[];
+  offerings: HomeOffering[];
+  /** Optional product IDs to pin in home "Featured catalog" order. */
+  featuredProductIds: string[];
   catalogueLinkLabel: string;
   brandsHeading: string;
   brandsIntro: string;
@@ -31,6 +56,7 @@ export type HomeMarketingContent = {
   contactHeading: string;
   contactIntro: string;
   contactCtaLabel: string;
+  testimonials: HomeTestimonial[];
 };
 
 export type AboutMarketingContent = {
@@ -94,67 +120,122 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
     "ICU equipment",
     "engineering education Zimbabwe",
   ],
-  heroEyebrow: "ByMed Medical & Scientific",
+  heroEyebrow: "Innovating medical excellence",
   heroTitle:
-    "Dedicated to shaping the future of healthcare, scientific research, and engineering education in Zimbabwe.",
+    "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
   heroSubtitle:
-    "High-quality, durable products and services—from point of care and theatre to teaching labs and imaging—backed by trusted global brands and local expertise.",
-  primaryCta: { label: "More about us", href: "/about" },
-  secondaryCta: { label: "Browse products", href: "/products" },
+    "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+  heroSlides: [
+    {
+      tag: "Innovating medical excellence",
+      title:
+        "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
+      subtitle:
+        "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+    },
+    {
+      tag: "Technical teaching",
+      title: "Empowering technical education",
+      subtitle: "Empower the next generation of innovators with industry-leading equipment, bridging the gap between classroom theory and real-world application, ensuring Zimbabwean students have the precision instruments they need to excel in a global landscape.",
+    },
+    {
+      tag: "Medical teaching",
+      title: "Advancing medical education through high-precision simulation.",
+      subtitle: "Equipping Zimbabwe’s medical students with the advanced tools needed for modern healthcare. Our solutions are engineered to enhance clinical skills, improve diagnostic accuracy, and foster a culture of excellence in medical research and patient care.",
+    },
+    {
+      tag: "Industrial and lab scales",
+      title: "Precision in every measurement",
+      subtitle: "Built for Zimbabwe’s toughest environments. We supply robust industrial scales and laboratory balances that deliver reliable data for mining, agriculture, and manufacturing",
+    },
+    {
+      tag: "Hospital Equipment",
+      title: "Elevating the Standard of Care",
+      subtitle: "From patient monitoring systems to advanced diagnostic imaging, we deliver the medical technology that powers Zimbabwe’s leading hospitals. Trusted by clinicians for 20+ years to improve patient outcomes and save lives.",
+      imageSrc: "/images/tekno-operating.webp",
+    },
+  ],
+  primaryCta: { label: "Browse Products", href: "/products" },
+  secondaryCta: { label: "Request Quote", href: "/contact" },
   whatWeOfferHeading: "What we offer",
   whatWeOfferIntro:
-    "High-quality, durable products across the clinical and educational spectrum.",
+    "From teaching labs and theatres to hospitals and point-of-care settings—we supply equipment, instruments, and consumables aligned to how you work.",
   offerings: [
     {
-      title: "Point of care",
-      blurb: "Diagnostics and bedside solutions for clinics and wards.",
+      title: "Technical teaching equipment",
+      blurb:
+        "Industrial and classroom training systems for engineering and applied sciences programmes.",
+      partners: [{ label: "Edibon", href: "https://www.edibon.com/en/" }],
     },
     {
       title: "Theatre",
-      blurb: "Surgical instruments, drapes, and theatre-ready consumables.",
+      blurb:
+        "Operating theatre integration: lights, tables, surgical support, and related technologies.",
+      partners: [{ label: "Tekno", href: "https://www.tekno-medical.com/en/" }],
     },
     {
-      title: "Medical & technical teaching",
-      blurb: "Training systems for universities and technical colleges.",
+      title: "Medical teaching equipment",
+      blurb:
+        "Anatomical models, simulation, and education tools for medical and health sciences training.",
+      partners: [
+        { label: "3B Scientific", href: "https://www.3bscientific.com/" },
+      ],
     },
     {
-      title: "Instruments & consumables",
-      blurb: "Reliable disposables and precision instruments for daily use.",
+      title: "Industrial and lab scales",
+      blurb:
+        "Robust industrial scales and laboratory balances for quality control, production, mining, agriculture, and education.",
+      partners: [{ label: "Adam", href: "https://www.adamequipment.com/" }],
     },
     {
-      title: "Imaging",
-      blurb: "Support for diagnostic imaging workflows and accessories.",
+      title: "Hospital equipment",
+      blurb:
+        "Full-facility coverage: ICU and SCBU, patient monitoring, diagnostic imaging, theatre support, ward equipment, furniture, and orthopaedic implants.",
+      partners: [{ label: "Narang", href: "https://www.narang.com/" }],
     },
     {
-      title: "ICU / SCBU",
-      blurb: "Critical and neonatal care equipment when outcomes matter most.",
+      title: "Point of care",
+      blurb:
+        "Rapid diagnostics and bedside devices for clinics, wards, and outreach programmes.",
+    },
+    {
+      title: "Instruments",
+      blurb:
+        "Precision surgical and diagnostic instruments for daily clinical and laboratory use.",
+    },
+    {
+      title: "Laboratory equipment for schools",
+      blurb:
+        "Physics, chemistry, and biology teaching labs—safe, curriculum-aligned apparatus for secondary schools and colleges.",
+    },
+    {
+      title: "Consumables",
+      blurb:
+        "Disposables and routine supplies for clinics, laboratories, and hospitals.",
     },
   ],
+  featuredProductIds: [],
   catalogueLinkLabel: "View product catalogue →",
   brandsHeading: "Trusted brands",
   brandsIntro:
     "We supply equipment and consumables from recognised manufacturers so you can standardise quality across your facility or campus.",
   brandsLinkLabel: "Explore brands in the store →",
-  whyHeading: "Why choose us",
+  whyHeading: "Why Choose Us",
   whyLead: "Precision and innovation",
   whySub:
-    "Partnerships, customisation, technology, and training—so you get solutions that fit Zimbabwe's healthcare and education landscape.",
+    "We combine trusted global partnerships, tailored delivery, and innovative technology to support healthcare, science, and engineering institutions across Zimbabwe.",
   differentiators: [
     {
-      title: "World-class partnerships",
-      body: "We work with industry leaders such as MedicalCSE and EDIBON to bring leading medical, scientific, and engineering technologies to Zimbabwe.",
+      title: "World Class Partnerships",
+      body: "We partner with industry leaders like MedicalCSE and EDIBON to bring best medical, scientific and engineering technologies to Zimbabwe.",
     },
     {
-      title: "Tailored solutions",
-      body: "From advanced medical devices to engineering research equipment, we customise approaches for universities, healthcare providers, and research institutions.",
+      title: "Tailored Solutions",
+      body: "From advanced medical devices to engineering research equipment, we provide customized solutions for universities, healthcare providers and research institutions.",
     },
     {
-      title: "Innovative technology",
-      body: "We stay ahead of the curve with the latest innovations in medical, engineering, and scientific technologies.",
-    },
-    {
-      title: "Expert training",
-      body: "Our technical training division builds practical skills so people and organisations can thrive in fast-evolving industries.",
+      title: "Innovative Technology",
+      body: "We are committed to staying ahead of the curve, offering the latest innovations in medical, engineering and scientific technologies.",
     },
   ],
   servicesLinkLabel: "Our services →",
@@ -162,16 +243,36 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   contactIntro:
     "Whether you need ECG technologies, science and research equipment, or training services, our team is here to help.",
   contactCtaLabel: "Contact us",
+  testimonials: [
+    {
+      quote:
+        "Their team delivered on time, trained our staff thoroughly, and our imaging downtime dropped immediately—we finally have a partner who understands acute care pressure.",
+      author: "Dr. Sarah Thompson",
+      role: "Chief of Radiology",
+    },
+    {
+      quote:
+        "Their training team made the difference—we went from unpacking boxes to confident daily use in under a week.",
+      author: "Lab manager",
+      role: "University research facility",
+    },
+    {
+      quote:
+        "Responsive support on imaging accessories and consumables; we trust them for critical care equipment.",
+      author: "Clinical director",
+      role: "Private clinic",
+    },
+  ],
 };
 
 export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
-  metaTitle: "About us",
+  metaTitle: "About Us - Bymed Medical & Scientific",
   metaDescription:
-    "ByMed Medical & Scientific supplies world-class medical, scientific, and engineering solutions in Zimbabwe. Discover our vision, mission, ECG and imaging focus, university partnerships, and technical training.",
+    "Bymed Medical & Scientific is a dynamic, growth-driven company delivering world-class medical, scientific, and engineering solutions across Africa.",
   ogTitle:
-    "About ByMed — medical, scientific & engineering solutions in Zimbabwe",
-  twitterTitle: "About ByMed Medical & Scientific",
-  jsonLdName: "About ByMed Medical & Scientific",
+    "About Us - Bymed Medical & Scientific",
+  twitterTitle: "About Us - Bymed Medical & Scientific",
+  jsonLdName: "About Bymed Medical & Scientific",
   keywords: [
     "ByMed",
     "ByMed Medical and Scientific",
@@ -183,14 +284,14 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
     "medical imaging Zimbabwe",
     "technical training medical equipment",
   ],
-  headerEyebrow: "About us",
-  headerTitle: "About ByMed Medical & Scientific",
+  headerEyebrow: "About Us",
+  headerTitle: "About Bymed Medical & Scientific",
   headerSubtitle:
-    "If you need high-quality, professional medical or scientific products, you are in the right place.",
+    "If you are in need of high-quality and professional medical or scientific products, look no further.",
   overviewHeading: "Company overview",
   overviewParagraphs: [
-    "ByMed Medical & Scientific is a dynamic, growth-driven company dedicated to delivering world-class medical, scientific, and engineering solutions across Africa. As a trusted importer and distributor, we supply high-quality medical equipment, consumables, point-of-care devices, laboratory tools, and digital imaging technologies to support critical care and minimally invasive procedures.",
-    "We empower healthcare providers, universities, research institutions, and individuals with advanced equipment, technical training, and expert support. With a strong focus on innovation, quality, and education, ByMed is helping shape the future of healthcare, science, and technical excellence across the continent.",
+    "Bymed Medical & Scientific is a dynamic, growth-driven company dedicated to delivering world-class medical, scientific, and engineering solutions across Africa. As a trusted importer and distributor, we supply high-quality medical equipment, consumables, point-of-care devices, laboratory tools, and digital imaging technologies to support critical care and minimally invasive procedures.",
+    "We empower healthcare providers, universities, research institutions, and individuals with advanced equipment, technical training, and expert support. With a strong focus on innovation, quality, and education, Bymed is helping shape the future of healthcare, science, and technical excellence across the continent.",
   ],
   valueProps: [
     {
@@ -208,7 +309,7 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
   ],
   visionTitle: "Vision",
   visionText:
-    "To be Zimbabwe's leading distributor of advanced medical devices, scientific research technologies, and engineering education solutions—empowering healthcare professionals, researchers, and students to drive progress and innovation.",
+    "To be Zimbabwe's leading distributor of advanced medical devices, scientific research technologies and engineering education solutions, empowering healthcare professionals, researchers and students to drive progress and innovation.",
   missionTitle: "Mission",
   missionText:
     "Our mission is to provide cutting-edge technologies and expert training services that help transform healthcare, science, and engineering education across Zimbabwe.",
@@ -216,11 +317,11 @@ export const DEFAULT_ABOUT_MARKETING: AboutMarketingContent = {
   aims: [
     "Improve healthcare outcomes by bringing advanced ECG diagnostic technologies to Zimbabwe.",
     "Equip universities and research centres with state-of-the-art science and engineering equipment.",
-    "Offer practical skills training to individuals and organisations so they can thrive in technical and scientific fields.",
+    "Offer practical skills training to individuals and organizations, enabling them to thrive in technical and scientific fields.",
   ],
   ctaTitle: "We would love to hear from you",
   ctaBody:
-    "Whether you are interested in our ECG technologies, science and research equipment, or training services, our team is here to help.",
+    "Whether you're interested in our ECG technologies, science and research equipment, or training services, our team is here to help.",
   ctaButtonLabel: "Contact us",
 };
 
@@ -339,6 +440,70 @@ function pickCta(value: unknown, fallback: CtaLink): CtaLink {
   return { label, href };
 }
 
+function pickHeroSlides(value: unknown): HomeHeroSlide[] {
+  if (!Array.isArray(value)) return [];
+  const out: HomeHeroSlide[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const tag = asString(o.tag, "");
+    const title = asString(o.title, "");
+    const subtitle = asString(o.subtitle, "");
+    const imageSrcRaw = asString(o.imageSrc ?? o.image, "");
+    const imageSrc = imageSrcRaw || undefined;
+    if (tag && title && subtitle)
+      out.push({ tag, title, subtitle, ...(imageSrc ? { imageSrc } : {}) });
+  }
+  return out;
+}
+
+function pickTestimonials(
+  value: unknown,
+  fallback: HomeTestimonial[],
+): HomeTestimonial[] {
+  if (!Array.isArray(value)) return fallback;
+  const out: HomeTestimonial[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const quote = asString(o.quote, "");
+    const author = asString(o.author, "");
+    const role = asString(o.role, "");
+    if (quote && author && role) out.push({ quote, author, role });
+  }
+  return out.length > 0 ? out : fallback;
+}
+
+function pickOfferingPartner(
+  value: unknown,
+): HomeOfferingPartner | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const o = value as Record<string, unknown>;
+  const label = asString(o.label, "");
+  const href = asString(o.href, "");
+  if (!label || !href.startsWith("https://")) return undefined;
+  return { label, href };
+}
+
+function pickOfferingPartnersList(value: unknown): HomeOfferingPartner[] {
+  if (!Array.isArray(value)) return [];
+  const out: HomeOfferingPartner[] = [];
+  for (const entry of value) {
+    const p = pickOfferingPartner(entry);
+    if (p) out.push(p);
+  }
+  return out;
+}
+
+function pickOfferingPartnersFromItem(
+  o: Record<string, unknown>,
+): HomeOfferingPartner[] | undefined {
+  const fromArray = pickOfferingPartnersList(o.partners);
+  if (fromArray.length > 0) return fromArray;
+  const single = pickOfferingPartner(o.partner);
+  return single ? [single] : undefined;
+}
+
 function pickOfferings(
   value: unknown,
   fallback: HomeMarketingContent["offerings"],
@@ -350,7 +515,9 @@ function pickOfferings(
     const o = item as Record<string, unknown>;
     const title = asString(o.title, "");
     const blurb = asString(o.blurb, "");
-    if (title && blurb) out.push({ title, blurb });
+    if (!title || !blurb) continue;
+    const partners = pickOfferingPartnersFromItem(o);
+    out.push({ title, blurb, ...(partners ? { partners } : {}) });
   }
   return out.length > 0 ? out : fallback;
 }
@@ -424,6 +591,19 @@ function pickKeywords(value: unknown, fallback: string[]): string[] {
   return arr.length > 0 ? arr : fallback;
 }
 
+function pickFeaturedProductIds(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value) || value.length === 0) return fallback;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of value) {
+    const id = typeof v === "string" ? v.trim() : "";
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out.length > 0 ? out : fallback;
+}
+
 /** Merge API JSON into defaults; unknown shape falls back safely. */
 export function parseHomeMarketingContent(
   raw: string,
@@ -439,6 +619,10 @@ export function parseHomeMarketingContent(
       heroEyebrow: asString(p.heroEyebrow, defaults.heroEyebrow),
       heroTitle: asString(p.heroTitle, defaults.heroTitle),
       heroSubtitle: asString(p.heroSubtitle, defaults.heroSubtitle),
+      heroSlides: (() => {
+        const picked = pickHeroSlides(p.heroSlides);
+        return picked.length > 0 ? picked : defaults.heroSlides;
+      })(),
       primaryCta: pickCta(p.primaryCta, defaults.primaryCta),
       secondaryCta: pickCta(p.secondaryCta, defaults.secondaryCta),
       whatWeOfferHeading: asString(
@@ -447,6 +631,10 @@ export function parseHomeMarketingContent(
       ),
       whatWeOfferIntro: asString(p.whatWeOfferIntro, defaults.whatWeOfferIntro),
       offerings: pickOfferings(p.offerings, defaults.offerings),
+      featuredProductIds: pickFeaturedProductIds(
+        p.featuredProductIds,
+        defaults.featuredProductIds,
+      ),
       catalogueLinkLabel: asString(
         p.catalogueLinkLabel,
         defaults.catalogueLinkLabel,
@@ -468,10 +656,63 @@ export function parseHomeMarketingContent(
       contactHeading: asString(p.contactHeading, defaults.contactHeading),
       contactIntro: asString(p.contactIntro, defaults.contactIntro),
       contactCtaLabel: asString(p.contactCtaLabel, defaults.contactCtaLabel),
+      testimonials: pickTestimonials(p.testimonials, defaults.testimonials),
     };
   } catch {
     return defaults;
   }
+}
+
+const DEFAULT_HERO_BACKGROUNDS = [
+  "/images/main-picture.jpg",
+  "/images/technical-teaching.jpg",
+  "/images/medical-teaching.jpg",
+  "/images/industrial-lab-scales.png",
+  "/images/tekno-operating.webp",
+] as const;
+
+/** Hero carousel: CMS `heroSlides` when present, else defaults + imagery per slide index. */
+export function resolvedHeroSlides(data: HomeMarketingContent): HomeHeroSlide[] {
+  if (data.heroSlides.length > 0) {
+    return data.heroSlides.map((slide, i) => ({
+      ...slide,
+      imageSrc:
+        slide.imageSrc ??
+        DEFAULT_HERO_BACKGROUNDS[i % DEFAULT_HERO_BACKGROUNDS.length],
+    }));
+  }
+  return [
+    {
+      tag: data.heroEyebrow,
+      title: data.heroTitle,
+      subtitle: data.heroSubtitle,
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[0],
+    },
+    {
+      tag: "Technical teaching",
+      title: "Empowering technical education",
+      subtitle: "Empower the next generation of innovators with industry-leading equipment, bridging the gap between classroom theory and real-world application, ensuring Zimbabwean students have the precision instruments they need to excel in a global landscape.",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[1],
+    },
+    {
+      tag: "Medical teaching",
+      title: "Advancing medical education through high-precision simulation.",
+      subtitle: "Equipping Zimbabwe’s medical students with the advanced tools needed for modern healthcare. Our solutions are engineered to enhance clinical skills, improve diagnostic accuracy, and foster a culture of excellence in medical research and patient care.",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[2],
+    },
+    {
+      tag: "Industrial and lab scales",
+      title: "Precision in every measurement",
+      subtitle: "Built for Zimbabwe’s toughest environments. We supply robust industrial scales and laboratory balances that deliver reliable data for mining, agriculture, and manufacturing",
+      imageSrc: DEFAULT_HERO_BACKGROUNDS[3],
+    },
+    {
+      tag: "Hospital Equipment",
+      title: "Elevating the Standard of Care",
+      subtitle: "From patient monitoring systems to advanced diagnostic imaging, we deliver the medical technology that powers Zimbabwe’s leading hospitals. Trusted by clinicians for 20+ years to improve patient outcomes and save lives.",
+      imageSrc: "/images/tekno-operating.webp",
+    },
+  ];
 }
 
 /**

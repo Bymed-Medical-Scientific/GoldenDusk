@@ -65,6 +65,10 @@ export class AdminApiService {
       readonly categoryId?: string | null;
       readonly search?: string | null;
       readonly inStock?: boolean | null;
+      readonly brand?: string | null;
+      readonly clientType?: string | null;
+      readonly minPrice?: number | null;
+      readonly maxPrice?: number | null;
     }
   ): Observable<PagedResultDto<ProductDto>> {
     return this.apiService.get<PagedResultDto<ProductDto>>('products', {
@@ -72,7 +76,11 @@ export class AdminApiService {
       pageSize,
       categoryId: query?.categoryId,
       search: query?.search,
-      inStock: query?.inStock
+      inStock: query?.inStock,
+      brand: query?.brand,
+      clientType: query?.clientType,
+      minPrice: query?.minPrice,
+      maxPrice: query?.maxPrice
     });
   }
 

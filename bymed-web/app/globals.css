@@ -3,46 +3,107 @@
 @tailwind utilities;
 
 /*
-  Brand palette: primary blue #0000CC, on-primary #FFFFFF, depth #000000.
-  Same brand primary in dark mode (header and brand surfaces stay #0000CC).
+  BYMED brand: primary #0000CC, white on primary, black bar accent on buttons (logo).
+  Typography: Inter (body) + Poppins (headings) + Great Vibes (accent script).
+  Dark theme: deeper surfaces so bands (muted/card) read clearly vs background.
 */
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a12;
-  --muted: #f4f4f8;
-  --muted-foreground: #52525b;
-  --border: #e4e4eb;
   --brand-primary: #0000cc;
   --brand-primary-hover: #0000a8;
   --brand-on-primary: #ffffff;
+  --medical-teal: #0d9488;
+  --medical-teal-muted: #5eead4;
+
+  --background: oklch(0.99 0.006 264);
+  --foreground: oklch(0.17 0.03 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.03 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.03 264);
+  --primary: #0000cc;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.96 0.02 200);
+  --secondary-foreground: oklch(0.22 0.04 264);
+  --muted: oklch(0.96 0.008 264);
+  --muted-foreground: oklch(0.45 0.02 264);
+  --accent: oklch(0.94 0.04 195);
+  --accent-foreground: oklch(0.22 0.06 195);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0.01 264);
+  --input: oklch(0.9 0.01 264);
   --ring: #0000cc;
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --muted: #18181b;
-  --muted-foreground: #a1a1aa;
-  --border: #27272a;
-  --brand-primary: #0000cc;
-  --brand-primary-hover: #0000a8;
-  --brand-on-primary: #ffffff;
-  --ring: #0000cc;
+  /* Near-black floor; light text (foreground / muted-foreground). */
+  --background: oklch(0.11 0.02 264);
+  --foreground: oklch(0.96 0.008 264);
+  --card: oklch(0.15 0.022 264);
+  --card-foreground: oklch(0.96 0.008 264);
+  --popover: oklch(0.14 0.022 264);
+  --popover-foreground: oklch(0.96 0.008 264);
+  /* Softer blue for inline text/links on dark surfaces; solid CTAs use --brand-primary via `bg-brand`. */
+  --primary: #6b7cff;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.2 0.03 264);
+  --secondary-foreground: oklch(0.96 0.008 264);
+  /* Elevated section bands (trusted strip, alternating rows). */
+  --muted: oklch(0.17 0.022 264);
+  --muted-foreground: oklch(0.7 0.02 264);
+  --accent: oklch(0.22 0.04 195);
+  --accent-foreground: oklch(0.94 0.02 195);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: #7b86ff;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+    transition: background-color 0.35s ease, color 0.25s ease;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Opacity + CSS variables: avoid @apply …/NN on theme colors (Tailwind v3). */
+  .glass-header {
+    @apply border-b backdrop-blur-md;
+    border-bottom-color: rgb(255 255 255 / 0.1);
+    background-color: rgb(0 0 204 / 0.95);
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .glass-header {
+      background-color: rgb(0 0 204 / 0.8);
+    }
+  }
+
+  .glass-header-scrolled {
+    @apply text-foreground backdrop-blur-xl;
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+    background-color: color-mix(in oklch, var(--background) 80%, transparent);
+  }
+
+  .dark .glass-header-scrolled {
+    background-color: color-mix(in oklch, var(--background) 75%, transparent);
+  }
 }
 
-/* Visible only when focused — keyboard / screen reader users */
 .skip-to-main {
   @apply sr-only;
 }

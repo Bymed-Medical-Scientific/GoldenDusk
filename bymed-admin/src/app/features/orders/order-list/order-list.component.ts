@@ -1,16 +1,6 @@
 import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
-import { AfterViewInit, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
@@ -19,6 +9,12 @@ import { GlobalErrorComponent } from '@shared/components/global-error/global-err
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { OrderSummaryDto } from '@shared/models';
 import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 
 type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
 
@@ -26,81 +22,53 @@ type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
   selector: 'app-order-list',
   standalone: true,
   imports: [
+    ButtonModule,
     CurrencyPipe,
     DatePipe,
     FormsModule,
     NgClass,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatSortModule,
-    MatTableModule,
+    InputTextModule,
+    PaginatorModule,
+    ProgressBarModule,
+    SelectModule,
+    TableModule,
     TableSkeletonComponent,
     RouterLink
   ],
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.scss'
 })
-export class OrderListComponent implements OnInit, AfterViewInit {
+export class OrderListComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
-  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly isLoading = signal(true);
   protected readonly isExporting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly pageMessage = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly dateFrom = signal<string>('');
   protected readonly dateTo = signal<string>('');
-  protected readonly dataSource = new MatTableDataSource<OrderSummaryDto>([]);
-  protected readonly displayedColumns: string[] = [
-    'orderNumber',
-    'customer',
-    'total',
-    'status',
-    'created',
-    'actions'
-  ];
+  protected readonly items = signal<OrderSummaryDto[]>([]);
   protected readonly totalCount = signal(0);
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);
   protected readonly pageSizeOptions = [10, 25, 50];
+  protected readonly statusOptions: Array<{ label: string; value: StatusFilter }> = [
+    { label: 'All statuses', value: 'all' },
+    { label: 'Pending', value: '0' },
+    { label: 'Processing', value: '1' },
+    { label: 'Shipped', value: '2' },
+    { label: 'Delivered', value: '3' },
+    { label: 'Cancelled', value: '4' }
+  ];
 
   protected readonly orderStatusLabel = orderStatusLabel;
   protected readonly orderStatusChipClass = orderStatusChipClass;
 
-  @ViewChild(MatPaginator) private paginator?: MatPaginator;
-  @ViewChild(MatSort) private sort?: MatSort;
-
   public ngOnInit(): void {
-    this.dataSource.sortingDataAccessor = (row, property) => {
-      switch (property) {
-        case 'orderNumber':
-          return row.orderNumber;
-        case 'customer':
-          return row.customerName;
-        case 'total':
-          return row.total;
-        case 'status':
-          return row.status;
-        case 'created':
-          return new Date(row.creationTime).getTime();
-        default:
-          return '';
-      }
-    };
-
     this.loadPage();
-  }
-
-  public ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort ?? null;
   }
 
   protected onSearchChange(value: string): void {
@@ -162,7 +130,7 @@ export class OrderListComponent implements OnInit, AfterViewInit {
       .pipe(
         catchError((err: unknown) => {
           const message = err instanceof ApiError ? err.message : 'Could not export orders.';
-          this.snackBar.open(message, 'Dismiss', { duration: 8000 });
+          this.pageMessage.set(message);
           return EMPTY;
         }),
         finalize(() => this.isExporting.set(false))
@@ -174,13 +142,13 @@ export class OrderListComponent implements OnInit, AfterViewInit {
         anchor.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
         anchor.click();
         URL.revokeObjectURL(url);
-        this.snackBar.open('Export completed.', 'Dismiss', { duration: 3500 });
+        this.pageMessage.set('Export completed.');
       });
   }
 
-  protected onPageChange(event: PageEvent): void {
-    this.pageNumber.set(event.pageIndex + 1);
-    this.pageSize.set(event.pageSize);
+  protected onPageChange(event: PaginatorState): void {
+    this.pageNumber.set((event.page ?? 0) + 1);
+    this.pageSize.set(event.rows ?? this.pageSize());
     this.loadPage();
   }
 
@@ -214,14 +182,7 @@ export class OrderListComponent implements OnInit, AfterViewInit {
         this.totalCount.set(page.totalCount);
         this.pageNumber.set(page.pageNumber);
         this.pageSize.set(page.pageSize);
-        this.dataSource.data = page.items;
-        this.dataSource.sort = this.sort ?? null;
-
-        if (this.paginator) {
-          this.paginator.pageIndex = Math.max(page.pageNumber - 1, 0);
-          this.paginator.pageSize = page.pageSize;
-          this.paginator.length = page.totalCount;
-        }
+        this.items.set(page.items);
       });
   }
 }

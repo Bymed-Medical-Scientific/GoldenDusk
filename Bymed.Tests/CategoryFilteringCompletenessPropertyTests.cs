@@ -50,7 +50,13 @@ public class CategoryFilteringCompletenessPropertyTests
                 SetProductCategoryNavigation(p, categoryNavigation);
 
             var pagination = new PaginationParams(1, 50);
-            repo.GetPagedAsync(pagination, categoryId, Arg.Any<bool?>(), Arg.Any<CancellationToken>())
+            repo.GetPagedAsync(
+                    pagination,
+                    categoryId,
+                    Arg.Any<bool?>(),
+                    Arg.Any<string?>(),
+                    Arg.Any<string?>(),
+                    Arg.Any<CancellationToken>())
                 .Returns(ci =>
                 {
                     var filtered = allProducts.Where(p => p.CategoryId == categoryId).ToList();

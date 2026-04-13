@@ -31,4 +31,8 @@
     <ProjectReference Include="..\Bymed.Infrastructure\Bymed.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="logs\" />
+  </ItemGroup>
+
 </Project>

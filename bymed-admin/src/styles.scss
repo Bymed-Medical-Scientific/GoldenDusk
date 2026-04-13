@@ -1,5 +1,23 @@
 :root {
   color-scheme: light;
+  --brand-primary: #0000cc;
+  --surface-ground: #f4f6fb;
+  --surface-card: #ffffff;
+  --surface-border: #e2e8f0;
+  --surface-hover: #f1f5f9;
+  --text-color: #0f172a;
+  --text-color-secondary: #475569;
+}
+
+body.app-dark {
+  color-scheme: dark;
+  --brand-primary: #4d62ff;
+  --surface-ground: #0b1220;
+  --surface-card: #111b2f;
+  --surface-border: #23314d;
+  --surface-hover: #1a2840;
+  --text-color: #e2e8f0;
+  --text-color-secondary: #94a3b8;
 }
 
 *,
@@ -15,8 +33,9 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: #f7f8fc;
+  font-family: Inter, Roboto, "Helvetica Neue", sans-serif;
+  background: var(--surface-ground);
+  color: var(--text-color);
 }
 
 .admin-error-snackbar .mdc-snackbar__surface {

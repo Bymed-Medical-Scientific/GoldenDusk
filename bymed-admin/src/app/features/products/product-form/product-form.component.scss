@@ -15,7 +15,7 @@
 
 .page-subtitle {
   margin: 0.25rem 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
   max-width: 40rem;
 }
@@ -26,6 +26,10 @@
 
 .form-card {
   max-width: 800px;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--surface-card);
+  padding: 1rem;
 }
 
 .section-title {
@@ -37,15 +41,41 @@
 .section-hint {
   margin: 0 0 0.75rem;
   font-size: 0.8125rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .section-divider {
   margin: 1.25rem 0;
+  border-top: 1px solid var(--surface-border);
 }
 
 .full-width {
   width: 100%;
+}
+
+.field-group {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.field-group > label {
+  font-weight: 600;
+  color: #111111;
+}
+
+.field-hint {
+  color: var(--text-color-secondary);
+  font-size: 0.78rem;
+}
+
+.page-message {
+  margin: 0.25rem 0 1rem;
+  padding: 0.625rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 25%, #ffffff);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
+  color: #111111;
 }
 
 .form-grid {
@@ -80,7 +110,7 @@
 .field-error {
   margin: 0.25rem 0 0;
   font-size: 0.75rem;
-  color: var(--mat-form-field-error-text-color, #b3261e);
+  color: #b3261e;
 }
 
 .read-only-row {
@@ -94,13 +124,13 @@
 .read-only-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .read-only-hint {
   flex: 1 1 100%;
   font-size: 0.75rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-color-secondary);
 }
 
 .chip {
@@ -129,10 +159,10 @@
 .image-preview {
   margin-bottom: 1rem;
   max-width: 320px;
-  border-radius: 4px;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #fafafa;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
 
   img {
     display: block;
@@ -168,6 +198,6 @@
 .upload-progress-label {
   display: block;
   font-size: 0.8125rem;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--text-color-secondary);
   margin-bottom: 0.35rem;
 }

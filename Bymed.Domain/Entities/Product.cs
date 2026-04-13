@@ -11,6 +11,8 @@ public class Product : FullAuditedEntity
     public const int NameMaxLength = 500;
     public const int SlugMaxLength = 200;
     public const int SkuMaxLength = 100;
+    public const int BrandMaxLength = 120;
+    public const int ClientTypeMaxLength = 60;
     public const int CurrencyMaxLength = 3;
     public const string DefaultCurrency = "USD";
 
@@ -25,6 +27,8 @@ public class Product : FullAuditedEntity
     public int LowStockThreshold { get; private set; }
     public bool IsAvailable { get; private set; } = true;
     public string? Sku { get; private set; }
+    public string? Brand { get; private set; }
+    public string? ClientType { get; private set; }
     public IReadOnlyDictionary<string, string>? Specifications { get; private set; }
 
     private Product()
@@ -40,6 +44,8 @@ public class Product : FullAuditedEntity
         int inventoryCount,
         int lowStockThreshold,
         string? sku = null,
+        string? brand = null,
+        string? clientType = null,
         string? currency = null,
         IReadOnlyDictionary<string, string>? specifications = null)
     {
@@ -51,6 +57,8 @@ public class Product : FullAuditedEntity
         SetInventoryCount(inventoryCount);
         SetLowStockThreshold(lowStockThreshold);
         Sku = SetSku(sku);
+        Brand = SetBrand(brand);
+        ClientType = SetClientType(clientType);
         Currency = string.IsNullOrWhiteSpace(currency) ? DefaultCurrency : currency.Trim().ToUpperInvariant();
         if (Currency.Length > CurrencyMaxLength)
             throw new ArgumentException($"Currency must not exceed {CurrencyMaxLength} characters.", nameof(currency));
@@ -66,6 +74,8 @@ public class Product : FullAuditedEntity
         decimal price,
         int lowStockThreshold,
         string? sku = null,
+        string? brand = null,
+        string? clientType = null,
         IReadOnlyDictionary<string, string>? specifications = null)
     {
         SetName(name);
@@ -75,6 +85,8 @@ public class Product : FullAuditedEntity
         SetPrice(price);
         SetLowStockThreshold(lowStockThreshold);
         Sku = SetSku(sku);
+        Brand = SetBrand(brand);
+        ClientType = SetClientType(clientType);
         Specifications = specifications is null ? null : new Dictionary<string, string>(specifications);
     }
 
@@ -174,6 +186,24 @@ public class Product : FullAuditedEntity
         var trimmed = sku.Trim();
         if (trimmed.Length > SkuMaxLength)
             throw new ArgumentException($"SKU must not exceed {SkuMaxLength} characters.", nameof(sku));
+        return trimmed;
+    }
+
+    private static string? SetBrand(string? brand)
+    {
+        if (string.IsNullOrWhiteSpace(brand)) return null;
+        var trimmed = brand.Trim();
+        if (trimmed.Length > BrandMaxLength)
+            throw new ArgumentException($"Brand must not exceed {BrandMaxLength} characters.", nameof(brand));
+        return trimmed;
+    }
+
+    private static string? SetClientType(string? clientType)
+    {
+        if (string.IsNullOrWhiteSpace(clientType)) return null;
+        var trimmed = clientType.Trim();
+        if (trimmed.Length > ClientTypeMaxLength)
+            throw new ArgumentException($"Client type must not exceed {ClientTypeMaxLength} characters.", nameof(clientType));
         return trimmed;
     }
 }

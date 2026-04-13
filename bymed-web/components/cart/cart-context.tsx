@@ -148,13 +148,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (guestItems.length > 0) {
         await Promise.all(
           guestItems.map((item) =>
-            addCartItem({ productId: item.productId, quantity: item.quantity }),
+            addCartItem(
+              { productId: item.productId, quantity: item.quantity },
+              { forceProxy: true },
+            ),
           ),
         );
         writeGuestCart([]);
       }
 
-      const cart = await getCart();
+      const cart = await getCart({ forceProxy: true });
       const enriched = await enrichProducts(fromCartDto(cart));
       setItems(enriched);
     } catch (e) {
@@ -209,7 +212,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const cart = await addCartItem({ productId: product.productId, quantity: safeQty });
+        const cart = await addCartItem(
+          { productId: product.productId, quantity: safeQty },
+          { forceProxy: true },
+        );
         const enriched = await enrichProducts(fromCartDto(cart));
         setItems(enriched);
       } catch (e) {
@@ -237,7 +243,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const cart = await updateCartItemQuantity(productId, safeQty);
+        const cart = await updateCartItemQuantity(productId, safeQty, {
+          forceProxy: true,
+        });
         const enriched = await enrichProducts(fromCartDto(cart));
         setItems(enriched);
       } catch (e) {
@@ -259,7 +267,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const cart = await removeCartItem(productId);
+        const cart = await removeCartItem(productId, { forceProxy: true });
         const enriched = await enrichProducts(fromCartDto(cart));
         setItems(enriched);
       } catch (e) {

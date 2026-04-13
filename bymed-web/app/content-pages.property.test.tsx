@@ -1,3 +1,6 @@
+import CmsBySlugPage from "@/app/[slug]/page";
+import ContactPage from "@/app/contact/page";
+import HomePage from "@/app/page";
 import { render } from "@testing-library/react";
 import fc from "fast-check";
 
@@ -15,6 +18,18 @@ jest.mock("@/lib/api/content", () => ({
     metadata: {},
     isPublished: true,
     creationTime: new Date().toISOString(),
+  })),
+}));
+
+jest.mock("@/lib/api/products", () => ({
+  listProducts: jest.fn(async () => ({
+    items: [],
+    pageNumber: 1,
+    pageSize: 4,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
   })),
 }));
 

@@ -1,62 +1,77 @@
 @if (isLoading()) {
-  <section class="quick-actions quick-actions--disabled" aria-hidden="true">
-    <button mat-raised-button disabled type="button">New Product</button>
-    <button mat-stroked-button disabled type="button">New Category</button>
-    <button mat-stroked-button disabled type="button">View Orders</button>
-  </section>
   <app-dashboard-skeleton />
 } @else {
   @if (errorMessage()) {
     <app-global-error [message]="errorMessage() ?? ''" />
   }
 
-  <section class="quick-actions">
-    <button mat-raised-button color="primary" routerLink="/products/new">
-      <mat-icon>add_box</mat-icon>
-      New Product
-    </button>
-    <button mat-stroked-button routerLink="/categories/new">
-      <mat-icon>create_new_folder</mat-icon>
-      New Category
-    </button>
-    <button mat-stroked-button routerLink="/orders">
-      <mat-icon>receipt_long</mat-icon>
-      View Orders
-    </button>
+  <section class="kpi-grid">
+    @for (card of kpiCards(); track card.title) {
+      <article class="kpi-card" [class]="'kpi-card kpi-' + card.tone">
+        <div>
+          <p class="kpi-title">{{ card.title }}</p>
+          <p class="kpi-value">{{ card.value }}</p>
+          <p class="kpi-hint">{{ card.hint }}</p>
+        </div>
+        <i [class]="card.icon" aria-hidden="true"></i>
+      </article>
+    }
   </section>
 
   <section class="dashboard-grid">
-    <mat-card class="widget widget-sales">
-      <mat-card-header>
-        <mat-card-title>Sales Summary</mat-card-title>
-      </mat-card-header>
-      <mat-card-content class="summary-grid">
-        <div>
-          <p class="summary-label">Today</p>
-          <p class="summary-value">
-            {{ salesSummary().today | currency: salesSummary().currency:'symbol':'1.2-2' }}
-          </p>
+    <article class="widget widget-chart">
+      <header class="widget-header">
+        <h2>Revenue trend</h2>
+        <p class="widget-subtitle">Last 6 months snapshot from recent order activity.</p>
+      </header>
+      @if (revenueTrend().length) {
+        <div class="trend-bars">
+          @for (point of revenueTrend(); track point.label) {
+            <div class="trend-point">
+              <span class="trend-bar" [style.height.%]="trendHeight(point.value)"></span>
+              <span class="trend-label">{{ point.label }}</span>
+            </div>
+          }
         </div>
-        <div>
-          <p class="summary-label">Last 7 days</p>
-          <p class="summary-value">
-            {{ salesSummary().week | currency: salesSummary().currency:'symbol':'1.2-2' }}
-          </p>
-        </div>
-        <div>
-          <p class="summary-label">This month</p>
-          <p class="summary-value">
-            {{ salesSummary().month | currency: salesSummary().currency:'symbol':'1.2-2' }}
-          </p>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      } @else {
+        <p class="empty-text">No trend data available.</p>
+      }
+    </article>
 
-    <mat-card class="widget">
-      <mat-card-header>
-        <mat-card-title>Recent Orders</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
+    <article class="widget widget-satisfaction">
+      <header class="widget-header">
+        <h2>Customer satisfaction</h2>
+      </header>
+      <p class="satisfaction-value">{{ customerSatisfaction() }}%</p>
+      <div class="satisfaction-meter" aria-hidden="true">
+        <span [style.width.%]="customerSatisfaction()"></span>
+      </div>
+      <p class="list-subtext">Derived from delivered vs. non-delivered recent orders.</p>
+    </article>
+
+    <article class="widget">
+      <header class="widget-header">
+        <h2>Visit by traffic types</h2>
+      </header>
+      @if (statusBreakdown().length) {
+        <ul class="plain-list">
+          @for (entry of statusBreakdown(); track entry.label) {
+            <li class="traffic-row">
+              <span>{{ entry.label }}</span>
+              <span>{{ entry.percent }}%</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty-text">No order status data available.</p>
+      }
+    </article>
+
+    <article class="widget">
+      <header class="widget-header">
+        <h2>Recent Orders</h2>
+      </header>
+      <div>
         @if (recentOrders().length) {
           <ul class="plain-list">
             @for (order of recentOrders(); track order.id) {
@@ -77,17 +92,17 @@
         } @else {
           <p class="empty-text">No recent orders found.</p>
         }
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </article>
 
-    <mat-card class="widget widget-low-stock" [class.widget-low-stock--active]="lowStockItems().length > 0">
-      <mat-card-header>
-        <mat-card-title>Low stock alerts</mat-card-title>
-        <mat-card-subtitle>
-          Products at or below their threshold. Adjust thresholds on each product edit page.
-        </mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
+    <article class="widget widget-low-stock" [class.widget-low-stock--active]="lowStockItems().length > 0">
+      <header class="widget-header">
+        <h2>Low stock alerts</h2>
+        <p class="widget-subtitle">
+          Products at or below threshold.
+        </p>
+      </header>
+      <div>
         @if (lowStockItems().length) {
           <ul class="plain-list">
             @for (item of lowStockItems(); track item.productId) {
@@ -106,19 +121,19 @@
         } @else {
           <p class="empty-text">No low stock alerts.</p>
         }
-      </mat-card-content>
-      <mat-card-actions align="end">
-        <a mat-button color="warn" routerLink="/inventory" [queryParams]="{ lowStock: '1' }">
-          View inventory (low stock)
+      </div>
+      <div class="widget-footer">
+        <a class="text-link" routerLink="/inventory" [queryParams]="{ lowStock: '1' }">
+          View inventory
         </a>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </article>
 
-    <mat-card class="widget">
-      <mat-card-header>
-        <mat-card-title>Popular Products</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
+    <article class="widget">
+      <header class="widget-header">
+        <h2>Popular Products</h2>
+      </header>
+      <div>
         @if (popularProducts().length) {
           <ul class="plain-list">
             @for (product of popularProducts(); track product.id) {
@@ -137,8 +152,8 @@
         } @else {
           <p class="empty-text">No product data available.</p>
         }
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </article>
   </section>
 
   @if (!hasDashboardData()) {

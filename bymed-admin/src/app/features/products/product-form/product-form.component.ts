@@ -7,16 +7,6 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { catchError, EMPTY, filter, finalize, map, mergeMap, of, tap } from 'rxjs';
@@ -33,10 +23,17 @@ import {
   ProductImageDto,
   UpdateProductRequestDto
 } from '@shared/models';
+import { ButtonModule } from 'primeng/button';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SelectModule } from 'primeng/select';
 
 const NAME_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
 const SKU_MAX_LENGTH = 100;
+const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
@@ -65,6 +62,8 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     InventoryCount: 'inventoryCount',
     LowStockThreshold: 'lowStockThreshold',
     Sku: 'sku',
+    Brand: 'brand',
+    ClientType: 'clientType',
     Currency: 'currency'
   };
   return map[propertyName] ?? propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
@@ -77,16 +76,12 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     ReactiveFormsModule,
     RouterLink,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressBarModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSnackBarModule,
+    ButtonModule,
+    InputNumberModule,
+    InputTextModule,
+    ProgressBarModule,
+    ProgressSpinnerModule,
+    SelectModule,
     PageLoadingComponent,
     QuillEditorComponent
   ],
@@ -99,7 +94,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private readonly lowStockAlerts = inject(LowStockAlertsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly apiBaseUrl = inject(API_BASE_URL);
 
   private readonly productId = this.route.snapshot.paramMap.get('id');
@@ -109,9 +103,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   protected readonly initError = signal<string | null>(null);
   protected readonly isSubmitting = signal(false);
   protected readonly generalError = signal<string | null>(null);
+  protected readonly pageMessage = signal<string | null>(null);
   protected readonly serverFieldErrors = signal<Record<string, string>>({});
   protected readonly categories = signal<CategoryDto[]>([]);
+  protected readonly categoryOptions = signal<Array<{ label: string; value: string }>>([]);
   protected readonly imagePreviewUrl = signal<string | null>(null);
+  protected readonly clientTypeOptions: Array<{ label: string; value: string }> = [
+    { label: 'School', value: 'school' },
+    { label: 'University/College', value: 'university-college' },
+    { label: 'Hospital/Clinic', value: 'hospital-clinic' },
+    { label: 'Nursing School', value: 'nursing-school' }
+  ];
   /** 0–100 while primary image is uploading after save; null when idle. */
   protected readonly primaryImageUploadProgress = signal<number | null>(null);
   /** Set in edit mode after load — used for read-only availability. */
@@ -130,12 +132,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     currency: ['USD', [Validators.required, Validators.pattern(CURRENCY_PATTERN)]],
     inventoryCount: [0, [Validators.required, Validators.min(0)]],
     lowStockThreshold: [0, [Validators.required, Validators.min(0)]],
-    sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]]
+    sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]],
+    brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
+    clientType: ['']
   });
 
   public ngOnInit(): void {
     this.adminApi.getCategories().subscribe({
-      next: (list) => this.categories.set(list),
+      next: (list) => {
+        this.categories.set(list);
+        this.categoryOptions.set(list.map((c) => ({ label: c.name, value: c.id })));
+      },
       error: () => this.categories.set([])
     });
 
@@ -175,6 +182,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   protected submit(): void {
     this.generalError.set(null);
+    this.pageMessage.set(null);
     this.serverFieldErrors.set({});
 
     if (this.productForm.invalid || this.isSubmitting()) {
@@ -273,6 +281,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (controlName === 'sku' && control.hasError('maxlength')) {
       return `SKU must not exceed ${SKU_MAX_LENGTH} characters.`;
     }
+    if (controlName === 'brand' && control.hasError('maxlength')) {
+      return `Brand must not exceed ${BRAND_MAX_LENGTH} characters.`;
+    }
 
     return null;
   }
@@ -324,13 +335,17 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       currency: product.currency,
       inventoryCount: product.inventoryCount,
       lowStockThreshold: product.lowStockThreshold,
-      sku: product.sku ?? ''
+      sku: product.sku ?? '',
+      brand: product.brand ?? '',
+      clientType: product.clientType ?? ''
     });
   }
 
   private buildCreatePayload(): CreateProductRequestDto {
     const raw = this.productForm.getRawValue();
     const sku = raw.sku.trim();
+    const brand = raw.brand.trim();
+    const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
       slug: raw.slug.trim(),
@@ -340,6 +355,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       inventoryCount: Math.floor(Number(raw.inventoryCount)),
       lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
       sku: sku.length > 0 ? sku : undefined,
+      brand: brand.length > 0 ? brand : undefined,
+      clientType: clientType.length > 0 ? clientType : undefined,
       currency: raw.currency.trim() || 'USD',
       specifications: undefined
     };
@@ -348,6 +365,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private buildUpdatePayload(): UpdateProductRequestDto {
     const raw = this.productForm.getRawValue();
     const sku = raw.sku.trim();
+    const brand = raw.brand.trim();
+    const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
       slug: raw.slug.trim(),
@@ -356,6 +375,8 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       price: Number(raw.price),
       lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
       sku: sku.length > 0 ? sku : undefined,
+      brand: brand.length > 0 ? brand : undefined,
+      clientType: clientType.length > 0 ? clientType : undefined,
       specifications: undefined
     };
   }
@@ -378,7 +399,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       filter((e): e is HttpResponse<ProductImageDto> => e.type === HttpEventType.Response),
       map(() => undefined),
       catchError(() => {
-        this.snackBar.open('Product saved but image upload failed.', 'Dismiss', { duration: 8000 });
+        this.pageMessage.set('Product saved but image upload failed.');
         return of(undefined);
       }),
       finalize(() => this.primaryImageUploadProgress.set(null))
@@ -402,7 +423,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       filter((e): e is HttpResponse<ProductImageDto> => e.type === HttpEventType.Response),
       map(() => undefined),
       catchError(() => {
-        this.snackBar.open('Product saved but image upload failed.', 'Dismiss', { duration: 8000 });
+        this.pageMessage.set('Product saved but image upload failed.');
         return of(undefined);
       }),
       finalize(() => this.primaryImageUploadProgress.set(null))

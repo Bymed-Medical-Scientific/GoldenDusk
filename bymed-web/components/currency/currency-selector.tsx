@@ -2,7 +2,6 @@
 
 import {
   SUPPORTED_CURRENCY_CODES,
-  SUPPORTED_CURRENCY_LABELS,
   type SupportedCurrencyCode,
 } from "@/lib/supported-currencies";
 import { useCurrency } from "./currency-context";
@@ -29,8 +28,8 @@ function IconCurrency({ className }: { className?: string }) {
 }
 
 type CurrencySelectorProps = {
-  /** Header bar: light text on brand. Drawer: dark text on light bg. headerIcon: icon-only overlay select on brand. */
-  variant?: "header" | "headerIcon" | "drawer";
+  /** Header bar: light text on brand. Drawer: dark text on light bg. headerIcon: icon-only overlay select on brand. surfaceIcon: icon-only on light/glass header. */
+  variant?: "header" | "headerIcon" | "headerIconSurface" | "drawer";
   className?: string;
   selectId?: string;
 };
@@ -42,14 +41,19 @@ export function CurrencySelector({
 }: CurrencySelectorProps) {
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
 
-  if (variant === "headerIcon") {
+  if (variant === "headerIcon" || variant === "headerIconSurface") {
+    const surface = variant === "headerIconSurface";
     return (
       <div className={`relative inline-flex h-10 w-10 shrink-0 ${className}`}>
         <label htmlFor={selectId} className="sr-only">
           Currency
         </label>
         <div
-          className="pointer-events-none flex h-full w-full items-center justify-center rounded-md border border-white/25 bg-white/10 text-white"
+          className={
+            surface
+              ? "pointer-events-none flex h-full w-full items-center justify-center rounded-md border border-border bg-muted/50 text-foreground"
+              : "pointer-events-none flex h-full w-full items-center justify-center rounded-md border border-white/25 bg-white/10 text-white"
+          }
           aria-hidden
         >
           <IconCurrency />
@@ -85,7 +89,9 @@ export function CurrencySelector({
         className={
           variant === "header"
             ? "sr-only"
-            : "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+            : variant === "drawer"
+              ? "sr-only"
+              : "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
         }
       >
         Currency
@@ -101,9 +107,7 @@ export function CurrencySelector({
       >
         {SUPPORTED_CURRENCY_CODES.map((code) => (
           <option key={code} value={code}>
-            {variant === "drawer"
-              ? SUPPORTED_CURRENCY_LABELS[code]
-              : code}
+            {code}
           </option>
         ))}
       </select>

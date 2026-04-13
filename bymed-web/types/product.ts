@@ -21,6 +21,8 @@ export type ProductDto = {
   lowStockThreshold: number;
   isAvailable: boolean;
   sku?: string | null;
+  brand?: string | null;
+  clientType?: string | null;
   specifications?: Record<string, string> | null;
 };
 
@@ -33,6 +35,8 @@ export type CreateProductRequest = {
   inventoryCount: number;
   lowStockThreshold: number;
   sku?: string | null;
+  brand?: string | null;
+  clientType?: string | null;
   currency?: string | null;
   specifications?: Record<string, string> | null;
 };
@@ -45,5 +49,7 @@ export type UpdateProductRequest = {
   price: number;
   lowStockThreshold: number;
   sku?: string | null;
+  brand?: string | null;
+  clientType?: string | null;
   specifications?: Record<string, string> | null;
 };

@@ -4,10 +4,7 @@
   @if (initError()) {
     <app-global-error [message]="initError() ?? ''" />
     <div class="page-actions">
-      <a mat-stroked-button routerLink="/content">
-        <mat-icon>arrow_back</mat-icon>
-        Back to pages
-      </a>
+      <a pButton class="p-button-outlined" routerLink="/content">Back to pages</a>
     </div>
   } @else {
     <div class="page-header">
@@ -22,28 +19,23 @@
         </p>
       </div>
       <div class="header-actions">
-        <a mat-stroked-button routerLink="/content">
-          <mat-icon>arrow_back</mat-icon>
-          Back to list
-        </a>
+        <a pButton class="p-button-outlined" routerLink="/content">Back to list</a>
         @if (!isCreateMode()) {
-          <a mat-stroked-button [routerLink]="['/content', routeSlug(), 'history']">
-            <mat-icon>history</mat-icon>
+          <a pButton class="p-button-outlined" [routerLink]="['/content', routeSlug(), 'history']">
             Version history
           </a>
         }
-        <button mat-stroked-button type="button" (click)="discardChanges()" [disabled]="isSubmitting()">
+        <button pButton type="button" class="p-button-outlined" (click)="discardChanges()" [disabled]="isSubmitting()">
           {{ isCreateMode() ? 'Reset form' : 'Discard changes' }}
         </button>
         <button
-          mat-flat-button
-          color="primary"
+          pButton
           type="button"
           (click)="save()"
           [disabled]="isSubmitting() || isPreview()"
         >
           @if (isSubmitting()) {
-            <mat-spinner diameter="20" />
+            <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="7" />
           } @else {
             {{ isCreateMode() ? 'Create page' : 'Save' }}
           }
@@ -55,122 +47,198 @@
       <app-global-error [message]="pageError() ?? ''" />
     }
 
-    <mat-card class="card-block">
-      <mat-card-header>
-        <mat-card-title>View mode</mat-card-title>
-        <mat-card-subtitle>Preview renders HTML as it will appear on the site (admin-trusted content).</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-button-toggle-group
-          class="mode-toggle"
-          [value]="isPreview() ? 'preview' : 'edit'"
-          (change)="setPreview($event.value === 'preview')"
-          aria-label="Editor or preview"
-        >
-          <mat-button-toggle value="edit">Edit</mat-button-toggle>
-          <mat-button-toggle value="preview">Preview</mat-button-toggle>
-        </mat-button-toggle-group>
-      </mat-card-content>
-    </mat-card>
+    <section class="card-block">
+      <div class="card-head">
+        <h2>View mode</h2>
+        <p>Preview renders HTML as it will appear on the site.</p>
+      </div>
+      <div class="mode-toggle">
+        <button pButton type="button" [class.p-button-outlined]="isPreview()" (click)="setPreview(false)">Edit</button>
+        <button pButton type="button" [class.p-button-outlined]="!isPreview()" (click)="setPreview(true)">Preview</button>
+      </div>
+    </section>
 
     <form [formGroup]="pageForm" class="editor-form" (ngSubmit)="save()">
-      <mat-card class="card-block">
-        <mat-card-header>
-          <mat-card-title>Page</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="stack">
-          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-            <mat-label>Title</mat-label>
-            <input matInput formControlName="title" autocomplete="off" />
-            @if (pageForm.controls.title.hasError('required') && pageForm.controls.title.touched) {
-              <mat-error>Title is required.</mat-error>
-            }
-          </mat-form-field>
+      <section class="card-block">
+        <div class="card-head">
+          <h2>Page</h2>
+        </div>
+        <div class="stack">
+          <label class="field-label" for="title">Title</label>
+          <input id="title" pInputText class="full-width" formControlName="title" autocomplete="off" />
+          @if (pageForm.controls.title.hasError('required') && pageForm.controls.title.touched) {
+            <p class="field-error">Title is required.</p>
+          }
 
-          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-            <mat-label>URL slug</mat-label>
-            <input matInput formControlName="slug" autocomplete="off" />
-            <mat-hint>Lowercase letters, numbers, and hyphens only.</mat-hint>
-            @if (pageForm.controls.slug.hasError('pattern') && pageForm.controls.slug.touched) {
-              <mat-error>Invalid slug format.</mat-error>
-            }
-          </mat-form-field>
+          <label class="field-label" for="slug">URL slug</label>
+          <input id="slug" pInputText class="full-width" formControlName="slug" autocomplete="off" />
+          <small class="field-help">Lowercase letters, numbers, and hyphens only.</small>
+          @if (pageForm.controls.slug.hasError('pattern') && pageForm.controls.slug.touched) {
+            <p class="field-error">Invalid slug format.</p>
+          }
 
           <div class="publish-row">
-            <mat-slide-toggle formControlName="isPublished">Published on live site</mat-slide-toggle>
-            <span class="publish-hint">Draft pages are stored but not shown to the public storefront.</span>
+            <p-toggleswitch formControlName="isPublished"></p-toggleswitch>
+            <span>Published on live site</span>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <span class="publish-hint">Draft pages are stored but not shown to the public storefront.</span>
+        </div>
+      </section>
 
-      <mat-card class="card-block">
-        <mat-card-header>
-          <mat-card-title>Body</mat-card-title>
-          <mat-card-subtitle>Rich text; use the image button to upload and embed images.</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <input
-            #quillImageInput
-            type="file"
-            class="visually-hidden"
-            accept="image/*"
-            (change)="onQuillImageSelected($event)"
-            aria-hidden="true"
-            tabindex="-1"
-          />
-          @if (isUploadingQuillImage()) {
-            <div class="inline-status">
-              <mat-spinner diameter="24" />
-              <span>Uploading image…</span>
-            </div>
-            @if (quillUploadProgress() !== null) {
-              <mat-progress-bar mode="determinate" [value]="quillUploadProgress()!" class="upload-bar" />
+      <section class="card-block">
+        <div class="card-head">
+          <h2>Body</h2>
+          <p>
+            @if (isHomeSlug()) {
+              Home page uses structured JSON content.
+            } @else {
+              Rich text; use the image button to upload and embed images.
+            }
+          </p>
+        </div>
+        <div>
+          @if (!isHomeSlug()) {
+            <input
+              #quillImageInput
+              type="file"
+              class="visually-hidden"
+              accept="image/*"
+              (change)="onQuillImageSelected($event)"
+              aria-hidden="true"
+              tabindex="-1"
+            />
+            @if (isUploadingQuillImage()) {
+              <div class="inline-status">
+                <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="7" />
+                <span>Uploading image…</span>
+              </div>
+              @if (quillUploadProgress() !== null) {
+                <p-progressBar [value]="quillUploadProgress()!" class="upload-bar" />
+              }
             }
           }
+
           @if (isPreview()) {
-            <div class="preview-pane mat-elevation-z1">
-              <div class="preview-body" [innerHTML]="trustedPreviewHtml()"></div>
-            </div>
+            @if (isHomeSlug()) {
+              <div class="preview-pane">
+                <pre class="json-preview">{{ homeJsonPreview() }}</pre>
+              </div>
+            } @else {
+              <div class="preview-pane">
+                <div class="preview-body" [innerHTML]="trustedPreviewHtml()"></div>
+              </div>
+            }
           } @else {
-            <div class="quill-wrap">
-              <quill-editor
-                formControlName="content"
-                [theme]="'snow'"
-                [modules]="contentQuillModules"
-                placeholder="Page content…"
-                (onEditorCreated)="onContentEditorCreated($event)"
-              />
-            </div>
+            @if (isHomeSlug()) {
+              <label class="field-label" for="content">Home JSON content</label>
+              <textarea id="content" pTextarea formControlName="content" rows="20" class="full-width json-editor"></textarea>
+              <small class="field-help">Set featured products via picker below; IDs are stored in <code>featuredProductIds</code>.</small>
+              @if (homeJsonError()) {
+                <p class="field-error">{{ homeJsonError() }}</p>
+              }
+            } @else {
+              <div class="quill-wrap">
+                <quill-editor
+                  formControlName="content"
+                  [theme]="'snow'"
+                  [modules]="contentQuillModules"
+                  placeholder="Page content…"
+                  (onEditorCreated)="onContentEditorCreated($event)"
+                />
+              </div>
+            }
           }
           @if (pageForm.controls.content.hasError('required') && pageForm.controls.content.touched) {
             <p class="field-error">Content is required.</p>
           }
-        </mat-card-content>
-      </mat-card>
 
-      <mat-card class="card-block">
-        <mat-card-header>
-          <mat-card-title>SEO &amp; social</mat-card-title>
-          <mat-card-subtitle>Meta title and description for search; Open Graph image URL.</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content class="stack">
-          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-            <mat-label>Meta title</mat-label>
-            <input matInput formControlName="metaTitle" autocomplete="off" />
-            <mat-hint align="end">{{ pageForm.controls.metaTitle.value.length }} / {{ 100 }}</mat-hint>
-          </mat-form-field>
+          @if (isHomeSlug() && !isPreview()) {
+            <div class="featured-picker">
+              <h3 class="picker-title">Featured catalog products (max {{ 4 }})</h3>
+              <p class="picker-subtitle">
+                Search products and add them in display order. This updates <code>featuredProductIds</code> in JSON.
+              </p>
 
-          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-            <mat-label>Meta description</mat-label>
-            <textarea matInput formControlName="metaDescription" rows="3"></textarea>
-            <mat-hint align="end">{{ pageForm.controls.metaDescription.value.length }} / {{ 300 }}</mat-hint>
-          </mat-form-field>
+              <label class="field-label" for="featuredSearch">Search products</label>
+              <input id="featuredSearch" pInputText class="full-width" [formControl]="featuredSearch" autocomplete="off" />
+              <small class="field-help">Type at least 2 characters.</small>
 
-          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
-            <mat-label>OG image URL</mat-label>
-            <input matInput formControlName="ogImage" autocomplete="off" />
-            <mat-hint>Optional. Paste a URL or upload to fill this field.</mat-hint>
-          </mat-form-field>
+              @if (isSearchingFeaturedProducts()) {
+                <div class="inline-status">
+                  <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="7" />
+                  <span>Searching products…</span>
+                </div>
+              }
+
+              @if (featuredSearchResults().length > 0) {
+                <div class="search-results">
+                  @for (product of featuredSearchResults(); track product.id) {
+                    <button
+                      pButton
+                      class="p-button-outlined p-button-sm"
+                      type="button"
+                      (click)="addFeaturedProduct(product)"
+                      [disabled]="selectedFeaturedProducts().length >= 4"
+                    >
+                      + {{ product.name }}
+                    </button>
+                  }
+                </div>
+              }
+
+              <div class="selected-list">
+                @for (product of selectedFeaturedProducts(); track product.id; let i = $index) {
+                  <div class="selected-row">
+                    <div class="selected-meta">
+                      <strong>{{ i + 1 }}.</strong> {{ product.name }}
+                      <span class="selected-sub">({{ product.categoryName }})</span>
+                    </div>
+                    <div class="selected-actions">
+                      <button pButton type="button" [text]="true" [rounded]="true" (click)="moveFeaturedProduct(i, -1)" [disabled]="i === 0" aria-label="Move up">
+                        <i class="pi pi-arrow-up" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        pButton
+                        type="button"
+                        [text]="true"
+                        [rounded]="true"
+                        (click)="moveFeaturedProduct(i, 1)"
+                        [disabled]="i === selectedFeaturedProducts().length - 1"
+                        aria-label="Move down"
+                      >
+                        <i class="pi pi-arrow-down" aria-hidden="true"></i>
+                      </button>
+                      <button pButton type="button" [text]="true" [rounded]="true" (click)="removeFeaturedProduct(product.id)" aria-label="Remove product">
+                        <i class="pi pi-times" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="picker-empty">No featured products selected yet.</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="card-block">
+        <div class="card-head">
+          <h2>SEO &amp; social</h2>
+          <p>Meta title and description for search; Open Graph image URL.</p>
+        </div>
+        <div class="stack">
+          <label class="field-label" for="metaTitle">Meta title</label>
+          <input id="metaTitle" pInputText formControlName="metaTitle" class="full-width" autocomplete="off" />
+          <small class="field-help">{{ pageForm.controls.metaTitle.value.length }} / {{ 100 }}</small>
+
+          <label class="field-label" for="metaDescription">Meta description</label>
+          <textarea id="metaDescription" pTextarea formControlName="metaDescription" class="full-width" rows="3"></textarea>
+          <small class="field-help">{{ pageForm.controls.metaDescription.value.length }} / {{ 300 }}</small>
+
+          <label class="field-label" for="ogImage">OG image URL</label>
+          <input id="ogImage" pInputText formControlName="ogImage" class="full-width" autocomplete="off" />
+          <small class="field-help">Optional. Paste a URL or upload to fill this field.</small>
 
           <div class="og-actions">
             <input
@@ -183,24 +251,25 @@
               tabindex="-1"
             />
             <button
-              mat-stroked-button
+              pButton
+              class="p-button-outlined"
               type="button"
               (click)="openOgImagePicker()"
               [disabled]="isUploadingOgImage()"
             >
               @if (isUploadingOgImage()) {
-                <mat-spinner diameter="20" />
+                <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="7" />
               } @else {
-                <mat-icon>upload</mat-icon>
+                <i class="pi pi-upload" aria-hidden="true"></i>
               }
               Upload OG image
             </button>
             @if (ogUploadProgress() !== null) {
-              <mat-progress-bar mode="determinate" [value]="ogUploadProgress()!" class="upload-bar" />
+              <p-progressBar [value]="ogUploadProgress()!" class="upload-bar" />
             }
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </section>
     </form>
   }
 }

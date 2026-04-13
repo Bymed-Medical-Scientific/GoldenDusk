@@ -1,3 +1,4 @@
+import sitemap from "@/app/sitemap";
 import { listProducts } from "@/lib/api/products";
 import fc from "fast-check";
 

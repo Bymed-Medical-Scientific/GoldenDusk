@@ -9,15 +9,6 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Data, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { QuillEditorComponent } from 'ngx-quill';
@@ -25,11 +16,14 @@ import Quill from 'quill';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import {
   catchError,
+  debounceTime,
   distinctUntilChanged,
   EMPTY,
   filter,
   finalize,
+  forkJoin,
   map,
+  of,
   startWith,
   switchMap,
   tap
@@ -40,6 +34,13 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/co
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ContentImageUploadDto, PageContentSummaryDto } from '@shared/models';
+import { ProductDto } from '@shared/models';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TextareaModule } from 'primeng/textarea';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
 const TITLE_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
@@ -48,6 +49,7 @@ const CONTENT_MAX_HTML_LENGTH = 200_000;
 const META_TITLE_MAX = 100;
 const META_DESCRIPTION_MAX = 300;
 const OG_IMAGE_MAX = 2000;
+const HOME_FEATURED_PRODUCTS_LIMIT = 4;
 
 function isHtmlContentEmpty(html: string): boolean {
   const text = html
@@ -67,21 +69,18 @@ function nonEmptyHtmlValidator(control: AbstractControl): ValidationErrors | nul
   selector: 'app-content-editor-page',
   standalone: true,
   imports: [
+    ButtonModule,
     ReactiveFormsModule,
     RouterLink,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatCardModule,
+    InputTextModule,
+    TextareaModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressBarModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule,
     MatSnackBarModule,
     PageLoadingComponent,
+    ProgressBarModule,
+    ProgressSpinnerModule,
+    ToggleSwitchModule,
     QuillEditorComponent
   ],
   templateUrl: './content-editor-page.component.html',
@@ -131,6 +130,11 @@ export class ContentEditorPageComponent implements OnInit {
   protected readonly isUploadingOgImage = signal(false);
   protected readonly quillUploadProgress = signal<number | null>(null);
   protected readonly ogUploadProgress = signal<number | null>(null);
+  protected readonly featuredSearch = this.fb.nonNullable.control('');
+  protected readonly featuredSearchResults = signal<ProductDto[]>([]);
+  protected readonly selectedFeaturedProducts = signal<ProductDto[]>([]);
+  protected readonly isSearchingFeaturedProducts = signal(false);
+  protected readonly homeJsonError = signal<string | null>(null);
 
   protected readonly contentQuillModules = {
     toolbar: [
@@ -155,6 +159,32 @@ export class ContentEditorPageComponent implements OnInit {
   });
 
   public ngOnInit(): void {
+    this.pageForm.controls.slug.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncHomeFeaturedProductsFromContent());
+
+    this.featuredSearch.valueChanges
+      .pipe(
+        startWith(this.featuredSearch.value),
+        map((value) => value.trim()),
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((term) => {
+          if (!this.isHomeSlug() || term.length < 2) {
+            this.isSearchingFeaturedProducts.set(false);
+            return of<ProductDto[]>([]);
+          }
+          this.isSearchingFeaturedProducts.set(true);
+          return this.adminApi.getProducts(1, 8, { search: term }).pipe(
+            map((paged) => paged.items),
+            catchError(() => of<ProductDto[]>([])),
+            finalize(() => this.isSearchingFeaturedProducts.set(false))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((items) => this.featuredSearchResults.set(items));
+
     if (this.isCreateMode()) {
       this.lookupSlug = '';
       this.initError.set(null);
@@ -171,6 +201,7 @@ export class ContentEditorPageComponent implements OnInit {
         isPublished: false
       });
       this.pageForm.markAsPristine();
+      this.syncHomeFeaturedProductsFromContent();
       return;
     }
 
@@ -202,6 +233,45 @@ export class ContentEditorPageComponent implements OnInit {
       .subscribe((page) => this.patchFromPage(page));
   }
 
+  protected isHomeSlug(): boolean {
+    const slug = this.pageForm.controls.slug.value?.trim().toLowerCase() ?? '';
+    const lookup = this.lookupSlug.trim().toLowerCase();
+    return slug === 'home' || lookup === 'home';
+  }
+
+  protected homeJsonPreview(): string {
+    const parsed = this.parseHomeContentObject();
+    if (!parsed) {
+      return this.pageForm.controls.content.value ?? '';
+    }
+    return JSON.stringify(parsed, null, 2);
+  }
+
+  protected addFeaturedProduct(product: ProductDto): void {
+    const current = this.selectedFeaturedProducts();
+    if (current.some((p) => p.id === product.id) || current.length >= HOME_FEATURED_PRODUCTS_LIMIT) {
+      return;
+    }
+    this.selectedFeaturedProducts.set([...current, product]);
+    this.persistSelectedFeaturedProducts();
+  }
+
+  protected removeFeaturedProduct(productId: string): void {
+    const next = this.selectedFeaturedProducts().filter((p) => p.id !== productId);
+    this.selectedFeaturedProducts.set(next);
+    this.persistSelectedFeaturedProducts();
+  }
+
+  protected moveFeaturedProduct(index: number, direction: -1 | 1): void {
+    const current = [...this.selectedFeaturedProducts()];
+    const target = index + direction;
+    if (target < 0 || target >= current.length) return;
+    const [picked] = current.splice(index, 1);
+    current.splice(target, 0, picked);
+    this.selectedFeaturedProducts.set(current);
+    this.persistSelectedFeaturedProducts();
+  }
+
   protected onContentEditorCreated(quill: Quill): void {
     this.quillInstance = quill;
     const toolbar = quill.getModule('toolbar') as { addHandler: (name: string, fn: () => void) => void };
@@ -218,6 +288,78 @@ export class ContentEditorPageComponent implements OnInit {
   protected trustedPreviewHtml(): SafeHtml {
     const html = this.pageForm.controls.content.value;
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  private parseHomeContentObject(): Record<string, unknown> | null {
+    if (!this.isHomeSlug()) return null;
+    const raw = this.pageForm.controls.content.value?.trim() ?? '';
+    if (!raw) return {};
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        this.homeJsonError.set(null);
+        return parsed as Record<string, unknown>;
+      }
+      this.homeJsonError.set('Home content must be a JSON object.');
+      return null;
+    } catch {
+      this.homeJsonError.set('Home content is not valid JSON.');
+      return null;
+    }
+  }
+
+  private readFeaturedIdsFromHomeContent(): string[] {
+    const parsed = this.parseHomeContentObject();
+    if (!parsed) return [];
+    const value = parsed['featuredProductIds'];
+    if (!Array.isArray(value)) return [];
+    const seen = new Set<string>();
+    const ids: string[] = [];
+    for (const item of value) {
+      const id = typeof item === 'string' ? item.trim() : '';
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      ids.push(id);
+    }
+    return ids.slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+  }
+
+  private persistSelectedFeaturedProducts(): void {
+    if (!this.isHomeSlug()) return;
+    const parsed = this.parseHomeContentObject();
+    if (!parsed) return;
+    parsed['featuredProductIds'] = this.selectedFeaturedProducts()
+      .map((p) => p.id)
+      .slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+    this.pageForm.controls.content.setValue(JSON.stringify(parsed, null, 2));
+    this.pageForm.controls.content.markAsDirty();
+    this.pageForm.markAsDirty();
+    this.homeJsonError.set(null);
+  }
+
+  private syncHomeFeaturedProductsFromContent(): void {
+    if (!this.isHomeSlug()) {
+      this.selectedFeaturedProducts.set([]);
+      this.featuredSearchResults.set([]);
+      this.homeJsonError.set(null);
+      return;
+    }
+    const ids = this.readFeaturedIdsFromHomeContent();
+    if (ids.length === 0) {
+      this.selectedFeaturedProducts.set([]);
+      return;
+    }
+    forkJoin(
+      ids.map((id) =>
+        this.adminApi.getProductById(id).pipe(catchError(() => of<ProductDto | null>(null)))
+      )
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((products) => {
+        const byId = new Map(products.filter((p): p is ProductDto => Boolean(p)).map((p) => [p.id, p]));
+        const ordered = ids.map((id) => byId.get(id)).filter((p): p is ProductDto => Boolean(p));
+        this.selectedFeaturedProducts.set(ordered);
+      });
   }
 
   protected openQuillImagePicker(): void {
@@ -491,6 +633,7 @@ export class ContentEditorPageComponent implements OnInit {
       ogImage: page.metadata?.ogImage ?? '',
       isPublished: page.isPublished
     });
+    this.syncHomeFeaturedProductsFromContent();
     this.pageForm.markAsPristine();
   }
 }

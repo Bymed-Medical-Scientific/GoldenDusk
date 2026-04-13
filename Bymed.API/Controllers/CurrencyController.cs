@@ -34,7 +34,7 @@ public sealed class CurrencyController : ControllerBase
         }
     }
 
-    /// <summary>Detect default display currency (USD, ZAR, KES, NGN) from the caller IP.</summary>
+    /// <summary>Detect default display currency (USD or ZAR) from the caller IP.</summary>
     [HttpGet("detect")]
     [ProducesResponseType(typeof(CurrencyDetectResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Detect(CancellationToken cancellationToken)

@@ -5,24 +5,32 @@ type CatalogPaginationProps = {
   pageNumber: number;
   totalPages: number;
   q?: string;
+  brand?: string;
+  clientType?: string;
   categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
 };
 
 export function CatalogPagination({
   pageNumber,
   totalPages,
   q,
+  brand,
+  clientType,
   categoryId,
+  minPrice,
+  maxPrice,
 }: CatalogPaginationProps) {
   if (totalPages <= 1) return null;
 
   const prev =
     pageNumber > 1
-      ? buildProductsHref({ q, categoryId, page: pageNumber - 1 })
+      ? buildProductsHref({ q, brand, clientType, categoryId, minPrice, maxPrice, page: pageNumber - 1 })
       : null;
   const next =
     pageNumber < totalPages
-      ? buildProductsHref({ q, categoryId, page: pageNumber + 1 })
+      ? buildProductsHref({ q, brand, clientType, categoryId, minPrice, maxPrice, page: pageNumber + 1 })
       : null;
 
   const windowSize = 5;
@@ -42,24 +50,24 @@ export function CatalogPagination({
       {prev ? (
         <Link
           href={prev}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
-          Previous
+          {"<"}
         </Link>
       ) : (
-        <span className="rounded-md border border-transparent px-3 py-2 text-sm text-muted-foreground">
-          Previous
+        <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-transparent px-3 text-sm text-muted-foreground">
+          {"<"}
         </span>
       )}
       <ul className="flex flex-wrap items-center gap-1">
         {pages.map((p) => {
           const active = p === pageNumber;
-          const href = buildProductsHref({ q, categoryId, page: p });
+          const href = buildProductsHref({ q, brand, clientType, categoryId, minPrice, maxPrice, page: p });
           return (
             <li key={p}>
               {active ? (
                 <span
-                  className="inline-flex min-w-[2.25rem] justify-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-brand-foreground"
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-brand px-3 text-sm font-semibold text-brand-foreground"
                   aria-current="page"
                 >
                   {p}
@@ -67,7 +75,7 @@ export function CatalogPagination({
               ) : (
                 <Link
                   href={href}
-                  className="inline-flex min-w-[2.25rem] justify-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                 >
                   {p}
                 </Link>
@@ -79,13 +87,13 @@ export function CatalogPagination({
       {next ? (
         <Link
           href={next}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
-          Next
+          {">"}
         </Link>
       ) : (
-        <span className="rounded-md border border-transparent px-3 py-2 text-sm text-muted-foreground">
-          Next
+        <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-transparent px-3 text-sm text-muted-foreground">
+          {">"}
         </span>
       )}
     </nav>

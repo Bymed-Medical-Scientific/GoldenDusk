@@ -1,10 +1,11 @@
-import { ApplicationConfig, ErrorHandler, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, ErrorHandler } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeuix/themes/aura';
 import { authTokenInterceptor } from '@core/interceptors/auth-token.interceptor';
 import { apiErrorInterceptor } from '@core/interceptors/api-error.interceptor';
 import { httpRetryInterceptor } from '@core/interceptors/http-retry.interceptor';
@@ -17,7 +18,14 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([authTokenInterceptor, httpRetryInterceptor, apiErrorInterceptor])
     ),
-    importProvidersFrom(MatSnackBarModule),
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+        options: {
+          darkModeSelector: '.app-dark'
+        }
+      }
+    }),
     { provide: ErrorHandler, useClass: GlobalAdminErrorHandler },
     provideAnimationsAsync(),
     provideQuillConfig({
