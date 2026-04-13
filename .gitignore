@@ -68,6 +68,7 @@ ScaffoldingReadMe.txt
 
 # Local/dev settings (may contain connection strings, secrets)
 appsettings.Development.json
+.env
 
 # StyleCop
 StyleCopReport.xml
