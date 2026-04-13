@@ -22,10 +22,13 @@ jest.mock("@/lib/site-url", () => ({
   absoluteUrl: jest.fn((path: string) => `https://bymed.example${path}`),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Jest needs sync access to mocked modules
 const HomePage = require("@/app/page").default as () => Promise<JSX.Element>;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const CmsBySlugPage = require("@/app/[slug]/page").default as (props: {
   params: { slug: string };
 }) => Promise<JSX.Element>;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const ContactPage = require("@/app/contact/page").default as () => JSX.Element;
 
 // Feature: bymed-website, Property 29: HTML Semantic Structure

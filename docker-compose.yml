@@ -1,0 +1,130 @@
+services:
+
+  # ─── Infrastructure ─────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bymed_postgres
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB:       ${POSTGRES_DB:-BymedDB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-BymedDB}"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: bymed_redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:     ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    restart: unless-stopped
+
+  # ─── Backend API ─────────────────────────────────────────────────────────────
+
+  api:
+    build:
+      context:    .
+      dockerfile: docker/api/Dockerfile
+    container_name: bymed_api
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS:        http://+:8080
+
+      # Database (must be one line — YAML block scalars insert spaces that break Npgsql key parsing)
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-BymedDB};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379"
+
+      # Runs EF Core migrations on startup (set to false once stable).
+      Database__ApplyMigrations: "true"
+
+      # Auth
+      Jwt__SecretKey:          ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+      Jwt__Issuer:             ${JWT_ISSUER:-BymedApi}
+      Jwt__Audience:           ${JWT_AUDIENCE:-BymedApi}
+      Jwt__ExpirationMinutes:  ${JWT_EXPIRATION_MINUTES:-60}
+
+      # Email
+      Email__FromAddress:           ${EMAIL_FROM_ADDRESS}
+      Email__FromName:              ${EMAIL_FROM_NAME:-Bymed}
+      Email__Host:                  ${EMAIL_HOST}
+      Email__Port:                  ${EMAIL_PORT:-587}
+      Email__UseSsl:                ${EMAIL_USE_SSL:-true}
+      Email__Username:              ${EMAIL_USERNAME}
+      Email__Password:              ${EMAIL_PASSWORD}
+      Email__ContactFormRecipient:  ${EMAIL_CONTACT_RECIPIENT}
+      Email__PasswordResetBaseUrl:  ${PASSWORD_RESET_BASE_URL:-https://bymed.co.zw/reset-password}
+
+      # CORS — must match the public-facing origins browsers use.
+      Cors__AllowedOrigins__0: ${WEB_ORIGIN:-http://localhost:3000}
+      Cors__AllowedOrigins__1: ${ADMIN_ORIGIN:-http://localhost:4200}
+
+      # File storage
+      FileStorage__RootPath:     /app/wwwroot/uploads
+      FileStorage__PublicBaseUrl: /uploads/
+
+      AllowedHosts: ${ALLOWED_HOSTS:-*}
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+      - logs_data:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Next.js Storefront ──────────────────────────────────────────────────────
+
+  web:
+    build:
+      context:    ./bymed-web
+      # Path is relative to the build context (bymed-web/), so ../docker/web resolves to docker/web/.
+      dockerfile: ../docker/web/Dockerfile
+      args:
+        # Baked into the client bundle — must be the URL browsers use to reach the API.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    container_name: bymed_web
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV:              production
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Server-side (SSR) calls go directly over the Docker bridge network.
+      BYMED_API_INTERNAL_URL: http://api:8080
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ─── Angular Admin ───────────────────────────────────────────────────────────
+
+  admin:
+    build:
+      context:    ./bymed-admin
+      dockerfile: ../docker/admin/Dockerfile
+    container_name: bymed_admin
+    ports:
+      - "${ADMIN_PORT:-4200}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+# ─── Persistent volumes ────────────────────────────────────────────────────────
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+  logs_data:

@@ -1,0 +1,52 @@
+# ─── Used by: docker/api/Dockerfile (context = project root) ─────────────────
+
+# Version control
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# IDE & tooling
+.vs/
+.idea/
+.cursor/
+*.user
+*.suo
+
+# .NET build artifacts (rebuilt inside the container)
+**/bin/
+**/obj/
+**/TestResults/
+**/BenchmarkDotNet.Artifacts/
+
+# Test project — not deployed
+Bymed.Tests/
+
+# Front-end projects — not needed for the API build
+bymed-web/
+bymed-admin/
+
+# Node
+**/node_modules/
+
+# Documentation & planning
+Planning/
+*.md
+!README.md
+
+# Docker files (no need to copy them into the image)
+docker/
+docker-compose.yml
+docker-compose*.yml
+.env
+.env.*
+!.env.example
+
+# Logs & secrets
+**/logs/
+**/appsettings.Development.json
+**/appsettings.*.json
+!**/appsettings.json
+
+# Uploads (served from a named volume at runtime)
+**/wwwroot/uploads/

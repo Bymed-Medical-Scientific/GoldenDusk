@@ -1,0 +1,15 @@
+# ─── Used by: docker/admin/Dockerfile (context = bymed-admin/) ───────────────
+
+node_modules/
+dist/
+.angular/
+
+.env
+.env.*
+
+.git/
+*.md
+coverage/
+
+# macOS
+.DS_Store

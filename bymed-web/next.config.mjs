@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Produces a self-contained build under .next/standalone — required for the Docker image.
+  output: "standalone",
   images: {
     // Product image hosts vary across deployments (CDN, API host).
     remotePatterns: [

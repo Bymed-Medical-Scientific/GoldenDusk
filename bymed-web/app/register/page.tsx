@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth/credentials-validation";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 type FormErrors = {
   name?: string;
@@ -24,7 +24,7 @@ function validateName(name: string): string | null {
   return null;
 }
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const { register, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -191,5 +191,19 @@ export default function RegisterPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16">
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
   );
 }

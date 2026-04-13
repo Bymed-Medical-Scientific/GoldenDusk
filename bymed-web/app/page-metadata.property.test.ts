@@ -16,11 +16,13 @@ jest.mock("@/lib/site-url", () => ({
 
 const getPageBySlugMock = getPageBySlug as jest.MockedFunction<typeof getPageBySlug>;
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Jest needs sync access to mocked modules
 const generateHomeMetadata = require("@/app/page").generateMetadata as () => Promise<{
   title?: unknown;
   description?: unknown;
   openGraph?: { title?: unknown; description?: unknown };
 }>;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const generateCmsSlugMetadata = require("@/app/[slug]/page").generateMetadata as (opts: {
   params: { slug: string };
 }) => Promise<{
