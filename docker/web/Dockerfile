@@ -33,6 +33,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Default bridge hostname for the `api` service (compose overrides if needed).
+ENV BYMED_API_INTERNAL_URL=http://api:8080
 
 RUN addgroup --system --gid 1001 nodejs \
     && adduser  --system --uid 1001 nextjs

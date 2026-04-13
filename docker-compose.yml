@@ -67,15 +67,22 @@ services:
       Email__ContactFormRecipient:  ${EMAIL_CONTACT_RECIPIENT}
       Email__PasswordResetBaseUrl:  ${PASSWORD_RESET_BASE_URL:-https://bymed.co.zw/reset-password}
 
-      # CORS — must match the public-facing origins browsers use.
+      # CORS — must match the public-facing origins browsers use (localhost and 127.0.0.1).
       Cors__AllowedOrigins__0: ${WEB_ORIGIN:-http://localhost:3000}
       Cors__AllowedOrigins__1: ${ADMIN_ORIGIN:-http://localhost:4200}
+      Cors__AllowedOrigins__2: ${WEB_ORIGIN_ALT:-http://127.0.0.1:3000}
+      Cors__AllowedOrigins__3: ${ADMIN_ORIGIN_ALT:-http://127.0.0.1:4200}
 
       # File storage
       FileStorage__RootPath:     /app/wwwroot/uploads
       FileStorage__PublicBaseUrl: /uploads/
 
-      AllowedHosts: ${ALLOWED_HOSTS:-*}
+      # Docker-safe host filtering (includes service-to-service host `api`).
+      # Use ALLOWED_HOSTS_DOCKER to override locally without affecting non-Docker environments.
+      AllowedHosts: "${ALLOWED_HOSTS_DOCKER:-localhost;127.0.0.1;[::1];api;host.docker.internal;bymed.co.zw}"
+      # OpenAPI + Scalar (same routes as Development). Set OpenApi__ServerUrl if Try-it must target a public URL.
+      ApiDocs__Enabled: "true"
+      App__UseHttpsRedirection: "false"
     volumes:
       - uploads_data:/app/wwwroot/uploads
       - logs_data:/app/logs
@@ -114,6 +121,9 @@ services:
     build:
       context:    ./bymed-admin
       dockerfile: ../docker/admin/Dockerfile
+      args:
+        # Origin the *browser* uses to reach the API (same host as docker compose port map).
+        ADMIN_API_PUBLIC_URL: ${ADMIN_API_PUBLIC_URL:-http://localhost:8080}
     container_name: bymed_admin
     ports:
       - "${ADMIN_PORT:-4200}:80"

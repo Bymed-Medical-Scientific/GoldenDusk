@@ -465,7 +465,11 @@ app.UseGlobalExceptionHandler();
 
 // Configure the HTTP request pipeline.
 
-if (app.Environment.IsDevelopment())
+var exposeApiDocs = app.Environment.IsDevelopment()
+
+    || app.Configuration.GetValue("ApiDocs:Enabled", false);
+
+if (exposeApiDocs)
 
 {
 
@@ -475,7 +479,7 @@ if (app.Environment.IsDevelopment())
 
 }
 
-else
+if (!app.Environment.IsDevelopment())
 
 {
 
@@ -487,11 +491,18 @@ else
 
 // In Development, skip HTTP→HTTPS redirect so server-side callers (e.g. Next.js SSR to
 // http://127.0.0.1:5084) are not 307'd to HTTPS where Node rejects the dev certificate.
+// In Docker, Kestrel often listens on HTTP only — set App:UseHttpsRedirection=false when TLS is at the edge.
 if (!app.Environment.IsDevelopment())
 
 {
 
-    app.UseHttpsRedirection();
+    if (app.Configuration.GetValue("App:UseHttpsRedirection", true))
+
+    {
+
+        app.UseHttpsRedirection();
+
+    }
 
 }
 

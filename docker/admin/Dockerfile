@@ -11,7 +11,12 @@ RUN npm install --no-audit --no-fund
 
 COPY . .
 
-RUN npm run build -- --configuration production
+# Browser-reachable API origin (no path). Default matches compose API_PORT 8080.
+ARG ADMIN_API_PUBLIC_URL=http://localhost:8080
+ENV ADMIN_API_PUBLIC_URL=$ADMIN_API_PUBLIC_URL
+RUN node scripts/generate-docker-environment.mjs
+
+RUN npm run build -- --configuration docker
 
 # ─── Stage 2: Serve with nginx ────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
