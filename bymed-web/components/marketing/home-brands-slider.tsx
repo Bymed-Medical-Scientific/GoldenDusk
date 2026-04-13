@@ -7,59 +7,67 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import Autoplay from "embla-carousel-autoplay";
+import Image from "next/image";
 import { useMemo } from "react";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 
-/** Partner / supplier brands: HTTPS sites only; text tiles avoid third-party image failures. */
+/** Partner / supplier brands with local logo assets and HTTPS links. */
 export const HOME_BRAND_SLIDER_ITEMS = [
-  {
-    name: "Edibon",
-    href: "https://www.edibon.com/en/",
-  },
-  {
-    name: "Tekno",
-    href: "https://www.tekno-medical.com/en/",
-  },
   {
     name: "3B Scientific",
     href: "https://www.3bscientific.com/",
+    logoSrc: "/assets/brands/3BLogo-CJedIKtz-300x51.webp",
+  },
+  {
+    name: "Protec",
+    href: "https://www.protec.com/",
+    logoSrc: "/assets/brands/protecLogo-CENtqv4W-300x240.webp",
+  },
+  {
+    name: "MRC",
+    href: "https://www.mrclab.com/",
+    logoSrc: "/assets/brands/MRC-D7Wnwzwr.webp",
   },
   {
     name: "Adam Equipment",
     href: "https://www.adamequipment.com/",
+    logoSrc: "/assets/brands/download-300x48.webp",
+  },
+  {
+    name: "Tekno Medical",
+    href: "https://www.tekno-medical.com/en/",
+    logoSrc: "/assets/brands/tk_logo415_02-300x181.webp",
   },
   {
     name: "Narang",
-    href: "https://www.narang.com/",
+    href: "https://www.netbrand.co.za/",
+    logoSrc: "/assets/brands/net-logo-DrM9r0wY-300x129.webp",
   },
   {
-    name: "Roche",
-    href: "https://www.roche.com/",
+    name: "Edibon",
+    href: "https://www.edibon.com/en/",
+    logoSrc: "/assets/brands/edibon.png",
   },
   {
-    name: "Philips",
-    href: "https://www.philips.com/",
+    name: "Stahlmann Pro",
+    href: "https://stahlmann.co.za/",
+    logoSrc: "/assets/brands/StahlmannPro-DbcylnKC.webp",
   },
   {
-    name: "GE Healthcare",
-    href: "https://www.gehealthcare.com/",
-  },
-  {
-    name: "Terumo",
-    href: "https://www.terumo.com/",
-  },
-  {
-    name: "Olympus",
-    href: "https://www.olympus-lifescience.com/",
+    name: "CSE Medical",
+    href: "https://csemedical.co.za/",
+    logoSrc: "/assets/brands/logo-medical-CSE-Final-300x162.webp",
   },
 ] as const;
 
 function BrandSlide({
   name,
   href,
+  logoSrc,
 }: {
   name: string;
   href: string;
+  logoSrc: string;
 }) {
   return (
     <a
@@ -67,14 +75,20 @@ function BrandSlide({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "flex h-24 min-h-24 w-full items-center justify-center rounded-xl px-4 py-3 ring-1 ring-border/60 transition-[opacity,box-shadow] hover:bg-muted/50 hover:ring-border",
+        "flex h-24 min-h-24 w-full items-center justify-center rounded-xl bg-background px-4 py-3 ring-1 ring-border/60 transition-[opacity,box-shadow] hover:bg-muted/50 hover:ring-border",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       )}
       aria-label={`${name} website (opens in new tab)`}
     >
-      <span className="font-heading text-center text-lg font-semibold tracking-tight text-foreground/80">
-        {name}
-      </span>
+      <div className="relative h-14 w-full max-w-[220px]">
+        <Image
+          src={logoSrc}
+          alt={`${name} logo`}
+          fill
+          className="object-contain"
+          sizes="220px"
+        />
+      </div>
     </a>
   );
 }
@@ -133,6 +147,7 @@ export function HomeBrandsSlider() {
                     <BrandSlide
                       name={brand.name}
                       href={brand.href}
+                      logoSrc={brand.logoSrc}
                     />
                   </MotionFadeUp>
                 </CarouselItem>
