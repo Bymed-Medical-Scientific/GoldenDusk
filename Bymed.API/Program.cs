@@ -448,6 +448,9 @@ using (var scope = app.Services.CreateScope())
 
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+    if (app.Configuration.GetValue("Database:ApplyMigrations", false))
+        await db.Database.MigrateAsync();
+
     var pageLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("PageContentSeeder");
 
     await PageContentSeeder.SeedAsync(db, pageLogger);

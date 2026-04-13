@@ -11,6 +11,10 @@ jest.mock("@/lib/site-url", () => ({
 }));
 
 const listProductsMock = listProducts as jest.MockedFunction<typeof listProducts>;
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Jest needs sync access to mocked modules
+const sitemap = require("@/app/sitemap").default as () => Promise<
+  Array<{ url: string }>
+>;
 
 function paginate(ids: string[], pageSize: number): string[][] {
   if (ids.length === 0) return [[]];
