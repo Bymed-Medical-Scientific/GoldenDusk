@@ -4,7 +4,7 @@
 
 /*
   BYMED brand: primary #0000CC, white on primary, black bar accent on buttons (logo).
-  Typography: Inter (body) + Poppins (headings) + Great Vibes (accent script).
+  Typography: Inter (body) + Poppins (headings) + Great Vibes (accent script), via Fontsource in app/fontface.css (no Google fetch at build).
   Dark theme: deeper surfaces so bands (muted/card) read clearly vs background.
 */
 :root {

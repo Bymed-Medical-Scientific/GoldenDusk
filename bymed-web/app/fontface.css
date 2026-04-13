@@ -1,0 +1,13 @@
+/* Self-hosted fonts (Fontsource) — Docker/CI builds must not call Google Fonts at build time. */
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/great-vibes/400.css";
+
+:root {
+  --font-inter: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "Great Vibes", cursive;
+}

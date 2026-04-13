@@ -9,7 +9,7 @@ export type AboutStat = {
   compact?: boolean;
 };
 
-function formatStatValue({ value, suffix, compact }: AboutStat, count: number): string {
+function formatStatValue({ suffix, compact }: AboutStat, count: number): string {
   if (compact) {
     const compactValue =
       count >= 1000

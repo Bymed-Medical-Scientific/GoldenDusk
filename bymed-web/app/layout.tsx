@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Great_Vibes, Inter, Poppins } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-context";
 import { CartProvider } from "@/components/cart/cart-context";
 import { CurrencyProvider } from "@/components/currency/currency-context";
@@ -7,28 +6,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSiteBaseUrl } from "@/lib/site-url";
+import "./fontface.css";
 import "./globals.css";
-
-/** Body: Inter. Display: Poppins (bold geometric). Accent script: Great Vibes — matches reference pairing. */
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-
-const greatVibes = Great_Vibes({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-script",
-  display: "swap",
-});
 
 const siteBaseUrl = getSiteBaseUrl();
 
@@ -59,12 +38,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${poppins.variable} ${greatVibes.variable}`}
-    >
-      <body className={`${inter.className} font-sans antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

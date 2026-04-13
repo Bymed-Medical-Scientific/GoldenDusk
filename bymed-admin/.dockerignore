@@ -1,6 +1,7 @@
 # ─── Used by: docker/admin/Dockerfile (context = bymed-admin/) ───────────────
 
 node_modules/
+**/node_modules/
 dist/
 .angular/
 
