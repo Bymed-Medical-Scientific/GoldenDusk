@@ -46,7 +46,20 @@ export function resolveProductImageUrl(
   if (url == null) return undefined;
   const u = ensureUploadsImagePath(url.trim());
   if (!u) return undefined;
-  if (u.startsWith("https://") || u.startsWith("http://")) return u;
+  if (u.startsWith("https://") || u.startsWith("http://")) {
+    try {
+      const parsed = new URL(u);
+      // In Docker/prod, Next image optimizer runs in the web container.
+      // Proxy API-hosted uploads through same-origin so optimizer never depends on external host reachability.
+      if (/^\/uploads\//i.test(parsed.pathname)) {
+        return `/api/bymed${parsed.pathname}${parsed.search}`;
+      }
+      return u;
+    } catch {
+      return u;
+    }
+  }
+  if (u.startsWith("/uploads/")) return `/api/bymed${u}`;
   const base = getPublicApiBaseUrl();
   if (!base) return undefined;
   return joinUrl(base, u.startsWith("/") ? u.slice(1) : u);
