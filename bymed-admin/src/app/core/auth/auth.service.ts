@@ -2,10 +2,13 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '@core/api/api.service';
 import {
+  AdminRegisterOutcome,
   LoginRequestDto,
   LoginResponseDto,
   RefreshTokenRequestDto,
-  RefreshTokenResponseDto
+  RefreshTokenResponseDto,
+  RegisterRequestDto,
+  RegisterResponseDto
 } from '@shared/models';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { AuthTokenStorageService } from './auth-token-storage.service';
@@ -24,6 +27,49 @@ export class AuthService {
     return this.apiService
       .post<LoginRequestDto, LoginResponseDto>('auth/login', request)
       .pipe(tap((response) => this.persistLogin(response)));
+  }
+
+  /** Persists access/refresh tokens and user (e.g. after login or bootstrap register). */
+  public setSession(response: LoginResponseDto): void {
+    this.persistLogin(response);
+  }
+
+  /**
+   * Admin SPA sign-up: uses `AdminPanel` channel. Returns a session only when the account is active
+   * (e.g. first bootstrap admin); otherwise approval is required first.
+   */
+  public registerAdmin(request: Omit<RegisterRequestDto, 'registrationChannel'>): Observable<AdminRegisterOutcome> {
+    const body: RegisterRequestDto = {
+      ...request,
+      registrationChannel: 'AdminPanel'
+    };
+
+    return this.apiService.postWithResponse<RegisterRequestDto, RegisterResponseDto>('auth/register', body).pipe(
+      map((res) => {
+        const payload = res.body;
+        if (!payload) {
+          throw new Error('Empty response from server.');
+        }
+
+        const pending =
+          res.status === 202 ||
+          payload.pendingAdminApproval === true ||
+          !payload.token ||
+          !payload.refreshToken;
+
+        if (pending) {
+          return { kind: 'pendingApproval' as const };
+        }
+
+        const login: LoginResponseDto = {
+          user: payload.user,
+          token: payload.token!,
+          refreshToken: payload.refreshToken!
+        };
+
+        return { kind: 'session' as const, login };
+      })
+    );
   }
 
   public logout(): Observable<void> {

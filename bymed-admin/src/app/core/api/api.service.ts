@@ -1,4 +1,4 @@
-import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams, HttpResponse } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
@@ -25,6 +25,11 @@ export class ApiService {
 
   public post<TRequest, TResponse>(path: string, payload: TRequest): Observable<TResponse> {
     return this.httpClient.post<TResponse>(this.buildUrl(path), payload);
+  }
+
+  /** Full HTTP response (e.g. to distinguish 201 vs 202). */
+  public postWithResponse<TRequest, TBody>(path: string, payload: TRequest): Observable<HttpResponse<TBody>> {
+    return this.httpClient.post<TBody>(this.buildUrl(path), payload, { observe: 'response' });
   }
 
   public postWithQuery<TRequest, TResponse>(

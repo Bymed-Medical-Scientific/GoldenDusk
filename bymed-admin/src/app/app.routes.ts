@@ -13,6 +13,14 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'register',
+    canActivate: [loginRouteGuard],
+    loadComponent: () =>
+      import('@features/auth/pages/register-page.component').then(
+        (m) => m.RegisterPageComponent
+      )
+  },
+  {
     path: '',
     canActivate: [authGuard],
     canActivateChild: [authChildGuard],

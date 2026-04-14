@@ -15,16 +15,27 @@
 
   <section class="login-card">
     <div class="logo-wrap" aria-hidden="true">
-      <i class="pi pi-shield"></i>
+      <i class="pi pi-user-plus"></i>
     </div>
-    <h1>Welcome to ByMed Admin</h1>
-    <p class="subtitle">Sign in to continue</p>
+    <h1>Create admin account</h1>
+    <p class="subtitle">Sign up for access to ByMed Admin</p>
+    <p class="policy-note">
+      New accounts may require approval from an existing administrator before you can sign in.
+    </p>
 
-    @if (infoMessage()) {
-      <p class="info-text">{{ infoMessage() }}</p>
-    }
+    <form [formGroup]="registerForm" (ngSubmit)="submit()" class="login-form">
+      <div class="field-group">
+        <label for="name">Full name</label>
+        <input
+          id="name"
+          pInputText
+          type="text"
+          formControlName="name"
+          autocomplete="name"
+          placeholder="Your name"
+        />
+      </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="submit()" class="login-form">
       <div class="field-group">
         <label for="email">Email</label>
         <input
@@ -42,27 +53,31 @@
         <p-password
           inputId="password"
           formControlName="password"
+          [feedback]="true"
+          [toggleMask]="true"
+          autocomplete="new-password"
+          placeholder="Password"
+          styleClass="password-field"
+        />
+        <span class="field-hint">{{ passwordHint }}</span>
+      </div>
+
+      <div class="field-group">
+        <label for="confirmPassword">Confirm password</label>
+        <p-password
+          inputId="confirmPassword"
+          formControlName="confirmPassword"
           [feedback]="false"
           [toggleMask]="true"
-          autocomplete="current-password"
-          placeholder="Password"
+          autocomplete="new-password"
+          placeholder="Confirm password"
           styleClass="password-field"
         />
       </div>
 
-      <div class="meta-row">
-        <div class="remember-wrap">
-          <p-checkbox
-            inputId="rememberMe"
-            [binary]="true"
-            [ngModel]="rememberMe()"
-            (ngModelChange)="rememberMe.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-          />
-          <label for="rememberMe">Remember me</label>
-        </div>
-        <button class="forgot-link" type="button">Forgot password?</button>
-      </div>
+      @if (registerForm.hasError('passwordMismatch') && registerForm.touched) {
+        <p class="error-text">Passwords do not match.</p>
+      }
 
       @if (errorMessage()) {
         <p class="error-text">{{ errorMessage() }}</p>
@@ -71,15 +86,15 @@
       <button pButton type="submit" class="signin-btn" [disabled]="isSubmitting()">
         @if (isSubmitting()) {
           <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
-          <span>Signing in...</span>
+          <span>Creating account...</span>
         } @else {
-          <span>Sign in</span>
+          <span>Create account</span>
         }
       </button>
 
       <p class="signup-prompt">
-        Need an account?
-        <a routerLink="/register">Sign up</a>
+        Already have an account?
+        <a routerLink="/login">Sign in</a>
       </p>
     </form>
   </section>

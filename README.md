@@ -17,3 +17,8 @@ Health probe: `GET /health` (excluded from strict rate limits via `EndpointWhite
 ## Local API development
 
 `appsettings.json` keeps `ConnectionStrings:DefaultConnection` empty by design. For local runs, copy `Bymed.API/appsettings.Development.json.example` to `Bymed.API/appsettings.Development.json` (gitignored) and set your PostgreSQL connection string, or set the environment variable `ConnectionStrings__DefaultConnection`. Use `ASPNETCORE_ENVIRONMENT=Development` so the Development file is loaded (`dotnet run` from `Bymed.API` does this via `launchSettings.json`).
+
+
+
+docker compose build --no-cache
+docker compose up -d 

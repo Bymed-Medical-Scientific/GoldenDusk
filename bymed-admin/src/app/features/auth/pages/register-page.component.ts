@@ -1,18 +1,29 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { AuthTokenStorageService } from '@core/auth/auth-token-storage.service';
 import { finalize } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
+/** Matches backend PasswordPolicy.MinimumLength and complexity checks (server is authoritative). */
+const PASSWORD_HINT =
+  'At least 12 characters with uppercase, lowercase, digit, and special character.';
+
 @Component({
-  selector: 'app-login-page',
+  selector: 'app-register-page',
   imports: [
     ReactiveFormsModule,
     FormsModule,
@@ -20,72 +31,71 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     InputTextModule,
     PasswordModule,
     ButtonModule,
-    CheckboxModule,
     ProgressSpinnerModule
   ],
-  templateUrl: './login-page.component.html',
-  styleUrl: './login-page.component.scss'
+  templateUrl: './register-page.component.html',
+  styleUrls: ['./login-page.component.scss', './register-page-extra.scss']
 })
-export class LoginPageComponent {
+export class RegisterPageComponent {
   private readonly document = inject(DOCUMENT);
 
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
-  protected readonly infoMessage = signal<string | null>(null);
-  protected readonly rememberMe = signal(false);
   protected readonly isDarkMode = signal(false);
+  protected readonly passwordHint = PASSWORD_HINT;
 
-  protected readonly loginForm = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
-  });
+  protected readonly registerForm = this.formBuilder.nonNullable.group(
+    {
+      name: ['', [Validators.required, Validators.maxLength(200)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(12)]],
+      confirmPassword: ['', [Validators.required]]
+    },
+    { validators: registerPasswordsMatchValidator }
+  );
 
   public constructor(
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
     private readonly tokenStorage: AuthTokenStorageService,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly router: Router
   ) {
     this.syncThemeState();
-    if (this.route.snapshot.queryParamMap.get('registered') === 'pending') {
-      this.infoMessage.set(
-        'Your account was created. An administrator must approve it before you can sign in.'
-      );
-    }
   }
 
   protected submit(): void {
-    if (this.loginForm.invalid || this.isSubmitting()) {
-      this.loginForm.markAllAsTouched();
+    if (this.registerForm.invalid || this.isSubmitting()) {
+      this.registerForm.markAllAsTouched();
       return;
     }
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
+    const { name, email, password } = this.registerForm.getRawValue();
+
     this.authService
-      .login(this.loginForm.getRawValue())
+      .registerAdmin({ name, email, password })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: () => {
-          if (!this.authService.isAdmin()) {
-            this.tokenStorage.clearSession();
-            this.errorMessage.set('This account is not an admin account. Please use admin credentials.');
+        next: (outcome) => {
+          if (outcome.kind === 'pendingApproval') {
+            void this.router.navigate(['/login'], { queryParams: { registered: 'pending' } });
             return;
           }
 
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
-          void this.router.navigateByUrl(returnUrl).then((navigated) => {
-            if (!navigated) {
-              this.errorMessage.set(
-                'Signed in but access was denied. Ensure this account has the Admin role.'
-              );
-            }
-          });
+          this.authService.setSession(outcome.login);
+
+          if (!this.authService.isAdmin()) {
+            this.tokenStorage.clearSession();
+            this.errorMessage.set('Registration did not create an admin account. Contact support.');
+            return;
+          }
+
+          void this.router.navigateByUrl('/dashboard');
         },
         error: (error: { message?: string }) => {
-          this.errorMessage.set(error.message ?? 'Login failed. Please check your credentials.');
+          this.errorMessage.set(error.message ?? 'Registration failed. Please try again.');
         }
       });
   }
@@ -107,3 +117,15 @@ export class LoginPageComponent {
     this.document.body.classList.toggle('app-light', !initialDark);
   }
 }
+
+const registerPasswordsMatchValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const password = group.get('password')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  if (password === undefined || confirm === undefined) {
+    return null;
+  }
+  if (password !== confirm) {
+    return { passwordMismatch: true };
+  }
+  return null;
+};
