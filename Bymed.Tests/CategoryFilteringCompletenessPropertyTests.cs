@@ -56,6 +56,9 @@ public class CategoryFilteringCompletenessPropertyTests
                     Arg.Any<bool?>(),
                     Arg.Any<string?>(),
                     Arg.Any<string?>(),
+                    Arg.Any<decimal?>(),
+                    Arg.Any<decimal?>(),
+                    Arg.Any<string?>(),
                     Arg.Any<CancellationToken>())
                 .Returns(ci =>
                 {

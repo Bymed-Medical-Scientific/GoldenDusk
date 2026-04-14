@@ -75,7 +75,8 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
             id,
             user.UserName.Trim(),
             user.Name ?? user.UserName.Trim(),
-            user.Role);
+            user.Role,
+            user.IsActive);
         domainUser.PrepareEntityForCreate(new Account(id));
 
         // Placeholder hash; UserManager will call SetPasswordHashAsync after CreateAsync.
@@ -99,6 +100,7 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
 
         domainUser.UpdateEmail(user.UserName ?? string.Empty);
         domainUser.UpdateProfile(user.Name ?? string.Empty);
+        domainUser.SetActive(user.IsActive);
         if (!string.IsNullOrEmpty(user.PasswordHash) && user.PasswordHash != "PENDING")
             domainUser.SetPasswordHash(user.PasswordHash);
 
@@ -284,6 +286,7 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
             PasswordHash = user.PasswordHash,
             Name = user.Name,
             Role = user.Role,
+            IsActive = user.IsActive,
             AccessFailedCount = user.AccessFailedCount,
             LockoutEnd = user.LockoutEnd,
             LockoutEnabled = user.LockoutEnabled

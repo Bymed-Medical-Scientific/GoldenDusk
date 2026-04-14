@@ -12,6 +12,8 @@ public class User : FullAuditedEntity
     public string PasswordHash { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public UserRole Role { get; private set; }
+    /// <summary>When false, the account cannot sign in (e.g. admin registration pending approval).</summary>
+    public bool IsActive { get; private set; } = true;
     public int AccessFailedCount { get; private set; }
     public DateTimeOffset? LockoutEnd { get; private set; }
     public bool LockoutEnabled { get; private set; } = true;
@@ -21,19 +23,23 @@ public class User : FullAuditedEntity
     {
     }
 
-    public User(string email, string name, UserRole role) : base()
+    public User(string email, string name, UserRole role, bool isActive = true) : base()
     {
         SetEmail(email);
         SetName(name);
         Role = role;
+        IsActive = isActive;
     }
 
-    public User(Guid id, string email, string name, UserRole role) : base(id)
+    public User(Guid id, string email, string name, UserRole role, bool isActive = true) : base(id)
     {
         SetEmail(email);
         SetName(name);
         Role = role;
+        IsActive = isActive;
     }
+
+    public void SetActive(bool active) => IsActive = active;
 
     public void SetPasswordHash(string passwordHash)
     {

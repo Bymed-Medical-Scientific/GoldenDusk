@@ -38,6 +38,7 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -51,6 +52,9 @@ public sealed class AuthController : ControllerBase
         var result = await _authService.RegisterAsync(request, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess)
             return BadRequest(new { error = result.Error });
+
+        if (result.Value!.PendingAdminApproval)
+            return AcceptedAtAction(nameof(Login), result.Value);
 
         return CreatedAtAction(nameof(Login), result.Value);
     }

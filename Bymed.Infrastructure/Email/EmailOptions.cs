@@ -31,4 +31,10 @@ public sealed class EmailOptions
 
     [Required]
     public string PasswordResetBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Comma-separated addresses that receive &quot;pending admin registration&quot; emails.</summary>
+    public string AdminApprovalNotifyRecipients { get; set; } = string.Empty;
+
+    /// <summary>Base URL of the Angular admin app (used in approval notification emails).</summary>
+    public string AdminPanelBaseUrl { get; set; } = string.Empty;
 }

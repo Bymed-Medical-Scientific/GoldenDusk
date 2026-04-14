@@ -11,6 +11,7 @@ public interface IEmailBackgroundJobRunner
     Task SendDeliveryConfirmationAsync(string toEmail, string customerName, string orderNumber);
     Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink);
+    Task SendPendingAdminRegistrationNotificationAsync(string toEmail, string pendingUserName, string pendingUserEmail, string adminPanelReviewHintUrl);
 }
 
 public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
@@ -97,6 +98,26 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             """;
 
         _logger.LogInformation("Queue worker sending password reset email to {RecipientEmail}.", toEmail);
+        await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
+    }
+
+    [AutomaticRetry(Attempts = 3)]
+    public async Task SendPendingAdminRegistrationNotificationAsync(
+        string toEmail,
+        string pendingUserName,
+        string pendingUserEmail,
+        string adminPanelReviewHintUrl)
+    {
+        var subject = "New admin registration pending approval";
+        var body = $"""
+            <p>A new admin account was created and requires your approval before they can sign in.</p>
+            <p><strong>Name:</strong> {System.Net.WebUtility.HtmlEncode(pendingUserName)}<br/>
+            <strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(pendingUserEmail)}</p>
+            <p>Open the admin panel to review pending users. Hint link: <a href="{System.Net.WebUtility.HtmlEncode(adminPanelReviewHintUrl)}">{System.Net.WebUtility.HtmlEncode(adminPanelReviewHintUrl)}</a></p>
+            <p>Regards,<br/>{_options.FromName}</p>
+            """;
+
+        _logger.LogInformation("Queue worker sending pending admin registration notification to {RecipientEmail}.", toEmail);
         await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
     }
 }

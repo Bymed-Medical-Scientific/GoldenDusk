@@ -46,4 +46,16 @@ public sealed class HangfireEmailService : IEmailService
             runner.SendPasswordResetEmailAsync(toEmail, customerName, resetLink));
         return Task.CompletedTask;
     }
+
+    public Task SendPendingAdminRegistrationNotificationAsync(
+        string toEmail,
+        string pendingUserName,
+        string pendingUserEmail,
+        string adminPanelReviewHintUrl,
+        CancellationToken cancellationToken = default)
+    {
+        _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
+            runner.SendPendingAdminRegistrationNotificationAsync(toEmail, pendingUserName, pendingUserEmail, adminPanelReviewHintUrl));
+        return Task.CompletedTask;
+    }
 }

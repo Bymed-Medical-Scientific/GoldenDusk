@@ -67,14 +67,31 @@ public sealed class AuthService : IAuthService
             return Result<AuthResponse>.Failure("A user with this email already exists.");
 
         var hasExistingUsers = await _userRepository.AnyAsync(cancellationToken).ConfigureAwait(false);
-        var role = hasExistingUsers ? UserRole.Customer : UserRole.Admin;
+
+        UserRole role;
+        bool isActive;
+        switch (request.RegistrationChannel)
+        {
+            case RegistrationChannel.Storefront:
+                role = UserRole.Customer;
+                isActive = true;
+                break;
+            case RegistrationChannel.AdminPanel:
+                role = UserRole.Admin;
+                // When the database is empty, the first admin-panel signup bootstraps the initial admin (no approver exists yet).
+                isActive = !hasExistingUsers;
+                break;
+            default:
+                return Result<AuthResponse>.Failure("Invalid registration channel.");
+        }
 
         var appUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
             UserName = email,
             Name = request.Name.Trim(),
-            Role = role
+            Role = role,
+            IsActive = isActive
         };
 
         var createResult = await _userManager.CreateAsync(appUser, request.Password).ConfigureAwait(false);
@@ -88,6 +105,19 @@ public sealed class AuthService : IAuthService
         if (user == null)
             return Result<AuthResponse>.Failure("User was created but could not be retrieved.");
 
+        if (!isActive && request.RegistrationChannel == RegistrationChannel.AdminPanel)
+        {
+            await NotifyApproversOfPendingAdminAsync(user, cancellationToken).ConfigureAwait(false);
+
+            return Result<AuthResponse>.Success(new AuthResponse
+            {
+                User = ToAuthUserDto(user),
+                Token = null,
+                RefreshToken = null,
+                PendingAdminApproval = true
+            });
+        }
+
         var token = GenerateAccessToken(user);
         var refreshToken = await _refreshTokenStore.CreateAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
@@ -95,7 +125,8 @@ public sealed class AuthService : IAuthService
         {
             User = ToAuthUserDto(user),
             Token = token,
-            RefreshToken = refreshToken
+            RefreshToken = refreshToken,
+            PendingAdminApproval = false
         });
     }
 
@@ -139,6 +170,13 @@ public sealed class AuthService : IAuthService
         if (user == null)
             return Result<AuthResponse>.Failure("User could not be loaded.");
 
+        if (!user.IsActive)
+        {
+            _logger.LogWarning("Login failed: inactive account for user {UserId}.", appUser.Id);
+            return Result<AuthResponse>.Failure(
+                "Your account is not active yet. If you registered from the admin site, an administrator must approve your access before you can sign in.");
+        }
+
         var token = GenerateAccessToken(user);
         var refreshToken = await _refreshTokenStore.CreateAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
@@ -146,7 +184,8 @@ public sealed class AuthService : IAuthService
         {
             User = ToAuthUserDto(user),
             Token = token,
-            RefreshToken = refreshToken
+            RefreshToken = refreshToken,
+            PendingAdminApproval = false
         });
     }
 
@@ -162,6 +201,9 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(userId.Value, cancellationToken).ConfigureAwait(false);
         if (user == null)
             return Result<RefreshTokenResponse>.Failure("User not found.");
+
+        if (!user.IsActive)
+            return Result<RefreshTokenResponse>.Failure("Account is not active.");
 
         var token = GenerateAccessToken(user);
         var newRefreshToken = await _refreshTokenStore.CreateAsync(user.Id, cancellationToken).ConfigureAwait(false);
@@ -201,6 +243,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
 
@@ -240,6 +283,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
 
@@ -271,6 +315,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
 
@@ -312,7 +357,43 @@ public sealed class AuthService : IAuthService
             Id = user.Id,
             Email = user.Email,
             Name = user.Name,
-            Role = user.Role
+            Role = user.Role,
+            IsActive = user.IsActive
         };
+    }
+
+    private async Task NotifyApproversOfPendingAdminAsync(User pendingUser, CancellationToken cancellationToken)
+    {
+        var recipients = ParseRecipientEmailList(_emailOptions.AdminApprovalNotifyRecipients);
+        if (recipients.Count == 0)
+        {
+            _logger.LogWarning(
+                "Pending admin registration for {Email} but Email:AdminApprovalNotifyRecipients is empty; no notification email sent.",
+                pendingUser.Email);
+            return;
+        }
+
+        var baseUrl = _emailOptions.AdminPanelBaseUrl?.Trim() ?? string.Empty;
+        var reviewHintUrl = string.IsNullOrEmpty(baseUrl)
+            ? "https://localhost:4200/login"
+            : $"{baseUrl.TrimEnd('/')}/login?pendingAdminUserId={pendingUser.Id}";
+
+        foreach (var to in recipients)
+        {
+            await _emailService
+                .SendPendingAdminRegistrationNotificationAsync(to, pendingUser.Name, pendingUser.Email, reviewHintUrl, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private static List<string> ParseRecipientEmailList(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv))
+            return new List<string>();
+
+        return csv
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => s.Contains('@', StringComparison.Ordinal))
+            .ToList();
     }
 }

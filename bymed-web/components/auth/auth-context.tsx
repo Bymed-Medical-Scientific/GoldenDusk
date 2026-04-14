@@ -96,11 +96,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          registrationChannel: "Storefront",
+        }),
         credentials: "include",
       });
       if (!res.ok) throw new Error(await readErrorMessage(res));
-      const data = (await res.json()) as { user: AuthUserDto };
+      const data = (await res.json()) as {
+        user: AuthUserDto;
+        pendingAdminApproval?: boolean;
+      };
+      if (data.pendingAdminApproval) {
+        throw new Error(
+          "Your account was created but is not active yet. You can sign in after an administrator approves your access.",
+        );
+      }
       setUser(data.user);
     },
     [],

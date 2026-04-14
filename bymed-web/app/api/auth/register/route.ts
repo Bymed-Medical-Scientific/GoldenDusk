@@ -34,9 +34,24 @@ export async function POST(req: Request) {
 
   const data = payload as {
     user: unknown;
-    token: string;
-    refreshToken: string;
+    token?: string | null;
+    refreshToken?: string | null;
+    pendingAdminApproval?: boolean;
   };
+
+  if (data.pendingAdminApproval || upstream.status === 202) {
+    return NextResponse.json(
+      { user: data.user, pendingAdminApproval: true },
+      { status: 202 },
+    );
+  }
+
+  if (!data.token || !data.refreshToken) {
+    return NextResponse.json(
+      { error: "Registration response missing session tokens." },
+      { status: 502 },
+    );
+  }
 
   const res = NextResponse.json({ user: data.user }, { status: 201 });
   applyTokenCookies(res, data.token, data.refreshToken);

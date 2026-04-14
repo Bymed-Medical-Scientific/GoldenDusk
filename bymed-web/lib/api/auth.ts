@@ -19,7 +19,7 @@ export async function register(
     { method: "POST", body: JSON.stringify(body) },
     { skipAuth: true, retry: false },
   );
-  return readJson<AuthResponse>(res, [200, 201]);
+  return readJson<AuthResponse>(res, [200, 201, 202]);
 }
 
 export async function login(body: LoginRequest): Promise<AuthResponse> {

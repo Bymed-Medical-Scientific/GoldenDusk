@@ -1,6 +1,7 @@
 using Bymed.Application.Auth;
 using Bymed.Domain.Enums;
 using Bymed.Infrastructure;
+using Bymed.Infrastructure.Email;
 using Bymed.Infrastructure.Identity;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -48,7 +49,9 @@ public class AuthenticationRoundTripPropertyTests
         registerResult.Value.RefreshToken.Should().NotBeNullOrEmpty();
         registerResult.Value.User.Email!.ToUpperInvariant().Should().Be(email.ToUpperInvariant(), "Identity may normalize email casing");
         registerResult.Value.User.Name.Should().Be(name);
-        registerResult.Value.User.Role.Should().Be(UserRole.Admin, "the first registered account should bootstrap admin access");
+        registerResult.Value.User.Role.Should().Be(UserRole.Customer, "storefront registration is always a customer");
+        registerResult.Value.User.IsActive.Should().BeTrue();
+        registerResult.Value.PendingAdminApproval.Should().BeFalse();
 
         var loginResult = await authService.LoginAsync(new LoginRequest
         {
@@ -62,7 +65,8 @@ public class AuthenticationRoundTripPropertyTests
         loginResult.Value.RefreshToken.Should().NotBeNullOrEmpty("session must include refresh token");
         loginResult.Value.User.Email!.ToUpperInvariant().Should().Be(email.ToUpperInvariant(), "Identity may normalize email casing");
         loginResult.Value.User.Name.Should().Be(name);
-        loginResult.Value.User.Role.Should().Be(UserRole.Admin);
+        loginResult.Value.User.Role.Should().Be(UserRole.Customer);
+        loginResult.Value.User.IsActive.Should().BeTrue();
     }
 
     /// <summary>
@@ -114,35 +118,92 @@ public class AuthenticationRoundTripPropertyTests
     }
 
     /// <summary>
-    /// The second account registered after bootstrap must remain a customer account.
+    /// Two storefront registrations are both customers with active sessions.
     /// Feature: bymed-website, Property 12: Authentication Round Trip
     /// </summary>
     [Fact]
-    public async Task SecondRegisteredUser_IsCustomer()
+    public async Task SecondStorefrontRegisteredUser_IsCustomer()
     {
         var (authService, _) = await CreateAuthServicesAsync();
 
         var first = await authService.RegisterAsync(new RegisterRequest
         {
-            Email = "first-admin@example.com",
+            Email = "first-customer@example.com",
             Password = ValidTestPassword,
-            Name = "First User"
+            Name = "First User",
+            RegistrationChannel = RegistrationChannel.Storefront
         });
 
         var second = await authService.RegisterAsync(new RegisterRequest
         {
             Email = "second-customer@example.com",
             Password = ValidTestPassword,
-            Name = "Second User"
+            Name = "Second User",
+            RegistrationChannel = RegistrationChannel.Storefront
         });
 
         first.IsSuccess.Should().BeTrue();
         first.Value.Should().NotBeNull();
-        first.Value!.User.Role.Should().Be(UserRole.Admin);
+        first.Value!.User.Role.Should().Be(UserRole.Customer);
 
         second.IsSuccess.Should().BeTrue();
         second.Value.Should().NotBeNull();
         second.Value!.User.Role.Should().Be(UserRole.Customer);
+    }
+
+    /// <summary>
+    /// First admin-panel registration bootstraps an active Admin when the database is empty.
+    /// </summary>
+    [Fact]
+    public async Task FirstAdminPanelRegistration_BootstrapsActiveAdmin()
+    {
+        var (authService, _) = await CreateAuthServicesAsync();
+
+        var result = await authService.RegisterAsync(new RegisterRequest
+        {
+            Email = "bootstrap-admin@example.com",
+            Password = ValidTestPassword,
+            Name = "Bootstrap Admin",
+            RegistrationChannel = RegistrationChannel.AdminPanel
+        });
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.User.Role.Should().Be(UserRole.Admin);
+        result.Value.User.IsActive.Should().BeTrue();
+        result.Value.PendingAdminApproval.Should().BeFalse();
+        result.Value.Token.Should().NotBeNullOrEmpty();
+    }
+
+    /// <summary>
+    /// After at least one user exists, admin-panel registration stays inactive until approval (no session tokens).
+    /// </summary>
+    [Fact]
+    public async Task AdminPanelRegistration_AfterBootstrap_IsPendingWithoutSession()
+    {
+        var (authService, _) = await CreateAuthServicesAsync();
+
+        await authService.RegisterAsync(new RegisterRequest
+        {
+            Email = "seed@example.com",
+            Password = ValidTestPassword,
+            Name = "Seed",
+            RegistrationChannel = RegistrationChannel.Storefront
+        });
+
+        var pending = await authService.RegisterAsync(new RegisterRequest
+        {
+            Email = "pending-admin@example.com",
+            Password = ValidTestPassword,
+            Name = "Pending Admin",
+            RegistrationChannel = RegistrationChannel.AdminPanel
+        });
+
+        pending.IsSuccess.Should().BeTrue();
+        pending.Value!.PendingAdminApproval.Should().BeTrue();
+        pending.Value.Token.Should().BeNull();
+        pending.Value.RefreshToken.Should().BeNull();
+        pending.Value.User.Role.Should().Be(UserRole.Admin);
+        pending.Value.User.IsActive.Should().BeFalse();
     }
 
     private static async Task<(IAuthService AuthService, IServiceScope Scope)> CreateAuthServicesAsync()
@@ -181,6 +242,20 @@ public class AuthenticationRoundTripPropertyTests
             options.Audience = "BymedApi";
             options.ExpirationMinutes = 15;
             options.RefreshTokenExpirationDays = 7;
+        });
+
+        services.Configure<EmailOptions>(o =>
+        {
+            o.FromAddress = "test@example.com";
+            o.FromName = "Test";
+            o.Host = "localhost";
+            o.Port = 587;
+            o.Username = "user";
+            o.Password = "pass";
+            o.ContactFormRecipient = "contact@example.com";
+            o.PasswordResetBaseUrl = "https://example.com/reset-password";
+            o.AdminApprovalNotifyRecipients = "approver@example.com";
+            o.AdminPanelBaseUrl = "https://localhost:4200";
         });
 
         var provider = services.BuildServiceProvider();

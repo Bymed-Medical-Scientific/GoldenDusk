@@ -23,6 +23,9 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(NameMaxLength).WithMessage($"Name must not exceed {NameMaxLength} characters.");
+
+        RuleFor(x => x.RegistrationChannel)
+            .IsInEnum().WithMessage("Registration channel is invalid.");
     }
 
     private static bool BeValidEmailFormat(string? email)

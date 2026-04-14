@@ -5,12 +5,14 @@ export type AuthUserDto = {
   email: string;
   name: string;
   role: UserRole;
+  isActive: boolean;
 };
 
 export type AuthResponse = {
   user: AuthUserDto;
-  token: string;
-  refreshToken: string;
+  token?: string;
+  refreshToken?: string;
+  pendingAdminApproval?: boolean;
 };
 
 export type LoginRequest = {
@@ -18,10 +20,14 @@ export type LoginRequest = {
   password: string;
 };
 
+/** Must match API enum names (PascalCase) when sent as JSON string. */
+export type RegistrationChannel = "Storefront" | "AdminPanel";
+
 export type RegisterRequest = {
   email: string;
   password: string;
   name: string;
+  registrationChannel?: RegistrationChannel;
 };
 
 export type RefreshTokenRequest = {
