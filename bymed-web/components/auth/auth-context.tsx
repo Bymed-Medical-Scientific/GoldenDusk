@@ -1,6 +1,7 @@
 "use client";
 
 import type { AuthUserDto } from "@/types/auth";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -35,12 +36,16 @@ async function readErrorMessage(res: Response): Promise<string> {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<AuthUserDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSession = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/session", { credentials: "include" });
+      const res = await fetch("/api/auth/session", {
+        credentials: "include",
+        cache: "no-store",
+      });
       if (!res.ok) {
         setUser(null);
         return;
@@ -120,12 +125,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    }).catch(() => undefined);
     setUser(null);
-  }, []);
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+      });
+    } catch {
+      /* still clear client session */
+    }
+    await new Promise((r) => setTimeout(r, 150));
+    await refreshSession();
+    router.refresh();
+  }, [refreshSession, router]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

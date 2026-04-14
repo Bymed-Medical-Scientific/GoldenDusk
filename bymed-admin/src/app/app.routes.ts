@@ -21,6 +21,14 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'forgot-password',
+    canActivate: [loginRouteGuard],
+    loadComponent: () =>
+      import('@features/auth/pages/forgot-password-page.component').then(
+        (m) => m.ForgotPasswordPageComponent
+      )
+  },
+  {
     path: '',
     canActivate: [authGuard],
     canActivateChild: [authChildGuard],

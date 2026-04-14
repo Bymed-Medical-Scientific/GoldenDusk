@@ -38,6 +38,10 @@ export type AdminRegisterOutcome =
   | { readonly kind: 'session'; readonly login: LoginResponseDto }
   | { readonly kind: 'pendingApproval' };
 
+export interface ResetPasswordRequestDto {
+  readonly email: string;
+}
+
 export interface RefreshTokenRequestDto {
   readonly refreshToken: string;
 }

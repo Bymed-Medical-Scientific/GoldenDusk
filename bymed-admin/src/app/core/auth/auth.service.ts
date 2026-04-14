@@ -8,9 +8,10 @@ import {
   RefreshTokenRequestDto,
   RefreshTokenResponseDto,
   RegisterRequestDto,
-  RegisterResponseDto
+  RegisterResponseDto,
+  ResetPasswordRequestDto
 } from '@shared/models';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, finalize, map, of, tap } from 'rxjs';
 import { AuthTokenStorageService } from './auth-token-storage.service';
 
 @Injectable({
@@ -80,16 +81,19 @@ export class AuthService {
       return of(void 0);
     }
 
-    return this.apiService
-      .post<RefreshTokenRequestDto, void>('auth/logout', { refreshToken })
-      .pipe(
-        catchError(() => of(void 0)),
-        tap(() => {
-          this.tokenStorage.clearSession();
-          void this.router.navigate(['/login']);
-        }),
-        map(() => void 0)
-      );
+    return this.apiService.postNoContent('auth/logout', { refreshToken }).pipe(
+      catchError(() => of(void 0)),
+      finalize(() => {
+        this.tokenStorage.clearSession();
+        void this.router.navigate(['/login']);
+      }),
+      map(() => void 0)
+    );
+  }
+
+  /** Sends a password reset link to the email (API always returns 204 for privacy). */
+  public requestPasswordReset(body: ResetPasswordRequestDto): Observable<void> {
+    return this.apiService.postNoContent('auth/reset-password', body);
   }
 
   public isAuthenticated(): boolean {

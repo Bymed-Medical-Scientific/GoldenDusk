@@ -1,6 +1,6 @@
 import { HttpClient, HttpEvent, HttpParams, HttpResponse } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 
 @Injectable({
@@ -25,6 +25,17 @@ export class ApiService {
 
   public post<TRequest, TResponse>(path: string, payload: TRequest): Observable<TResponse> {
     return this.httpClient.post<TResponse>(this.buildUrl(path), payload);
+  }
+
+  /** POST that returns 204 No Content (no JSON body) — avoids empty-body JSON parse issues. */
+  public postNoContent<TRequest>(path: string, payload: TRequest): Observable<void> {
+    return this.httpClient
+      .post(this.buildUrl(path), payload, {
+        observe: 'response',
+        responseType: 'text',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .pipe(map(() => void 0));
   }
 
   /** Full HTTP response (e.g. to distinguish 201 vs 202). */

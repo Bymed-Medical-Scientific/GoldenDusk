@@ -111,6 +111,8 @@ services:
     environment:
       NODE_ENV:              production
       NEXT_TELEMETRY_DISABLED: "1"
+      # Browser origin for auth cookies (http:// for local Docker; https:// in production).
+      NEXT_PUBLIC_APP_URL: ${WEB_PUBLIC_URL:-http://localhost:3000}
       # Server-side (SSR) calls go directly over the Docker bridge network.
       BYMED_API_INTERNAL_URL: http://api:8080
     depends_on:

@@ -7,6 +7,34 @@ import {
   cookieBaseOptions,
 } from "@/lib/auth/cookie-names";
 
+/**
+ * `ResponseCookies` keeps only one entry per cookie name; repeated `set()` overwrites.
+ * To clear both http and https variants we must emit a second `Set-Cookie` via append.
+ */
+function appendClearCookieHeader(
+  res: NextResponse,
+  name: string,
+  opts: {
+    path: string;
+    maxAge: number;
+    expires: Date;
+    httpOnly: boolean;
+    sameSite: "lax" | "strict" | "none";
+    secure: boolean;
+  },
+): void {
+  const parts = [
+    `${name}=`,
+    `Path=${opts.path}`,
+    `Expires=${opts.expires.toUTCString()}`,
+    `Max-Age=${opts.maxAge}`,
+    opts.httpOnly ? "HttpOnly" : "",
+    `SameSite=${opts.sameSite}`,
+    opts.secure ? "Secure" : "",
+  ].filter(Boolean);
+  res.headers.append("Set-Cookie", parts.join("; "));
+}
+
 export function applyTokenCookies(
   res: NextResponse,
   accessToken: string,
@@ -25,6 +53,12 @@ export function applyTokenCookies(
 
 export function clearAuthCookies(res: NextResponse): void {
   const base = cookieBaseOptions();
-  res.cookies.set(BYMED_ACCESS_COOKIE, "", { ...base, maxAge: 0 });
-  res.cookies.set(BYMED_REFRESH_COOKIE, "", { ...base, maxAge: 0 });
+  const expired = new Date(0);
+  const clearOpts = { ...base, maxAge: 0, expires: expired };
+  res.cookies.set(BYMED_ACCESS_COOKIE, "", clearOpts);
+  res.cookies.set(BYMED_REFRESH_COOKIE, "", clearOpts);
+  // Alternate Secure flag (migration / mixed deploys). Must be a separate header — see note above.
+  const alt = { ...clearOpts, secure: !base.secure };
+  appendClearCookieHeader(res, BYMED_ACCESS_COOKIE, alt);
+  appendClearCookieHeader(res, BYMED_REFRESH_COOKIE, alt);
 }
