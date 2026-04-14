@@ -1,4 +1,5 @@
 using Bymed.Application.Auth;
+using Bymed.Domain.Enums;
 using Bymed.Infrastructure;
 using Bymed.Infrastructure.Identity;
 using FluentAssertions;
@@ -47,6 +48,7 @@ public class AuthenticationRoundTripPropertyTests
         registerResult.Value.RefreshToken.Should().NotBeNullOrEmpty();
         registerResult.Value.User.Email!.ToUpperInvariant().Should().Be(email.ToUpperInvariant(), "Identity may normalize email casing");
         registerResult.Value.User.Name.Should().Be(name);
+        registerResult.Value.User.Role.Should().Be(UserRole.Admin, "the first registered account should bootstrap admin access");
 
         var loginResult = await authService.LoginAsync(new LoginRequest
         {
@@ -60,6 +62,7 @@ public class AuthenticationRoundTripPropertyTests
         loginResult.Value.RefreshToken.Should().NotBeNullOrEmpty("session must include refresh token");
         loginResult.Value.User.Email!.ToUpperInvariant().Should().Be(email.ToUpperInvariant(), "Identity may normalize email casing");
         loginResult.Value.User.Name.Should().Be(name);
+        loginResult.Value.User.Role.Should().Be(UserRole.Admin);
     }
 
     /// <summary>
@@ -108,6 +111,38 @@ public class AuthenticationRoundTripPropertyTests
 
         loginResult.IsSuccess.Should().BeFalse("login with non-existent email must fail");
         loginResult.Error.Should().NotBeNullOrEmpty();
+    }
+
+    /// <summary>
+    /// The second account registered after bootstrap must remain a customer account.
+    /// Feature: bymed-website, Property 12: Authentication Round Trip
+    /// </summary>
+    [Fact]
+    public async Task SecondRegisteredUser_IsCustomer()
+    {
+        var (authService, _) = await CreateAuthServicesAsync();
+
+        var first = await authService.RegisterAsync(new RegisterRequest
+        {
+            Email = "first-admin@example.com",
+            Password = ValidTestPassword,
+            Name = "First User"
+        });
+
+        var second = await authService.RegisterAsync(new RegisterRequest
+        {
+            Email = "second-customer@example.com",
+            Password = ValidTestPassword,
+            Name = "Second User"
+        });
+
+        first.IsSuccess.Should().BeTrue();
+        first.Value.Should().NotBeNull();
+        first.Value!.User.Role.Should().Be(UserRole.Admin);
+
+        second.IsSuccess.Should().BeTrue();
+        second.Value.Should().NotBeNull();
+        second.Value!.User.Role.Should().Be(UserRole.Customer);
     }
 
     private static async Task<(IAuthService AuthService, IServiceScope Scope)> CreateAuthServicesAsync()

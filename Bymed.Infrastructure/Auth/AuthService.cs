@@ -66,12 +66,15 @@ public sealed class AuthService : IAuthService
         if (existingUser != null)
             return Result<AuthResponse>.Failure("A user with this email already exists.");
 
+        var hasExistingUsers = await _userRepository.AnyAsync(cancellationToken).ConfigureAwait(false);
+        var role = hasExistingUsers ? UserRole.Customer : UserRole.Admin;
+
         var appUser = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
             UserName = email,
             Name = request.Name.Trim(),
-            Role = UserRole.Customer
+            Role = role
         };
 
         var createResult = await _userManager.CreateAsync(appUser, request.Password).ConfigureAwait(false);
