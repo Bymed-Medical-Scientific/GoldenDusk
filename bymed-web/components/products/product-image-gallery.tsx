@@ -28,11 +28,11 @@ export function ProductImageGallery({
   const main = images[0];
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-white">
       <Image
         src={main.url}
         alt={main.alt || productName}
-        className="aspect-square w-full object-cover"
+        className="aspect-square w-full object-contain p-2 sm:p-3"
         width={960}
         height={960}
         sizes="(max-width: 1024px) 100vw, 50vw"
