@@ -65,8 +65,8 @@ export function ProductDetail({
 
   return (
     <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
-      <nav className="mb-6 text-muted-foreground sm:mb-8" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
+      <nav className="mb-6 min-w-0 max-w-full overflow-x-hidden text-muted-foreground sm:mb-8" aria-label="Breadcrumb">
+        <ol className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
           <li>
             <Link
               href="/products"
@@ -78,7 +78,7 @@ export function ProductDetail({
           <li aria-hidden className="text-muted-foreground">
             /
           </li>
-          <li className="break-words text-foreground">{product.name}</li>
+          <li className="min-w-0 flex-1 break-words text-foreground">{product.name}</li>
         </ol>
       </nav>
 
