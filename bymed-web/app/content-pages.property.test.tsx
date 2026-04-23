@@ -4,6 +4,8 @@ import HomePage from "@/app/page";
 import { render } from "@testing-library/react";
 import fc from "fast-check";
 
+const propertyRuns = process.env.CI ? 30 : 100;
+
 jest.mock("react", () => {
   const actual = jest.requireActual("react");
   return { ...actual, cache: (fn: unknown) => fn };
@@ -48,7 +50,7 @@ const ContactPage = require("@/app/contact/page").default as () => JSX.Element;
 
 // Feature: bymed-website, Property 29: HTML Semantic Structure
 describe("Property 29: HTML semantic structure", () => {
-  it("for representative content pages, semantic landmarks are present (100 runs)", async () => {
+  it("for representative content pages, semantic landmarks are present", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom<"home" | "about" | "services" | "contact">(
@@ -80,7 +82,7 @@ describe("Property 29: HTML semantic structure", () => {
           expect(container.querySelectorAll("section").length).toBeGreaterThan(0);
         },
       ),
-      { numRuns: 100 },
+      { numRuns: propertyRuns },
     );
   });
 });

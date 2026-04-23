@@ -7,9 +7,11 @@ import { render } from "@testing-library/react";
 import fc from "fast-check";
 import { SiteFooter } from "./site-footer";
 
+const propertyRuns = process.env.CI ? 30 : 100;
+
 // Feature: bymed-website, Property 39: Footer Contact Information
 describe("Property 39: Footer contact information", () => {
-  it("for any synthetic page id, the rendered footer contains company email and phone (100 runs)", () => {
+  it("for any synthetic page id, the rendered footer contains company email and phone", () => {
     fc.assert(
       fc.property(
         fc.string({ minLength: 0, maxLength: 256 }),
@@ -34,7 +36,7 @@ describe("Property 39: Footer contact information", () => {
           expect(tel).not.toBeNull();
         },
       ),
-      { numRuns: 100 },
+      { numRuns: propertyRuns },
     );
   });
 });

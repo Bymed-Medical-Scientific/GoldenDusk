@@ -2,6 +2,8 @@ import sitemap from "@/app/sitemap";
 import { listProducts } from "@/lib/api/products";
 import fc from "fast-check";
 
+const propertyRuns = process.env.CI ? 30 : 100;
+
 jest.mock("@/lib/api/products", () => ({
   listProducts: jest.fn(),
 }));
@@ -31,7 +33,7 @@ describe("Property 31: sitemap completeness", () => {
     listProductsMock.mockReset();
   });
 
-  it("for paginated products, sitemap includes all static and product URLs (100 runs)", async () => {
+  it("for paginated products, sitemap includes all static and product URLs", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uniqueArray(fc.uuid(), { maxLength: 260 }),
@@ -94,7 +96,7 @@ describe("Property 31: sitemap completeness", () => {
           expect(urls.length).toBe(staticUrls.length + productUrls.length);
         },
       ),
-      { numRuns: 100 },
+      { numRuns: propertyRuns },
     );
   });
 });

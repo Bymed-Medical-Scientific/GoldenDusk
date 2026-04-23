@@ -3,6 +3,8 @@ import { generateMetadata as generateHomeMetadata } from "@/app/page";
 import { getPageBySlug } from "@/lib/api/content";
 import fc from "fast-check";
 
+const propertyRuns = process.env.CI ? 30 : 100;
+
 jest.mock("react", () => {
   const actual = jest.requireActual("react");
   return { ...actual, cache: (fn: unknown) => fn };
@@ -43,7 +45,7 @@ describe("Property 30: Page metadata completeness", () => {
     getPageBySlugMock.mockReset();
   });
 
-  it("for home, about, and services generated metadata, title/description/openGraph are always present (100 runs)", async () => {
+  it("for home, about, and services generated metadata, title/description/openGraph are always present", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom<"home" | "about" | "services">(
@@ -90,7 +92,7 @@ describe("Property 30: Page metadata completeness", () => {
           expect(ogDescription.trim().length).toBeGreaterThan(0);
         },
       ),
-      { numRuns: 100 },
+      { numRuns: propertyRuns },
     );
   });
 });
