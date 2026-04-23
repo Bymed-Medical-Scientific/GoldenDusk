@@ -64,9 +64,9 @@ export function ProductDetail({
     : [];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
+      <nav className="mb-6 text-muted-foreground sm:mb-8" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
           <li>
             <Link
               href="/products"
@@ -78,11 +78,11 @@ export function ProductDetail({
           <li aria-hidden className="text-muted-foreground">
             /
           </li>
-          <li className="text-foreground">{product.name}</li>
+          <li className="break-words text-foreground">{product.name}</li>
         </ol>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:items-start lg:gap-10">
         <ProductImageGallery
           images={galleryImages}
           productName={product.name}
@@ -92,18 +92,18 @@ export function ProductDetail({
           <p className="text-sm font-medium text-muted-foreground">
             {product.categoryName}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="mt-1 break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {product.name}
           </h1>
 
           {product.sku?.trim() ? (
             <p className="mt-2 text-sm text-muted-foreground">
               SKU:{" "}
-              <span className="font-mono text-foreground">{product.sku.trim()}</span>
+              <span className="break-all font-mono text-foreground">{product.sku.trim()}</span>
             </p>
           ) : null}
 
-          <p className="mt-4 text-2xl font-semibold tabular-nums text-foreground">
+          <p className="mt-4 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
             <FormattedPrice amount={product.price} currency={product.currency} />
           </p>
 
@@ -123,7 +123,7 @@ export function ProductDetail({
             )}
           </div>
 
-          <div className="mt-8 border-t border-border pt-8">
+          <div className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
             <AddToCartButton
               productId={product.id}
               productName={product.name}
@@ -136,20 +136,20 @@ export function ProductDetail({
           </div>
 
           {specEntries.length > 0 ? (
-            <div className="mt-10">
+            <div className="mt-8 sm:mt-10">
               <h2 className="text-lg font-semibold text-foreground">
                 Specifications
               </h2>
-              <dl className="mt-4 divide-y divide-border rounded-lg border border-border">
+              <dl className="mt-4 divide-y divide-border overflow-hidden rounded-lg border border-border">
                 {specEntries.map(([key, value]) => (
                   <div
                     key={key}
                     className="grid grid-cols-1 gap-1 px-4 py-3 sm:grid-cols-3 sm:gap-4"
                   >
-                    <dt className="text-sm font-medium text-muted-foreground">
+                    <dt className="break-words text-sm font-medium text-muted-foreground">
                       {key}
                     </dt>
-                    <dd className="text-sm text-foreground sm:col-span-2">
+                    <dd className="break-words text-sm text-foreground sm:col-span-2">
                       {value}
                     </dd>
                   </div>
@@ -160,7 +160,7 @@ export function ProductDetail({
         </div>
       </div>
 
-      <section className="mt-12 border-t border-border pt-8" aria-labelledby="description-heading">
+      <section className="mt-10 border-t border-border pt-6 sm:mt-12 sm:pt-8" aria-labelledby="description-heading">
         <h2 id="description-heading" className="text-lg font-semibold text-foreground">
           Description
         </h2>
@@ -169,7 +169,7 @@ export function ProductDetail({
 
       {relatedProducts.length > 0 ? (
         <section
-          className="mt-16 border-t border-border pt-12"
+          className="mt-12 border-t border-border pt-8 sm:mt-16 sm:pt-12"
           aria-labelledby="related-heading"
         >
           <h2
