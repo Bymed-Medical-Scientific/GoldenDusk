@@ -135,11 +135,6 @@ export function ProductDetail({
             />
           </div>
 
-          <div className="mt-10">
-            <h2 className="text-lg font-semibold text-foreground">Description</h2>
-            <ProductDescription html={product.description} />
-          </div>
-
           {specEntries.length > 0 ? (
             <div className="mt-10">
               <h2 className="text-lg font-semibold text-foreground">
@@ -164,6 +159,13 @@ export function ProductDetail({
           ) : null}
         </div>
       </div>
+
+      <section className="mt-12 border-t border-border pt-8" aria-labelledby="description-heading">
+        <h2 id="description-heading" className="text-lg font-semibold text-foreground">
+          Description
+        </h2>
+        <ProductDescription html={product.description} />
+      </section>
 
       {relatedProducts.length > 0 ? (
         <section

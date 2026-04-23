@@ -13,6 +13,7 @@ const customJestConfig = {
     "**/*.test.[jt]s?(x)",
     "**/*.property.test.[jt]s?(x)",
   ],
+  modulePathIgnorePatterns: ["<rootDir>/.next/"],
 };
 
 module.exports = createJestConfig(customJestConfig);

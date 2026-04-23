@@ -78,7 +78,7 @@ describe("ProductCard", () => {
       screen.getByRole("link", { name: "Benchtop Centrifuge" }),
     ).toHaveAttribute("href", `/products/${base.id}`);
     expect(
-      screen.getByRole("link", { name: "Centrifuge on bench" }),
+      screen.getByRole("link", { name: /Centrifuge on bench/i }),
     ).toHaveAttribute("href", `/products/${base.id}`);
   });
 

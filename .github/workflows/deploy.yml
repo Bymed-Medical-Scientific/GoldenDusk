@@ -3,7 +3,7 @@ name: Deploy Production
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -17,6 +17,7 @@ jobs:
   deploy:
     name: Deploy to Ubuntu server
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
     environment: production
     steps:
       - name: Setup SSH key
@@ -47,8 +48,8 @@ jobs:
           cd "$SERVER_APP_DIR"
 
           git fetch --all --prune
-          git checkout main
-          git pull --ff-only origin main
+          git checkout master
+          git pull --ff-only origin master
 
           docker compose --env-file .env up -d --build --remove-orphans
 
