@@ -160,7 +160,7 @@ export function ProductDetail({
         </div>
       </div>
 
-      <section className="mt-10 border-t border-border pt-6 sm:mt-12 sm:pt-8" aria-labelledby="description-heading">
+      <section className="mt-10 max-w-full overflow-x-hidden border-t border-border pt-6 sm:mt-12 sm:pt-8" aria-labelledby="description-heading">
         <h2 id="description-heading" className="text-lg font-semibold text-foreground">
           Description
         </h2>
