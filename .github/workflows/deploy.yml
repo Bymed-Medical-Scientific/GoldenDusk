@@ -3,7 +3,7 @@ name: Deploy Production
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -47,8 +47,8 @@ jobs:
           cd "$SERVER_APP_DIR"
 
           git fetch --all --prune
-          git checkout main
-          git pull --ff-only origin main
+          git checkout master
+          git pull --ff-only origin master
 
           docker compose --env-file .env up -d --build --remove-orphans
 
