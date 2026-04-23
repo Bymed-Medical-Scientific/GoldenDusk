@@ -13,6 +13,7 @@ jobs:
   changes:
     name: Detect changed paths
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
     outputs:
       web: ${{ steps.filter.outputs.web }}
     steps:
@@ -32,6 +33,7 @@ jobs:
   api:
     name: API build and tests
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,7 +56,7 @@ jobs:
     name: Web lint
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.web == 'true' }}
+    if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: bymed-web
@@ -79,7 +81,7 @@ jobs:
     name: Web test
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.web == 'true' }}
+    if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: bymed-web
@@ -104,7 +106,7 @@ jobs:
     name: Web property tests
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     defaults:
       run:
         working-directory: bymed-web
@@ -129,7 +131,7 @@ jobs:
     name: Web build
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.web == 'true' }}
+    if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: bymed-web
@@ -153,6 +155,7 @@ jobs:
   admin:
     name: Admin build
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
     defaults:
       run:
         working-directory: bymed-admin
