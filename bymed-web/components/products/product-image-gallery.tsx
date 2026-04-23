@@ -28,14 +28,13 @@ export function ProductImageGallery({
   const main = images[0];
 
   return (
-    <div className="relative w-full max-w-full overflow-hidden rounded-xl border border-border bg-white">
+    <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-xl border border-border bg-white">
       <Image
         src={main.url}
         alt={main.alt || productName}
-        className="h-auto max-h-[70vh] w-full object-contain p-2 sm:max-h-[75vh] sm:p-3"
-        width={960}
-        height={960}
-        sizes="(max-width: 1024px) 100vw, 50vw"
+        className="object-contain object-center p-2 sm:p-3"
+        fill
+        sizes="(max-width: 640px) calc(100vw - 1.5rem), (max-width: 1024px) 100vw, 50vw"
         placeholder="blur"
         blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
         fetchPriority="high"
