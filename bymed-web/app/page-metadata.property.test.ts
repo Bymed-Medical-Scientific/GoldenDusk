@@ -1,5 +1,3 @@
-import { generateMetadata as generateCmsSlugMetadata } from "@/app/[slug]/page";
-import { generateMetadata as generateHomeMetadata } from "@/app/page";
 import { getPageBySlug } from "@/lib/api/content";
 import fc from "fast-check";
 

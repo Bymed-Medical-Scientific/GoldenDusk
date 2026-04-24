@@ -1,6 +1,3 @@
-import CmsBySlugPage from "@/app/[slug]/page";
-import ContactPage from "@/app/contact/page";
-import HomePage from "@/app/page";
 import { render } from "@testing-library/react";
 import fc from "fast-check";
 

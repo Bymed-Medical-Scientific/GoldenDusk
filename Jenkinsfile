@@ -66,7 +66,7 @@ pipeline {
         dir('bymed-web') {
           sh 'npm ci --include=dev'
           sh 'npm run lint'
-          sh 'npm test -- --ci --watch=false'
+          sh 'NODE_ENV=test npm test -- --ci --watch=false'
           sh 'npm run build'
         }
       }
