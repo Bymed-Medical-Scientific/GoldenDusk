@@ -62,11 +62,14 @@ pipeline {
     }
 
     stage('Build and Test Web') {
+      options {
+        timeout(time: 20, unit: 'MINUTES')
+      }
       steps {
         dir('bymed-web') {
           sh 'npm ci --include=dev'
           sh 'npm run lint'
-          sh 'NODE_ENV=test npm test -- --ci --watch=false'
+          sh 'NODE_ENV=test npm test -- --ci --watch=false --runInBand --detectOpenHandles --forceExit'
           sh 'npm run build'
         }
       }
