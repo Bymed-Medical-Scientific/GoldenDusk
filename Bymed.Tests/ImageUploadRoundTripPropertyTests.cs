@@ -22,6 +22,12 @@ public class ImageUploadRoundTripPropertyTests : IDisposable
     [Fact]
     public async Task ValidImage_UploadAndDelete_RoundTripSucceeds()
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            // System.Drawing-based image generation used by this test is Windows-only.
+            return;
+        }
+
         var options = Options.Create(new FileStorageOptions
         {
             RootPath = _tempRoot,
