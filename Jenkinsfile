@@ -64,7 +64,7 @@ pipeline {
     stage('Build and Test Web') {
       steps {
         dir('bymed-web') {
-          sh 'npm ci'
+          sh 'npm ci --include=dev'
           sh 'npm run lint'
           sh 'npm test -- --ci --watch=false'
           sh 'npm run build'
@@ -75,7 +75,7 @@ pipeline {
     stage('Build Admin') {
       steps {
         dir('bymed-admin') {
-          sh 'npm ci'
+          sh 'npm ci --include=dev'
           sh 'npm run build'
         }
       }
