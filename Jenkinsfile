@@ -27,6 +27,20 @@ pipeline {
   }
 
   stages {
+    stage('Validate Build Tools') {
+      steps {
+        sh '''
+          set -euo pipefail
+          command -v dotnet >/dev/null 2>&1 || { echo "dotnet SDK is required on the Jenkins agent."; exit 1; }
+          command -v node >/dev/null 2>&1 || { echo "node is required on the Jenkins agent."; exit 1; }
+          command -v npm >/dev/null 2>&1 || { echo "npm is required on the Jenkins agent."; exit 1; }
+          dotnet --info >/dev/null
+          node --version >/dev/null
+          npm --version >/dev/null
+        '''
+      }
+    }
+
     stage('Checkout') {
       steps {
         checkout scm
