@@ -92,9 +92,11 @@ pipeline {
 
     stage('Deploy') {
       when {
-        allOf {
-          branch 'master'
-          expression { return params.DEPLOY }
+        expression {
+          def branchName = env.BRANCH_NAME ?: ''
+          def gitBranch = env.GIT_BRANCH ?: ''
+          def isMaster = branchName == 'master' || gitBranch == 'master' || gitBranch == 'origin/master'
+          return params.DEPLOY && isMaster
         }
       }
       steps {
