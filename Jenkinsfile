@@ -93,7 +93,7 @@ pipeline {
     stage('Deploy') {
       when {
         allOf {
-          branch 'main'
+          branch 'master'
           expression { return params.DEPLOY }
         }
       }
