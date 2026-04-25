@@ -73,4 +73,19 @@ public sealed class AdminContactNotificationRecipientsController : ControllerBas
 
         return NoContent();
     }
+
+    [HttpPost("{recipientId:guid}/activate")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Activate(Guid recipientId, CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator
+            .Send(new ActivateContactNotificationRecipientCommand(recipientId), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.Error });
+
+        return NoContent();
+    }
 }

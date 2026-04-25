@@ -19,7 +19,7 @@ export class ContactRecipientsPageComponent implements OnInit {
   protected readonly rows = signal<ContactNotificationRecipientDto[]>([]);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly submitting = signal(false);
-  protected readonly deactivatingIds = signal<Set<string>>(new Set<string>());
+  protected readonly togglingIds = signal<Set<string>>(new Set<string>());
 
   protected email = '';
   protected isPrimaryRecipient = false;
@@ -58,33 +58,39 @@ export class ContactRecipientsPageComponent implements OnInit {
       });
   }
 
-  protected deactivate(recipientId: string): void {
-    if (this.deactivatingIds().has(recipientId)) {
+  protected toggleRecipientStatus(recipientId: string, isActive: boolean): void {
+    if (this.togglingIds().has(recipientId)) {
       return;
     }
 
-    const next = new Set(this.deactivatingIds());
+    const next = new Set(this.togglingIds());
     next.add(recipientId);
-    this.deactivatingIds.set(next);
+    this.togglingIds.set(next);
 
-    this.adminApi.deactivateContactNotificationRecipient(recipientId).subscribe({
+    const request$ = isActive
+      ? this.adminApi.deactivateContactNotificationRecipient(recipientId)
+      : this.adminApi.activateContactNotificationRecipient(recipientId);
+
+    request$.subscribe({
       next: () => {
-        const done = new Set(this.deactivatingIds());
+        const done = new Set(this.togglingIds());
         done.delete(recipientId);
-        this.deactivatingIds.set(done);
+        this.togglingIds.set(done);
         this.load();
       },
       error: (error: { message?: string }) => {
-        const done = new Set(this.deactivatingIds());
+        const done = new Set(this.togglingIds());
         done.delete(recipientId);
-        this.deactivatingIds.set(done);
-        this.errorMessage.set(error.message ?? 'Failed to deactivate recipient.');
+        this.togglingIds.set(done);
+        this.errorMessage.set(
+          error.message ?? (isActive ? 'Failed to deactivate recipient.' : 'Failed to activate recipient.')
+        );
       }
     });
   }
 
-  protected isDeactivating(recipientId: string): boolean {
-    return this.deactivatingIds().has(recipientId);
+  protected isToggling(recipientId: string): boolean {
+    return this.togglingIds().has(recipientId);
   }
 
   private load(): void {

@@ -6,11 +6,13 @@ public sealed class ContactMessage : BaseEntity
 {
     public const int NameMaxLength = 100;
     public const int EmailMaxLength = 254;
+    public const int OrganizationMaxLength = 200;
     public const int SubjectMaxLength = 200;
     public const int MessageMaxLength = 5000;
 
     public string Name { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
+    public string Organization { get; private set; } = string.Empty;
     public string Subject { get; private set; } = string.Empty;
     public string Message { get; private set; } = string.Empty;
     public DateTime SubmittedAtUtc { get; private set; }
@@ -19,10 +21,11 @@ public sealed class ContactMessage : BaseEntity
     {
     }
 
-    public ContactMessage(string name, string email, string subject, string message, DateTime submittedAtUtc)
+    public ContactMessage(string name, string email, string organization, string subject, string message, DateTime submittedAtUtc)
     {
         SetName(name);
         SetEmail(email);
+        SetOrganization(organization);
         SetSubject(subject);
         SetMessage(message);
         SubmittedAtUtc = submittedAtUtc;
@@ -59,6 +62,15 @@ public sealed class ContactMessage : BaseEntity
         if (trimmed.Length > SubjectMaxLength)
             throw new ArgumentException($"Subject must not exceed {SubjectMaxLength} characters.", nameof(value));
         Subject = trimmed;
+    }
+
+    private void SetOrganization(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        var trimmed = value.Trim();
+        if (trimmed.Length > OrganizationMaxLength)
+            throw new ArgumentException($"Organization must not exceed {OrganizationMaxLength} characters.", nameof(value));
+        Organization = trimmed;
     }
 
     private void SetMessage(string value)

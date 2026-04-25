@@ -312,6 +312,10 @@ export class AdminApiService {
     return this.apiService.delete<void>(`admin/contact-notification-recipients/${recipientId}`);
   }
 
+  public activateContactNotificationRecipient(recipientId: string): Observable<void> {
+    return this.apiService.postNoContent(`admin/contact-notification-recipients/${recipientId}/activate`, {});
+  }
+
   /** CMS pages including drafts (admin). */
   public getContentPages(pageNumber: number, pageSize: number): Observable<PagedResultDto<PageContentSummaryDto>> {
     return this.apiService.get<PagedResultDto<PageContentSummaryDto>>('content/manage', {

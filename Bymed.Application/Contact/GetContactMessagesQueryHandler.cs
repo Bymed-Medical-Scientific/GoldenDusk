@@ -31,6 +31,7 @@ public sealed class GetContactMessagesQueryHandler : IRequestHandler<GetContactM
                 Id = x.Id,
                 Name = x.Name,
                 Email = x.Email,
+                Organization = x.Organization,
                 Subject = x.Subject,
                 Message = x.Message,
                 SubmittedAtUtc = x.SubmittedAtUtc

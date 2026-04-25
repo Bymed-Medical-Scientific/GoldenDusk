@@ -51,11 +51,12 @@
                 <button
                   pButton
                   type="button"
-                  class="p-button-text p-button-danger"
-                  label="Deactivate"
-                  [disabled]="!row.isActive || isDeactivating(row.id)"
-                  [loading]="isDeactivating(row.id)"
-                  (click)="deactivate(row.id)"
+                  class="p-button-text"
+                  [class.p-button-danger]="row.isActive"
+                  [class.p-button-success]="!row.isActive"
+                  [label]="row.isActive ? 'Deactivate' : 'Activate'"
+                  [loading]="isToggling(row.id)"
+                  (click)="toggleRecipientStatus(row.id, row.isActive)"
                 ></button>
               </td>
             </tr>

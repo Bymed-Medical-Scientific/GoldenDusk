@@ -28,6 +28,11 @@ public sealed class ContactNotificationRecipient : BaseEntity
         IsActive = false;
     }
 
+    public void Activate()
+    {
+        IsActive = true;
+    }
+
     private void SetEmail(string value)
     {
         ArgumentNullException.ThrowIfNull(value);

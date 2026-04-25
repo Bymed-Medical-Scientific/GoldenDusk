@@ -40,6 +40,7 @@
             <th>Submitted</th>
             <th>Name</th>
             <th>Email</th>
+            <th>Organization</th>
             <th>Subject</th>
             <th>Message</th>
           </tr>
@@ -50,6 +51,7 @@
               <td>{{ row.submittedAtUtc | date: 'medium' }}</td>
               <td>{{ row.name }}</td>
               <td>{{ row.email }}</td>
+              <td>{{ row.organization || '-' }}</td>
               <td>{{ row.subject }}</td>
               <td class="message-cell">{{ row.message }}</td>
             </tr>

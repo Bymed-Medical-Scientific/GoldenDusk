@@ -374,6 +374,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Email);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(ContactMessage.NameMaxLength);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(ContactMessage.EmailMaxLength);
+            entity.Property(e => e.Organization).IsRequired().HasMaxLength(ContactMessage.OrganizationMaxLength);
             entity.Property(e => e.Subject).IsRequired().HasMaxLength(ContactMessage.SubjectMaxLength);
             entity.Property(e => e.Message).IsRequired().HasMaxLength(ContactMessage.MessageMaxLength);
         });

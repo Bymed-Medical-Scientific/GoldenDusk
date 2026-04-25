@@ -12,6 +12,7 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
 {
     private const int NameMaxLength = 100;
     private const int EmailMaxLength = 254;
+    private const int OrganizationMaxLength = 200;
     private const int SubjectMaxLength = 200;
     private const int MessageMaxLength = 5000;
 
@@ -38,6 +39,7 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
 
         var name = payload.Name?.Trim() ?? string.Empty;
         var email = payload.Email?.Trim() ?? string.Empty;
+        var organization = payload.Organization?.Trim() ?? string.Empty;
         var subject = payload.Subject?.Trim() ?? string.Empty;
         var message = payload.Message?.Trim() ?? string.Empty;
 
@@ -53,6 +55,9 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
         if (!IsValidEmail(email))
             return Result<ContactFormDto>.Failure("Email format is invalid.");
 
+        if (organization.Length > OrganizationMaxLength)
+            return Result<ContactFormDto>.Failure($"Organization must not exceed {OrganizationMaxLength} characters.");
+
         if (string.IsNullOrWhiteSpace(subject))
             return Result<ContactFormDto>.Failure("Subject is required.");
         if (subject.Length > SubjectMaxLength)
@@ -64,7 +69,7 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
             return Result<ContactFormDto>.Failure($"Message must not exceed {MessageMaxLength} characters.");
 
         var submittedAtUtc = DateTime.UtcNow;
-        var contactMessage = new ContactMessage(name, email, subject, message, submittedAtUtc);
+        var contactMessage = new ContactMessage(name, email, organization, subject, message, submittedAtUtc);
         _contactMessageRepository.Add(contactMessage);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
@@ -89,13 +94,14 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
             ccRecipients.Add("ttmalaba@bymed.co.zw");
 
         await _emailService
-            .SendContactFormEmailAsync(email, name, subject, message, toRecipients, ccRecipients, cancellationToken)
+            .SendContactFormEmailAsync(email, name, organization, subject, message, toRecipients, ccRecipients, cancellationToken)
             .ConfigureAwait(false);
 
         return Result<ContactFormDto>.Success(new ContactFormDto
         {
             Name = name,
             Email = email,
+            Organization = organization,
             Subject = subject,
             Message = message,
             SubmittedAtUtc = submittedAtUtc

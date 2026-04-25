@@ -24,6 +24,7 @@ public sealed class NoOpEmailService : IEmailService
     public Task SendContactFormEmailAsync(
         string senderEmail,
         string senderName,
+        string organization,
         string subject,
         string message,
         IReadOnlyCollection<string> toRecipients,

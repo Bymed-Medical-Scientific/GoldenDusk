@@ -12,6 +12,7 @@ public interface IEmailBackgroundJobRunner
     Task SendContactFormEmailAsync(
         string senderEmail,
         string senderName,
+        string organization,
         string subject,
         string message,
         string[] toRecipients,
@@ -86,6 +87,7 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
     public async Task SendContactFormEmailAsync(
         string senderEmail,
         string senderName,
+        string organization,
         string subject,
         string message,
         string[] toRecipients,
@@ -100,6 +102,7 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             ctaUrl: null,
             secondaryHtml: $"""
                 <strong>From:</strong> {System.Net.WebUtility.HtmlEncode(senderName)} ({System.Net.WebUtility.HtmlEncode(senderEmail)})<br/>
+                <strong>Organization:</strong> {System.Net.WebUtility.HtmlEncode(organization)}<br/>
                 <strong>Subject:</strong> {System.Net.WebUtility.HtmlEncode(normalizedSubject)}<br/>
                 <strong>Message:</strong><br/>{System.Net.WebUtility.HtmlEncode(message).Replace("\n", "<br/>")}
                 """);

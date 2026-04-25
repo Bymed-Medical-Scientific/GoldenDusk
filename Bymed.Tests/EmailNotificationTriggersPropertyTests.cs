@@ -71,7 +71,16 @@ public class EmailNotificationTriggersPropertyTests
                         Arg.Any<EnqueuedState>());
                     break;
                 case 3:
-                    sut.SendContactFormEmailAsync(s.ToEmail, s.CustomerName, s.Subject, s.Message).GetAwaiter().GetResult();
+                    sut.SendContactFormEmailAsync(
+                            s.ToEmail,
+                            s.CustomerName,
+                            "Org",
+                            s.Subject,
+                            s.Message,
+                            ["to@example.com"],
+                            ["cc@example.com"])
+                        .GetAwaiter()
+                        .GetResult();
                     jobs.Received(1).Create(
                         Arg.Is<Job>(job => job.Method.Name == nameof(IEmailBackgroundJobRunner.SendContactFormEmailAsync)),
                         Arg.Any<EnqueuedState>());
