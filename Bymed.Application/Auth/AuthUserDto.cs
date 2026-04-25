@@ -10,4 +10,5 @@ public sealed record AuthUserDto
     public required UserRole Role { get; init; }
     public required bool EmailConfirmed { get; init; }
     public required bool IsActive { get; init; }
+    public required bool CanViewPrices { get; init; }
 }

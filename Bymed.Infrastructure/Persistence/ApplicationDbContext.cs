@@ -29,6 +29,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
+    public DbSet<QuoteRequest> QuoteRequests => Set<QuoteRequest>();
+    public DbSet<QuoteRequestItem> QuoteRequestItems => Set<QuoteRequestItem>();
+    public DbSet<QuoteNotificationRecipient> QuoteNotificationRecipients => Set<QuoteNotificationRecipient>();
     public DbSet<ClientType> ClientTypes => Set<ClientType>();
     public DbSet<Client> Clients => Set<Client>();
 
@@ -56,6 +59,8 @@ public class ApplicationDbContext : DbContext
         ApplyRefreshTokenConfiguration(modelBuilder);
         ApplyContactMessageConfiguration(modelBuilder);
         ApplyContactNotificationRecipientConfiguration(modelBuilder);
+        ApplyQuoteRequestConfiguration(modelBuilder);
+        ApplyQuoteNotificationRecipientConfiguration(modelBuilder);
         ApplyClientTypeConfiguration(modelBuilder);
         ApplyClientConfiguration(modelBuilder);
     }
@@ -138,6 +143,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LockoutEnabled).HasDefaultValue(true);
             entity.Property(e => e.EmailConfirmed).HasDefaultValue(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CanViewPrices).HasDefaultValue(false);
 
             entity.HasMany(e => e.Addresses)
                 .WithOne(e => e.User)
@@ -393,6 +399,48 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => new { e.IsPrimaryRecipient, e.IsActive });
             entity.Property(e => e.Email).IsRequired().HasMaxLength(ContactNotificationRecipient.EmailMaxLength);
+        });
+    }
+
+    private static void ApplyQuoteRequestConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<QuoteRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SubmittedAtUtc);
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Status);
+            entity.Property(e => e.FullName).IsRequired().HasMaxLength(QuoteRequest.FullNameMaxLength);
+            entity.Property(e => e.Institution).IsRequired().HasMaxLength(QuoteRequest.InstitutionMaxLength);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(QuoteRequest.EmailMaxLength);
+            entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(QuoteRequest.PhoneMaxLength);
+            entity.Property(e => e.Address).IsRequired().HasMaxLength(QuoteRequest.AddressMaxLength);
+            entity.Property(e => e.Notes).IsRequired().HasMaxLength(QuoteRequest.NotesMaxLength);
+            entity.HasMany(e => e.Items)
+                .WithOne(i => i.QuoteRequest)
+                .HasForeignKey(i => i.QuoteRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuoteRequestItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuoteRequestId);
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.ProductNameSnapshot).IsRequired().HasMaxLength(QuoteRequestItem.ProductNameMaxLength);
+            entity.Property(e => e.ProductSkuSnapshot).HasMaxLength(QuoteRequestItem.ProductSkuMaxLength);
+        });
+    }
+
+    private static void ApplyQuoteNotificationRecipientConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<QuoteNotificationRecipient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.IsPrimaryRecipient, e.IsActive });
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(QuoteNotificationRecipient.EmailMaxLength);
         });
     }
 

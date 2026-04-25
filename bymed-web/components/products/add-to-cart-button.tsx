@@ -112,14 +112,14 @@ export function AddToCartButton({
           disabled={loading}
           className="rounded-md bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-sm transition-colors hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Adding…" : "Add to cart"}
+          {loading ? "Adding…" : "Add to quote"}
         </button>
       </div>
       {success ? (
         <p className="text-sm text-foreground" role="status">
-          Added to your cart.{" "}
+          Added to your quote cart.{" "}
           <Link href="/cart" className="font-medium text-brand hover:underline">
-            View cart
+            View quote cart
           </Link>
         </p>
       ) : null}

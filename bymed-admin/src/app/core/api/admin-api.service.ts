@@ -32,8 +32,10 @@ import {
   UpdatePageContentRequestDto,
   PagedResultDto,
   PendingAdminRegistrationDto,
+  PendingCustomerRegistrationDto,
   ProductDto,
   ProductImageDto,
+  QuoteRequestDto,
   UpdateCategoryRequestDto,
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
@@ -319,6 +321,42 @@ export class AdminApiService {
 
   public approvePendingAdminRegistration(userId: string): Observable<void> {
     return this.apiService.postNoContent(`admin/pending-admin-registrations/${userId}/approve`, {});
+  }
+
+  public getPendingCustomerRegistrations(): Observable<PendingCustomerRegistrationDto[]> {
+    return this.apiService.get<PendingCustomerRegistrationDto[]>('admin/customer-approvals/pending');
+  }
+
+  public approvePendingCustomerRegistration(userId: string, canViewPrices: boolean): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/approve?canViewPrices=${canViewPrices}`, {});
+  }
+
+  public declinePendingCustomerRegistration(userId: string): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/decline`, {});
+  }
+
+  public setCustomerPriceVisibility(userId: string, canViewPrices: boolean): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/price-visibility?canViewPrices=${canViewPrices}`, {});
+  }
+
+  public getQuoteRequests(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly email?: string | null;
+      readonly fullName?: string | null;
+      readonly dateFromUtc?: string | null;
+      readonly dateToUtc?: string | null;
+    }
+  ): Observable<PagedResultDto<QuoteRequestDto>> {
+    return this.apiService.get<PagedResultDto<QuoteRequestDto>>('admin/quote-requests', {
+      pageNumber,
+      pageSize,
+      email: query?.email?.trim() ? query.email.trim() : undefined,
+      fullName: query?.fullName?.trim() ? query.fullName.trim() : undefined,
+      dateFromUtc: query?.dateFromUtc?.trim() ? query.dateFromUtc.trim() : undefined,
+      dateToUtc: query?.dateToUtc?.trim() ? query.dateToUtc.trim() : undefined
+    });
   }
 
   public getContactMessages(

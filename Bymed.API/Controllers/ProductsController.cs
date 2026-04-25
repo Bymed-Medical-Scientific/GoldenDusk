@@ -2,12 +2,14 @@ using Asp.Versioning;
 using Bymed.API.Authorization;
 using Bymed.Application.Common;
 using Bymed.Application.Products;
+using Bymed.Application.Repositories;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 using System.Text;
 
 namespace Bymed.API.Controllers;
@@ -22,17 +24,20 @@ public sealed class ProductsController : ControllerBase
     private readonly IValidator<CreateProductRequest> _createValidator;
     private readonly IValidator<UpdateProductRequest> _updateValidator;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
+    private readonly IUserRepository _userRepository;
 
     public ProductsController(
         IMediator mediator,
         IValidator<CreateProductRequest> createValidator,
         IValidator<UpdateProductRequest> updateValidator,
-        IHostApplicationLifetime hostApplicationLifetime)
+        IHostApplicationLifetime hostApplicationLifetime,
+        IUserRepository userRepository)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
     /// <summary>List products with optional filtering and pagination.</summary>
@@ -56,6 +61,14 @@ public sealed class ProductsController : ControllerBase
     {
         var query = new GetProductsQuery(pageNumber, pageSize, categoryId, search, inStock, brand, clientType, minPrice, maxPrice);
         var result = await _mediator.Send(query, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
+        if (!await CanViewPricesAsync().ConfigureAwait(false))
+        {
+            result = new PagedResult<ProductDto>(
+                result.Items.Select(HidePrice).ToList(),
+                result.PageNumber,
+                result.PageSize,
+                result.TotalCount);
+        }
         return Ok(result);
     }
 
@@ -69,7 +82,10 @@ public sealed class ProductsController : ControllerBase
         var result = await _mediator.Send(new GetProductByIdQuery(id), _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         if (!result.IsSuccess)
             return NotFound(new { error = result.Error });
-        return Ok(result.Value);
+        var product = result.Value!;
+        if (!await CanViewPricesAsync().ConfigureAwait(false))
+            product = HidePrice(product);
+        return Ok(product);
     }
 
     /// <summary>Create a product (admin only).</summary>
@@ -309,5 +325,17 @@ public sealed class ProductsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    private ProductDto HidePrice(ProductDto dto) => dto with { Price = 0m };
+
+    private async Task<bool> CanViewPricesAsync()
+    {
+        var subject = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (!Guid.TryParse(subject, out var userId))
+            return false;
+
+        var user = await _userRepository.GetByIdAsync(userId, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
+        return user is not null && user.IsActive && user.CanViewPrices;
     }
 }

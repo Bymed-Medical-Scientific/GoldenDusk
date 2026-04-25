@@ -8,4 +8,5 @@ export * from './order.dto';
 export * from './page-content.dto';
 export * from './pending-admin-registration.dto';
 export * from './product.dto';
+export * from './quote.dto';
 export * from './user.dto';

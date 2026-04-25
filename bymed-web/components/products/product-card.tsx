@@ -75,9 +75,13 @@ export function ProductCard({ product }: ProductCardProps) {
           </Link>
         </h2>
         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-          <p className="text-lg font-semibold tabular-nums text-foreground">
-            <FormattedPrice amount={product.price} currency={product.currency} />
-          </p>
+          {product.price > 0 ? (
+            <p className="text-lg font-semibold tabular-nums text-foreground">
+              <FormattedPrice amount={product.price} currency={product.currency} />
+            </p>
+          ) : (
+            <p className="text-sm font-medium text-muted-foreground">Request quote</p>
+          )}
           <Link
             href={href}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-colors hover:bg-brand-hover"

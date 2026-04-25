@@ -95,6 +95,16 @@ public class UserRepository : IUserRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<User>> GetPendingCustomerRegistrationsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == UserRole.Customer && !u.IsActive && u.EmailConfirmed)
+            .OrderByDescending(u => u.CreationTime)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<string>> GetEmailsByRoleAndActiveAsync(
         UserRole role,
         bool isActive,

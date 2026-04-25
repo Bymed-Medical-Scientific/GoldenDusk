@@ -91,7 +91,8 @@ public sealed class AuthService : IAuthService
             Name = request.Name.Trim(),
             Role = role,
             EmailConfirmed = false,
-            IsActive = isActive
+            IsActive = isActive,
+            CanViewPrices = false
         };
 
         var createResult = await _userManager.CreateAsync(appUser, request.Password).ConfigureAwait(false);
@@ -151,8 +152,8 @@ public sealed class AuthService : IAuthService
 
         if (user.Role == UserRole.Customer)
         {
-            if (!user.IsActive)
-                user.SetActive(true);
+            user.SetActive(false);
+            await _emailService.SendCustomerAccountUnderReviewEmailAsync(user.Email, user.Name, cancellationToken).ConfigureAwait(false);
         }
         else if (user.Role == UserRole.Admin && !user.IsActive)
         {
@@ -216,8 +217,7 @@ public sealed class AuthService : IAuthService
         if (!user.IsActive)
         {
             _logger.LogWarning("Login failed: inactive account for user {UserId}.", appUser.Id);
-            return Result<AuthResponse>.Failure(
-                "Your account is not active yet. If you registered from the admin site, an administrator must approve your access before you can sign in.");
+            return Result<AuthResponse>.Failure("Your account is not approved yet. Please contact support.");
         }
 
         var token = GenerateAccessToken(user);
@@ -288,6 +288,7 @@ public sealed class AuthService : IAuthService
             Role = user.Role,
             EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
+            CanViewPrices = user.CanViewPrices,
             PasswordHash = user.PasswordHash
         };
 
@@ -331,6 +332,7 @@ public sealed class AuthService : IAuthService
             Role = user.Role,
             EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
+            CanViewPrices = user.CanViewPrices,
             PasswordHash = user.PasswordHash
         };
 
@@ -364,6 +366,7 @@ public sealed class AuthService : IAuthService
             Role = user.Role,
             EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
+            CanViewPrices = user.CanViewPrices,
             PasswordHash = user.PasswordHash
         };
 
@@ -407,7 +410,8 @@ public sealed class AuthService : IAuthService
             Name = user.Name,
             Role = user.Role,
             EmailConfirmed = user.EmailConfirmed,
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            CanViewPrices = user.CanViewPrices
         };
     }
 

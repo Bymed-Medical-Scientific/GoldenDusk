@@ -1,0 +1,44 @@
+<section class="approvals-page">
+  <header class="approvals-header">
+    <div>
+      <h2>Quote requests</h2>
+      <p>Review customer RFQ submissions from the storefront.</p>
+    </div>
+    <button type="button" class="p-button p-component p-button-outlined" (click)="refresh()">Refresh</button>
+  </header>
+
+  @if (isLoading()) {
+    <div class="state-box">Loading quote requests...</div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="state-box">No quote requests submitted yet.</div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Submitted</th>
+            <th>Name</th>
+            <th>Institution</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.submittedAtUtc | date: 'medium' }}</td>
+              <td>{{ row.fullName }}</td>
+              <td>{{ row.institution }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.phoneNumber }}</td>
+              <td>{{ row.itemCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

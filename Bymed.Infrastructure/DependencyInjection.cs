@@ -67,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
         services.AddScoped<IContactNotificationRecipientRepository, ContactNotificationRecipientRepository>();
+        services.AddScoped<IQuoteRequestRepository, QuoteRequestRepository>();
+        services.AddScoped<IQuoteNotificationRecipientRepository, QuoteNotificationRecipientRepository>();
         services.AddScoped<IClientTypeRepository, ClientTypeRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

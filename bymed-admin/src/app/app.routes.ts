@@ -223,6 +223,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'quote-requests',
+        loadComponent: () =>
+          import('@features/quotes/pages/quote-requests-page.component').then(
+            (m) => m.QuoteRequestsPageComponent
+          )
+      },
+      {
         path: 'admin-approvals',
         loadComponent: () =>
           import('@features/admin-approvals/pages/admin-approvals-page.component').then(

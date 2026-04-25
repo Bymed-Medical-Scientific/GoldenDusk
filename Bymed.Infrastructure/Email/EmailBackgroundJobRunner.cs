@@ -17,8 +17,20 @@ public interface IEmailBackgroundJobRunner
         string message,
         string[] toRecipients,
         string[] ccRecipients);
+    Task SendQuoteRequestSubmittedEmailAsync(
+        Guid quoteRequestId,
+        string fullName,
+        string institution,
+        string email,
+        string phoneNumber,
+        string address,
+        string notes,
+        string[] lineItems,
+        string[] toRecipients,
+        string[] ccRecipients);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink);
     Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink);
+    Task SendCustomerAccountUnderReviewEmailAsync(string toEmail, string customerName);
     Task SendPendingAdminRegistrationNotificationAsync(string toEmail, string pendingUserName, string pendingUserEmail, string adminPanelReviewHintUrl);
 }
 
@@ -116,6 +128,44 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
     }
 
     [AutomaticRetry(Attempts = 3)]
+    public async Task SendQuoteRequestSubmittedEmailAsync(
+        Guid quoteRequestId,
+        string fullName,
+        string institution,
+        string email,
+        string phoneNumber,
+        string address,
+        string notes,
+        string[] lineItems,
+        string[] toRecipients,
+        string[] ccRecipients)
+    {
+        var body = BuildBrandedEmailHtml(
+            preheader: "New quote request submitted",
+            greetingName: "Bymed team",
+            introHtml: "A customer submitted a new request for quotation.",
+            ctaText: null,
+            ctaUrl: null,
+            secondaryHtml: $"""
+                <strong>Request ID:</strong> {quoteRequestId}<br/>
+                <strong>Name:</strong> {System.Net.WebUtility.HtmlEncode(fullName)}<br/>
+                <strong>Institution:</strong> {System.Net.WebUtility.HtmlEncode(institution)}<br/>
+                <strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(email)}<br/>
+                <strong>Phone:</strong> {System.Net.WebUtility.HtmlEncode(phoneNumber)}<br/>
+                <strong>Address:</strong> {System.Net.WebUtility.HtmlEncode(address)}<br/>
+                <strong>Notes:</strong> {System.Net.WebUtility.HtmlEncode(notes)}<br/>
+                <strong>Items:</strong><br/>{string.Join("<br/>", lineItems.Select(System.Net.WebUtility.HtmlEncode))}
+                """);
+
+        var recipients = (toRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var ccs = (ccRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (recipients.Length == 0)
+            recipients = [_options.ContactFormRecipient];
+
+        await _smtpEmailSender.SendEmailAsync(recipients, "New quote request submitted", body, ccs).ConfigureAwait(false);
+    }
+
+    [AutomaticRetry(Attempts = 3)]
     public async Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink)
     {
         var subject = "Reset your password";
@@ -144,6 +194,20 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             secondaryHtml: "If you did not create this account, you can safely ignore this message.");
 
         _logger.LogInformation("Queue worker sending email verification link to {RecipientEmail}.", toEmail);
+        await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
+    }
+
+    [AutomaticRetry(Attempts = 3)]
+    public async Task SendCustomerAccountUnderReviewEmailAsync(string toEmail, string customerName)
+    {
+        const string subject = "Your account is under review";
+        var body = BuildBrandedEmailHtml(
+            preheader: "Account review in progress",
+            greetingName: customerName,
+            introHtml: "Thank you for registering. Your account is currently under admin review.",
+            ctaText: null,
+            ctaUrl: null,
+            secondaryHtml: "You will be able to sign in and view prices once your account is approved.");
         await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
     }
 

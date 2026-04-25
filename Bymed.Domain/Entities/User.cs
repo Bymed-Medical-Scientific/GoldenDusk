@@ -15,6 +15,7 @@ public class User : FullAuditedEntity
     public bool EmailConfirmed { get; private set; }
     /// <summary>When false, the account cannot sign in (e.g. admin registration pending approval).</summary>
     public bool IsActive { get; private set; } = true;
+    public bool CanViewPrices { get; private set; }
     public int AccessFailedCount { get; private set; }
     public DateTimeOffset? LockoutEnd { get; private set; }
     public bool LockoutEnabled { get; private set; } = true;
@@ -24,25 +25,28 @@ public class User : FullAuditedEntity
     {
     }
 
-    public User(string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false) : base()
+    public User(string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false, bool canViewPrices = false) : base()
     {
         SetEmail(email);
         SetName(name);
         Role = role;
         IsActive = isActive;
         EmailConfirmed = emailConfirmed;
+        CanViewPrices = canViewPrices;
     }
 
-    public User(Guid id, string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false) : base(id)
+    public User(Guid id, string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false, bool canViewPrices = false) : base(id)
     {
         SetEmail(email);
         SetName(name);
         Role = role;
         IsActive = isActive;
         EmailConfirmed = emailConfirmed;
+        CanViewPrices = canViewPrices;
     }
 
     public void SetActive(bool active) => IsActive = active;
+    public void SetCanViewPrices(bool canViewPrices) => CanViewPrices = canViewPrices;
     public void SetEmailConfirmed(bool confirmed) => EmailConfirmed = confirmed;
 
     public void SetPasswordHash(string passwordHash)

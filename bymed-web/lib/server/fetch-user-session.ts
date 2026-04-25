@@ -31,7 +31,8 @@ export async function buildAuthUserFromSession(
     email: profile.email,
     name: profile.name,
     role,
-    isActive: true,
+    isActive: profile.isActive,
+    canViewPrices: profile.canViewPrices,
   };
 }
 
