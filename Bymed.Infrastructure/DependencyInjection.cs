@@ -67,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
         services.AddScoped<IContactNotificationRecipientRepository, ContactNotificationRecipientRepository>();
+        services.AddScoped<IClientTypeRepository, ClientTypeRepository>();
+        services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         if (!services.Any(d => d.ServiceType == typeof(IDistributedCache)))

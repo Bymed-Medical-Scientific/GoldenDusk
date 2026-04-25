@@ -1,0 +1,41 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Clients</h1>
+    <a pButton routerLink="/clients/new" label="Add Client"></a>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <p-table [value]="rows()" [loading]="isLoading()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Institution</th>
+        <th>Type</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.institutionName }}</td>
+        <td>{{ row.clientTypeName }}</td>
+        <td>{{ row.email1 || row.email2 || row.email3 || '-' }}</td>
+        <td>{{ row.phoneNumber1 || row.phoneNumber2 || row.phoneNumber3 || '-' }}</td>
+        <td class="actions">
+          <a pButton [routerLink]="['/clients', row.id, 'edit']" label="Edit" size="small"></a>
+          <button
+            pButton
+            type="button"
+            label="Delete"
+            severity="danger"
+            size="small"
+            [loading]="deletingId() === row.id"
+            (click)="delete(row)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

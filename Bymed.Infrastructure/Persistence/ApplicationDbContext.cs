@@ -29,6 +29,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
+    public DbSet<ClientType> ClientTypes => Set<ClientType>();
+    public DbSet<Client> Clients => Set<Client>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +56,8 @@ public class ApplicationDbContext : DbContext
         ApplyRefreshTokenConfiguration(modelBuilder);
         ApplyContactMessageConfiguration(modelBuilder);
         ApplyContactNotificationRecipientConfiguration(modelBuilder);
+        ApplyClientTypeConfiguration(modelBuilder);
+        ApplyClientConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -389,6 +393,50 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => new { e.IsPrimaryRecipient, e.IsActive });
             entity.Property(e => e.Email).IsRequired().HasMaxLength(ContactNotificationRecipient.EmailMaxLength);
+        });
+    }
+
+    private static void ApplyClientTypeConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ClientType>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.Slug).IsUnique();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(ClientType.NameMaxLength);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(ClientType.SlugMaxLength);
+        });
+    }
+
+    private static void ApplyClientConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Client>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.InstitutionName).IsUnique();
+            entity.HasIndex(e => e.ClientTypeId);
+            entity.Property(e => e.InstitutionName).IsRequired().HasMaxLength(Client.InstitutionNameMaxLength);
+            entity.Property(e => e.Address).IsRequired().HasMaxLength(Client.AddressMaxLength);
+            entity.Property(e => e.Email1).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.Email2).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.Email3).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.PhoneNumber1).HasMaxLength(Client.PhoneMaxLength);
+            entity.Property(e => e.PhoneNumber2).HasMaxLength(Client.PhoneMaxLength);
+            entity.Property(e => e.PhoneNumber3).HasMaxLength(Client.PhoneMaxLength);
+            entity.Property(e => e.TelephoneNumber1).HasMaxLength(Client.TelephoneMaxLength);
+            entity.Property(e => e.TelephoneNumber2).HasMaxLength(Client.TelephoneMaxLength);
+            entity.Property(e => e.TelephoneNumber3).HasMaxLength(Client.TelephoneMaxLength);
+            entity.Property(e => e.ContactPerson1Name).HasMaxLength(Client.ContactPersonNameMaxLength);
+            entity.Property(e => e.ContactPerson1Email).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.ContactPerson1Telephone).HasMaxLength(Client.TelephoneMaxLength);
+            entity.Property(e => e.ContactPerson2Name).HasMaxLength(Client.ContactPersonNameMaxLength);
+            entity.Property(e => e.ContactPerson2Email).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.ContactPerson2Telephone).HasMaxLength(Client.TelephoneMaxLength);
+
+            entity.HasOne(e => e.ClientType)
+                .WithMany()
+                .HasForeignKey(e => e.ClientTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

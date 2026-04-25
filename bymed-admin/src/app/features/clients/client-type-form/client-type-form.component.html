@@ -1,0 +1,27 @@
+<section class="page">
+  <header class="page-header">
+    <h1>{{ isEditMode ? 'Edit Client Type' : 'Add Client Type' }}</h1>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (!isInitializing()) {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <label>
+        Name
+        <input pInputText formControlName="name" />
+      </label>
+      <label>
+        Slug
+        <input pInputText formControlName="slug" />
+      </label>
+
+      <div class="actions">
+        <a pButton routerLink="/client-types" severity="secondary" label="Cancel"></a>
+        <button pButton type="submit" [loading]="isSubmitting()" label="Save"></button>
+      </div>
+    </form>
+  }
+</section>
