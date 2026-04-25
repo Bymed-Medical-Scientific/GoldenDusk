@@ -8,5 +8,7 @@ public sealed record GetQuoteRequestsQuery(
     int PageSize = PaginationParams.DefaultPageSize,
     string? Email = null,
     string? FullName = null,
+    string? Institution = null,
+    string? PhoneNumber = null,
     DateTime? DateFromUtc = null,
     DateTime? DateToUtc = null) : IRequest<PagedResult<QuoteRequestSummaryDto>>;

@@ -20,6 +20,8 @@ public sealed class GetQuoteRequestsQueryHandler : IRequestHandler<GetQuoteReque
                 pagination,
                 request.Email,
                 request.FullName,
+                request.Institution,
+                request.PhoneNumber,
                 request.DateFromUtc,
                 request.DateToUtc,
                 cancellationToken)

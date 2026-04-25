@@ -35,7 +35,8 @@ import {
   PendingCustomerRegistrationDto,
   ProductDto,
   ProductImageDto,
-  QuoteRequestDto,
+  QuoteRequestDetailDto,
+  QuoteRequestSummaryDto,
   UpdateCategoryRequestDto,
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
@@ -345,18 +346,26 @@ export class AdminApiService {
     query?: {
       readonly email?: string | null;
       readonly fullName?: string | null;
+      readonly institution?: string | null;
+      readonly phoneNumber?: string | null;
       readonly dateFromUtc?: string | null;
       readonly dateToUtc?: string | null;
     }
-  ): Observable<PagedResultDto<QuoteRequestDto>> {
-    return this.apiService.get<PagedResultDto<QuoteRequestDto>>('admin/quote-requests', {
+  ): Observable<PagedResultDto<QuoteRequestSummaryDto>> {
+    return this.apiService.get<PagedResultDto<QuoteRequestSummaryDto>>('admin/quote-requests', {
       pageNumber,
       pageSize,
       email: query?.email?.trim() ? query.email.trim() : undefined,
       fullName: query?.fullName?.trim() ? query.fullName.trim() : undefined,
+      institution: query?.institution?.trim() ? query.institution.trim() : undefined,
+      phoneNumber: query?.phoneNumber?.trim() ? query.phoneNumber.trim() : undefined,
       dateFromUtc: query?.dateFromUtc?.trim() ? query.dateFromUtc.trim() : undefined,
       dateToUtc: query?.dateToUtc?.trim() ? query.dateToUtc.trim() : undefined
     });
+  }
+
+  public getQuoteRequestById(quoteRequestId: string): Observable<QuoteRequestDetailDto> {
+    return this.apiService.get<QuoteRequestDetailDto>(`admin/quote-requests/${quoteRequestId}`);
   }
 
   public getContactMessages(

@@ -21,10 +21,24 @@ public sealed class QuoteRequestRepository : IQuoteRequestRepository
         _context.QuoteRequests.Add(quoteRequest);
     }
 
+    public async Task<QuoteRequest?> GetByIdAsync(Guid quoteRequestId, CancellationToken cancellationToken = default)
+    {
+        if (quoteRequestId == Guid.Empty)
+            return null;
+
+        return await _context.QuoteRequests
+            .AsNoTracking()
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == quoteRequestId, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<PagedResult<QuoteRequest>> GetPagedAsync(
         PaginationParams pagination,
         string? email,
         string? fullName,
+        string? institution,
+        string? phoneNumber,
         DateTime? dateFromUtc,
         DateTime? dateToUtc,
         CancellationToken cancellationToken = default)
@@ -44,6 +58,18 @@ public sealed class QuoteRequestRepository : IQuoteRequestRepository
         {
             var normalized = fullName.Trim().ToUpperInvariant();
             query = query.Where(x => x.FullName.ToUpper().Contains(normalized));
+        }
+
+        if (!string.IsNullOrWhiteSpace(institution))
+        {
+            var normalized = institution.Trim().ToUpperInvariant();
+            query = query.Where(x => x.Institution.ToUpper().Contains(normalized));
+        }
+
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            var normalized = phoneNumber.Trim().ToUpperInvariant();
+            query = query.Where(x => x.PhoneNumber.ToUpper().Contains(normalized));
         }
 
         if (dateFromUtc.HasValue)

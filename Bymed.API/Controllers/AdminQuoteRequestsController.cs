@@ -28,13 +28,34 @@ public sealed class AdminQuoteRequestsController : ControllerBase
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] string? email = null,
         [FromQuery] string? fullName = null,
+        [FromQuery] string? institution = null,
+        [FromQuery] string? phoneNumber = null,
         [FromQuery] DateTime? dateFromUtc = null,
         [FromQuery] DateTime? dateToUtc = null,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator
-            .Send(new GetQuoteRequestsQuery(pageNumber, pageSize, email, fullName, dateFromUtc, dateToUtc), cancellationToken)
+            .Send(
+                new GetQuoteRequestsQuery(
+                    pageNumber,
+                    pageSize,
+                    email,
+                    fullName,
+                    institution,
+                    phoneNumber,
+                    dateFromUtc,
+                    dateToUtc),
+                cancellationToken)
             .ConfigureAwait(false);
         return Ok(result);
+    }
+
+    [HttpGet("{quoteRequestId:guid}")]
+    [ProducesResponseType(typeof(QuoteRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById([FromRoute] Guid quoteRequestId, CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(new GetQuoteRequestByIdQuery(quoteRequestId), cancellationToken).ConfigureAwait(false);
+        return result is null ? NotFound() : Ok(result);
     }
 }
