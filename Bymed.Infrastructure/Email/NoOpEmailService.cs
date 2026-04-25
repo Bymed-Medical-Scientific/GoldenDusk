@@ -21,8 +21,15 @@ public sealed class NoOpEmailService : IEmailService
     public Task SendDeliveryConfirmationAsync(string toEmail, string customerName, string orderNumber, CancellationToken cancellationToken = default)
         => LogAsync("DeliveryConfirmation", toEmail);
 
-    public Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message, CancellationToken cancellationToken = default)
-        => LogAsync("ContactForm", senderEmail);
+    public Task SendContactFormEmailAsync(
+        string senderEmail,
+        string senderName,
+        string subject,
+        string message,
+        IReadOnlyCollection<string> toRecipients,
+        IReadOnlyCollection<string> ccRecipients,
+        CancellationToken cancellationToken = default)
+        => LogAsync("ContactForm", string.Join(",", toRecipients));
 
     public Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default)
         => LogAsync("PasswordReset", toEmail);

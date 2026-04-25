@@ -1,0 +1,67 @@
+<section class="contact-page">
+  <header class="page-header">
+    <div>
+      <h2>Contact notification recipients</h2>
+      <p>Manage who receives contact-us emails (primary recipients and CC).</p>
+    </div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+  </header>
+
+  <div class="create-box">
+    <input type="email" [(ngModel)]="email" placeholder="email@bymed.co.zw" />
+    <label>
+      <input type="checkbox" [(ngModel)]="isPrimaryRecipient" />
+      Primary recipient (unchecked means CC)
+    </label>
+    <button pButton type="button" label="Add recipient" [loading]="submitting()" (click)="create()"></button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-box">
+      <p-progressSpinner ariaLabel="Loading recipients" strokeWidth="4"></p-progressSpinner>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="state-box">No recipients configured yet.</div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.email }}</td>
+              <td>{{ row.isPrimaryRecipient ? 'Primary' : 'CC' }}</td>
+              <td>
+                <span class="chip" [class.ok]="row.isActive" [class.warn]="!row.isActive">
+                  {{ row.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>{{ row.createdAtUtc | date: 'medium' }}</td>
+              <td>
+                <button
+                  pButton
+                  type="button"
+                  class="p-button-text p-button-danger"
+                  label="Deactivate"
+                  [disabled]="!row.isActive || isDeactivating(row.id)"
+                  [loading]="isDeactivating(row.id)"
+                  (click)="deactivate(row.id)"
+                ></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

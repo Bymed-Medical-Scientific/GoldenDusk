@@ -9,7 +9,13 @@ public interface IEmailBackgroundJobRunner
     Task SendOrderConfirmationAsync(string toEmail, string customerName, string orderNumber);
     Task SendShippingNotificationAsync(string toEmail, string customerName, string orderNumber, string trackingNumber);
     Task SendDeliveryConfirmationAsync(string toEmail, string customerName, string orderNumber);
-    Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message);
+    Task SendContactFormEmailAsync(
+        string senderEmail,
+        string senderName,
+        string subject,
+        string message,
+        string[] toRecipients,
+        string[] ccRecipients);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink);
     Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink);
     Task SendPendingAdminRegistrationNotificationAsync(string toEmail, string pendingUserName, string pendingUserEmail, string adminPanelReviewHintUrl);
@@ -77,7 +83,13 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
     }
 
     [AutomaticRetry(Attempts = 3)]
-    public async Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message)
+    public async Task SendContactFormEmailAsync(
+        string senderEmail,
+        string senderName,
+        string subject,
+        string message,
+        string[] toRecipients,
+        string[] ccRecipients)
     {
         var normalizedSubject = string.IsNullOrWhiteSpace(subject) ? "Contact form message" : subject.Trim();
         var body = BuildBrandedEmailHtml(
@@ -88,10 +100,16 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             ctaUrl: null,
             secondaryHtml: $"""
                 <strong>From:</strong> {System.Net.WebUtility.HtmlEncode(senderName)} ({System.Net.WebUtility.HtmlEncode(senderEmail)})<br/>
+                <strong>Subject:</strong> {System.Net.WebUtility.HtmlEncode(normalizedSubject)}<br/>
                 <strong>Message:</strong><br/>{System.Net.WebUtility.HtmlEncode(message).Replace("\n", "<br/>")}
                 """);
 
-        await _smtpEmailSender.SendEmailAsync(_options.ContactFormRecipient, normalizedSubject, body).ConfigureAwait(false);
+        var recipients = (toRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var ccs = (ccRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (recipients.Length == 0)
+            recipients = [_options.ContactFormRecipient];
+
+        await _smtpEmailSender.SendEmailAsync(recipients, normalizedSubject, body, ccs).ConfigureAwait(false);
     }
 
     [AutomaticRetry(Attempts = 3)]

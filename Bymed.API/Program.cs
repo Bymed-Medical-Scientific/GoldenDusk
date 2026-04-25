@@ -454,6 +454,8 @@ using (var scope = app.Services.CreateScope())
     var pageLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("PageContentSeeder");
 
     await PageContentSeeder.SeedAsync(db, pageLogger);
+    var recipientLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("ContactNotificationRecipientSeeder");
+    await ContactNotificationRecipientSeeder.SeedAsync(db, recipientLogger);
 
 }
 

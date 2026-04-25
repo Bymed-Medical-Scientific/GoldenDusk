@@ -27,6 +27,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
     public DbSet<InventoryLog> InventoryLogs => Set<InventoryLog>();
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+    public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +52,8 @@ public class ApplicationDbContext : DbContext
         ApplyContentVersionConfiguration(modelBuilder);
         ApplyInventoryLogConfiguration(modelBuilder);
         ApplyRefreshTokenConfiguration(modelBuilder);
+        ApplyContactMessageConfiguration(modelBuilder);
+        ApplyContactNotificationRecipientConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -358,6 +362,32 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.ExpiresAt);
 
             entity.Property(e => e.TokenHash).IsRequired().HasMaxLength(256);
+        });
+    }
+
+    private static void ApplyContactMessageConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ContactMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SubmittedAtUtc);
+            entity.HasIndex(e => e.Email);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(ContactMessage.NameMaxLength);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(ContactMessage.EmailMaxLength);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(ContactMessage.SubjectMaxLength);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(ContactMessage.MessageMaxLength);
+        });
+    }
+
+    private static void ApplyContactNotificationRecipientConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ContactNotificationRecipient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.IsPrimaryRecipient, e.IsActive });
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(ContactNotificationRecipient.EmailMaxLength);
         });
     }
 }

@@ -17,6 +17,9 @@ import {
   OrderDetailDto,
   OrderSummaryDto,
   ContentImageUploadDto,
+  ContactMessageDto,
+  ContactNotificationRecipientDto,
+  CreateContactNotificationRecipientRequestDto,
   ContentVersionDetailDto,
   ContentVersionSummaryDto,
   PageContentSummaryDto,
@@ -270,6 +273,43 @@ export class AdminApiService {
 
   public approvePendingAdminRegistration(userId: string): Observable<void> {
     return this.apiService.postNoContent(`admin/pending-admin-registrations/${userId}/approve`, {});
+  }
+
+  public getContactMessages(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly email?: string | null;
+      readonly subject?: string | null;
+      readonly dateFromUtc?: string | null;
+      readonly dateToUtc?: string | null;
+    }
+  ): Observable<PagedResultDto<ContactMessageDto>> {
+    return this.apiService.get<PagedResultDto<ContactMessageDto>>('admin/contact-messages', {
+      pageNumber,
+      pageSize,
+      email: query?.email?.trim() ? query.email.trim() : undefined,
+      subject: query?.subject?.trim() ? query.subject.trim() : undefined,
+      dateFromUtc: query?.dateFromUtc?.trim() ? query.dateFromUtc.trim() : undefined,
+      dateToUtc: query?.dateToUtc?.trim() ? query.dateToUtc.trim() : undefined
+    });
+  }
+
+  public getContactNotificationRecipients(): Observable<ContactNotificationRecipientDto[]> {
+    return this.apiService.get<ContactNotificationRecipientDto[]>('admin/contact-notification-recipients');
+  }
+
+  public createContactNotificationRecipient(
+    request: CreateContactNotificationRecipientRequestDto
+  ): Observable<ContactNotificationRecipientDto> {
+    return this.apiService.post<CreateContactNotificationRecipientRequestDto, ContactNotificationRecipientDto>(
+      'admin/contact-notification-recipients',
+      request
+    );
+  }
+
+  public deactivateContactNotificationRecipient(recipientId: string): Observable<void> {
+    return this.apiService.delete<void>(`admin/contact-notification-recipients/${recipientId}`);
   }
 
   /** CMS pages including drafts (admin). */

@@ -33,10 +33,17 @@ public sealed class HangfireEmailService : IEmailService
         return Task.CompletedTask;
     }
 
-    public Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message, CancellationToken cancellationToken = default)
+    public Task SendContactFormEmailAsync(
+        string senderEmail,
+        string senderName,
+        string subject,
+        string message,
+        IReadOnlyCollection<string> toRecipients,
+        IReadOnlyCollection<string> ccRecipients,
+        CancellationToken cancellationToken = default)
     {
         _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
-            runner.SendContactFormEmailAsync(senderEmail, senderName, subject, message));
+            runner.SendContactFormEmailAsync(senderEmail, senderName, subject, message, toRecipients.ToArray(), ccRecipients.ToArray()));
         return Task.CompletedTask;
     }
 

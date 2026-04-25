@@ -1,0 +1,67 @@
+<section class="contact-page">
+  <header class="page-header">
+    <div>
+      <h2>Contact messages</h2>
+      <p>Messages submitted from the website contact page.</p>
+    </div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+  </header>
+
+  <div class="filters-box">
+    <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
+    <input type="text" [(ngModel)]="subjectFilter" placeholder="Filter by subject" />
+    <label>
+      <span>From</span>
+      <input type="date" [(ngModel)]="dateFromFilter" />
+    </label>
+    <label>
+      <span>To</span>
+      <input type="date" [(ngModel)]="dateToFilter" />
+    </label>
+    <div class="filters-actions">
+      <button pButton type="button" label="Apply" (click)="applyFilters()"></button>
+      <button pButton type="button" class="p-button-outlined" label="Clear" (click)="clearFilters()"></button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-box">
+      <p-progressSpinner ariaLabel="Loading contact messages" strokeWidth="4"></p-progressSpinner>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="state-box">No messages yet.</div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Submitted</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.submittedAtUtc | date: 'medium' }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.subject }}</td>
+              <td class="message-cell">{{ row.message }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button pButton type="button" class="p-button-text" icon="pi pi-chevron-left" label="Previous" [disabled]="!hasPrevious()" (click)="previousPage()"></button>
+      <span>Page {{ pageNumber() }} of {{ totalPages() }}</span>
+      <button pButton type="button" class="p-button-text" iconPos="right" icon="pi pi-chevron-right" label="Next" [disabled]="!hasNext()" (click)="nextPage()"></button>
+    </div>
+  }
+</section>

@@ -68,6 +68,8 @@ export class AdminShellComponent {
     { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
     { label: 'Orders', icon: 'pi pi-shopping-cart', route: '/orders', exact: true },
     { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' },
+    { label: 'Contact Messages', icon: 'pi pi-envelope', route: '/contact-messages' },
+    { label: 'Contact Recipients', icon: 'pi pi-users', route: '/contact-recipients' },
     { label: 'Admin Approvals', icon: 'pi pi-user-plus', route: '/admin-approvals' }
   ];
 
