@@ -79,6 +79,21 @@ public sealed class AuthController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpGet("confirm-email")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token, CancellationToken cancellationToken)
+    {
+        var result = await _authService
+            .ConfirmEmailAsync(new ConfirmEmailRequest { Email = email, Token = token }, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.Error });
+
+        return NoContent();
+    }
+
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

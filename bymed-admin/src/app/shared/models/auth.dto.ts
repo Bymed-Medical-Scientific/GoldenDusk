@@ -9,6 +9,7 @@ export interface AuthUserDto {
   readonly name: string;
   /** String when API uses JsonStringEnumConverter; legacy responses may send 0/1. */
   readonly role: 'Customer' | 'Admin' | string | number;
+  readonly emailConfirmed?: boolean;
   readonly isActive?: boolean;
 }
 

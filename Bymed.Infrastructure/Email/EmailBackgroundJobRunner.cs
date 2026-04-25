@@ -11,6 +11,7 @@ public interface IEmailBackgroundJobRunner
     Task SendDeliveryConfirmationAsync(string toEmail, string customerName, string orderNumber);
     Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink);
+    Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink);
     Task SendPendingAdminRegistrationNotificationAsync(string toEmail, string pendingUserName, string pendingUserEmail, string adminPanelReviewHintUrl);
 }
 
@@ -98,6 +99,22 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             """;
 
         _logger.LogInformation("Queue worker sending password reset email to {RecipientEmail}.", toEmail);
+        await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
+    }
+
+    [AutomaticRetry(Attempts = 3)]
+    public async Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink)
+    {
+        var subject = "Verify your email address";
+        var body = $"""
+            <p>Hi {System.Net.WebUtility.HtmlEncode(customerName)},</p>
+            <p>Please verify your email address to continue with your account setup.</p>
+            <p><a href="{System.Net.WebUtility.HtmlEncode(verificationLink)}">Verify Email</a></p>
+            <p>If you did not create this account, you can safely ignore this message.</p>
+            <p>Regards,<br/>{_options.FromName}</p>
+            """;
+
+        _logger.LogInformation("Queue worker sending email verification link to {RecipientEmail}.", toEmail);
         await _smtpEmailSender.SendEmailAsync(toEmail, subject, body).ConfigureAwait(false);
     }
 

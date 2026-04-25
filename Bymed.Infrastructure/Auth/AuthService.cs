@@ -74,12 +74,11 @@ public sealed class AuthService : IAuthService
         {
             case RegistrationChannel.Storefront:
                 role = UserRole.Customer;
-                isActive = true;
+                isActive = false;
                 break;
             case RegistrationChannel.AdminPanel:
                 role = UserRole.Admin;
-                // When the database is empty, the first admin-panel signup bootstraps the initial admin (no approver exists yet).
-                isActive = !hasExistingUsers;
+                isActive = false;
                 break;
             default:
                 return Result<AuthResponse>.Failure("Invalid registration channel.");
@@ -91,6 +90,7 @@ public sealed class AuthService : IAuthService
             UserName = email,
             Name = request.Name.Trim(),
             Role = role,
+            EmailConfirmed = false,
             IsActive = isActive
         };
 
@@ -105,29 +105,66 @@ public sealed class AuthService : IAuthService
         if (user == null)
             return Result<AuthResponse>.Failure("User was created but could not be retrieved.");
 
-        if (!isActive && request.RegistrationChannel == RegistrationChannel.AdminPanel)
-        {
-            await NotifyApproversOfPendingAdminAsync(user, cancellationToken).ConfigureAwait(false);
-
-            return Result<AuthResponse>.Success(new AuthResponse
-            {
-                User = ToAuthUserDto(user),
-                Token = null,
-                RefreshToken = null,
-                PendingAdminApproval = true
-            });
-        }
-
-        var token = GenerateAccessToken(user);
-        var refreshToken = await _refreshTokenStore.CreateAsync(user.Id, cancellationToken).ConfigureAwait(false);
+        await SendVerificationEmailAsync(appUser, cancellationToken).ConfigureAwait(false);
+        var pendingAdminApproval = request.RegistrationChannel == RegistrationChannel.AdminPanel;
 
         return Result<AuthResponse>.Success(new AuthResponse
         {
             User = ToAuthUserDto(user),
-            Token = token,
-            RefreshToken = refreshToken,
-            PendingAdminApproval = false
+            Token = null,
+            RefreshToken = null,
+            PendingAdminApproval = pendingAdminApproval
         });
+    }
+
+    public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request == null)
+            return Result.Failure("Invalid request.");
+
+        var email = request.Email?.Trim();
+        if (string.IsNullOrWhiteSpace(email))
+            return Result.Failure("Email is required.");
+        if (string.IsNullOrWhiteSpace(request.Token))
+            return Result.Failure("Token is required.");
+
+        var appUser = await _userManager.FindByEmailAsync(email).ConfigureAwait(false);
+        if (appUser is null)
+            return Result.Failure("Invalid or expired verification link.");
+
+        if (!appUser.EmailConfirmed)
+        {
+            var identityResult = await _userManager.ConfirmEmailAsync(appUser, request.Token).ConfigureAwait(false);
+            if (!identityResult.Succeeded)
+                return Result.Failure("Invalid or expired verification link.");
+        }
+
+        if (!Guid.TryParse(appUser.Id, out var userId))
+            return Result.Failure("Invalid user.");
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
+        if (user is null)
+            return Result.Failure("User not found.");
+
+        if (!user.EmailConfirmed)
+            user.SetEmailConfirmed(true);
+
+        if (user.Role == UserRole.Customer)
+        {
+            if (!user.IsActive)
+                user.SetActive(true);
+        }
+        else if (user.Role == UserRole.Admin && !user.IsActive)
+        {
+            var approverEmails = await _userRepository
+                .GetEmailsByRoleAndActiveAsync(UserRole.Admin, isActive: true, excludeUserId: user.Id, cancellationToken)
+                .ConfigureAwait(false);
+            await NotifyApproversOfPendingAdminAsync(user, approverEmails, cancellationToken).ConfigureAwait(false);
+        }
+
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return Result.Success();
     }
 
     public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
@@ -169,6 +206,12 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(Guid.Parse(appUser.Id), cancellationToken).ConfigureAwait(false);
         if (user == null)
             return Result<AuthResponse>.Failure("User could not be loaded.");
+
+        if (!user.EmailConfirmed)
+        {
+            _logger.LogWarning("Login failed: email not verified for user {UserId}.", appUser.Id);
+            return Result<AuthResponse>.Failure("Please verify your email before signing in.");
+        }
 
         if (!user.IsActive)
         {
@@ -243,6 +286,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
@@ -283,6 +327,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
@@ -315,6 +360,7 @@ public sealed class AuthService : IAuthService
             UserName = user.Email,
             Name = user.Name,
             Role = user.Role,
+            EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
             PasswordHash = user.PasswordHash
         };
@@ -358,13 +404,30 @@ public sealed class AuthService : IAuthService
             Email = user.Email,
             Name = user.Name,
             Role = user.Role,
+            EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive
         };
     }
 
-    private async Task NotifyApproversOfPendingAdminAsync(User pendingUser, CancellationToken cancellationToken)
+    private async Task SendVerificationEmailAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user).ConfigureAwait(false);
+        var baseUrl = _emailOptions.EmailVerificationBaseUrl.TrimEnd('/');
+        var verificationLink = $"{baseUrl}?email={Uri.EscapeDataString(user.UserName ?? string.Empty)}&token={Uri.EscapeDataString(token)}";
+
+        await _emailService
+            .SendEmailVerificationAsync(user.UserName ?? string.Empty, user.Name ?? user.UserName ?? "User", verificationLink, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task NotifyApproversOfPendingAdminAsync(User pendingUser, IReadOnlyList<string> approverEmails, CancellationToken cancellationToken)
     {
         var recipients = ParseRecipientEmailList(_emailOptions.AdminApprovalNotifyRecipients);
+        recipients.AddRange(approverEmails);
+        recipients = recipients
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(email => !email.Equals(pendingUser.Email, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         if (recipients.Count == 0)
         {
             _logger.LogWarning(

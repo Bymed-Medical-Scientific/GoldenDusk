@@ -27,6 +27,9 @@ public sealed class NoOpEmailService : IEmailService
     public Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default)
         => LogAsync("PasswordReset", toEmail);
 
+    public Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink, CancellationToken cancellationToken = default)
+        => LogAsync("EmailVerification", toEmail);
+
     public Task SendPendingAdminRegistrationNotificationAsync(
         string toEmail,
         string pendingUserName,

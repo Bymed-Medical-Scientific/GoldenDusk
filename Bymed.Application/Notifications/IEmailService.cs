@@ -7,6 +7,7 @@ public interface IEmailService
     Task SendDeliveryConfirmationAsync(string toEmail, string customerName, string orderNumber, CancellationToken cancellationToken = default);
     Task SendContactFormEmailAsync(string senderEmail, string senderName, string subject, string message, CancellationToken cancellationToken = default);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default);
+    Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink, CancellationToken cancellationToken = default);
 
     /// <summary>Notifies configured admin recipient(s) that a new admin registration is waiting for approval.</summary>
     Task SendPendingAdminRegistrationNotificationAsync(

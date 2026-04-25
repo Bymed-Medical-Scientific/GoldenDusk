@@ -1,6 +1,7 @@
 using Bymed.Application.Common;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
+using Bymed.Domain.Enums;
 using Bymed.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -82,6 +83,25 @@ public class UserRepository : IUserRepository
             .ConfigureAwait(false);
 
         return new PagedResult<User>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+    }
+
+    public async Task<IReadOnlyList<string>> GetEmailsByRoleAndActiveAsync(
+        UserRole role,
+        bool isActive,
+        Guid? excludeUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == role && u.IsActive == isActive && u.EmailConfirmed);
+
+        if (excludeUserId.HasValue)
+            query = query.Where(u => u.Id != excludeUserId.Value);
+
+        return await query
+            .Select(u => u.Email)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public void Add(User user)

@@ -12,6 +12,7 @@ public class User : FullAuditedEntity
     public string PasswordHash { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public UserRole Role { get; private set; }
+    public bool EmailConfirmed { get; private set; }
     /// <summary>When false, the account cannot sign in (e.g. admin registration pending approval).</summary>
     public bool IsActive { get; private set; } = true;
     public int AccessFailedCount { get; private set; }
@@ -23,23 +24,26 @@ public class User : FullAuditedEntity
     {
     }
 
-    public User(string email, string name, UserRole role, bool isActive = true) : base()
+    public User(string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false) : base()
     {
         SetEmail(email);
         SetName(name);
         Role = role;
         IsActive = isActive;
+        EmailConfirmed = emailConfirmed;
     }
 
-    public User(Guid id, string email, string name, UserRole role, bool isActive = true) : base(id)
+    public User(Guid id, string email, string name, UserRole role, bool isActive = true, bool emailConfirmed = false) : base(id)
     {
         SetEmail(email);
         SetName(name);
         Role = role;
         IsActive = isActive;
+        EmailConfirmed = emailConfirmed;
     }
 
     public void SetActive(bool active) => IsActive = active;
+    public void SetEmailConfirmed(bool confirmed) => EmailConfirmed = confirmed;
 
     public void SetPasswordHash(string passwordHash)
     {

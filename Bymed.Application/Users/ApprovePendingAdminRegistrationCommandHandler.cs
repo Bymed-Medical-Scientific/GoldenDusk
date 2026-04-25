@@ -26,6 +26,9 @@ public sealed class ApprovePendingAdminRegistrationCommandHandler : IRequestHand
         if (user.Role != UserRole.Admin)
             return Result.Failure("Only admin accounts can be approved with this action.");
 
+        if (!user.EmailConfirmed)
+            return Result.Failure("This admin account must verify email before it can be approved.");
+
         if (user.IsActive)
             return Result.Failure("This account is already active.");
 

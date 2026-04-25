@@ -67,6 +67,7 @@ artifacts/
 ScaffoldingReadMe.txt
 
 # Local/dev settings (may contain connection strings, secrets)
+appsettings*.json
 appsettings.Development.json
 .env
 

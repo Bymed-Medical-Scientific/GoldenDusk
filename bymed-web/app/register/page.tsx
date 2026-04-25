@@ -35,6 +35,7 @@ function RegisterPageContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const from = searchParams.get("from") || "/account/orders";
@@ -69,6 +70,7 @@ function RegisterPageContent() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
 
     if (!validateForm()) {
       return;
@@ -79,7 +81,18 @@ function RegisterPageContent() {
       await register(name.trim(), email.trim(), password);
       router.replace(from);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed.");
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        err.code === "EMAIL_VERIFICATION_REQUIRED"
+      ) {
+        setSuccessMessage(
+          "Your account was created. Check your email and click the verification link before signing in.",
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "Registration failed.");
+      }
     } finally {
       setPending(false);
     }
@@ -172,6 +185,11 @@ function RegisterPageContent() {
         {error ? (
           <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {error}
+          </p>
+        ) : null}
+        {successMessage ? (
+          <p className="text-sm text-green-700 dark:text-green-400" role="status">
+            {successMessage}
           </p>
         ) : null}
 
