@@ -164,7 +164,7 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             ? "https://bymed.co.zw"
             : _options.CompanyWebsiteUrl.Trim();
         var safeLogoUrl = string.IsNullOrWhiteSpace(_options.LogoUrl)
-            ? null
+            ? $"{safeWebsite.TrimEnd('/')}/images/bymed-logo.webp"
             : _options.LogoUrl.Trim();
 
         var ctaBlock = string.IsNullOrWhiteSpace(ctaText) || string.IsNullOrWhiteSpace(ctaUrl)
@@ -172,7 +172,7 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
             : $"""
                 <tr>
                   <td style="padding: 6px 36px 30px;" align="center">
-                    <a href="{System.Net.WebUtility.HtmlEncode(ctaUrl)}" style="display:inline-block;background:linear-gradient(90deg,#E0001B 0%,#1C4DAA 100%);color:#ffffff;text-decoration:none;font-weight:700;font-size:26px;line-height:1;padding:18px 36px;border-radius:10px;">
+                    <a href="{System.Net.WebUtility.HtmlEncode(ctaUrl)}" style="display:inline-block;background:linear-gradient(90deg,#0000CC 0%,#1C4DAA 100%);color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;line-height:1;padding:14px 28px;border-radius:10px;">
                       {System.Net.WebUtility.HtmlEncode(ctaText)}
                     </a>
                   </td>
@@ -195,34 +195,34 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>{safeBrandName}</title>
               </head>
-              <body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+              <body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#111827;">
                 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{safePreheader}</div>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2f5;padding:22px 10px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ffffff;padding:22px 10px;">
                   <tr>
                     <td align="center">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#ffffff;border-radius:14px;overflow:hidden;">
                         <tr>
-                          <td style="padding:28px 28px 24px;background:linear-gradient(90deg,#E0001B 0%,#1C4DAA 100%);" align="center">
+                          <td style="padding:28px 28px 24px;background:linear-gradient(90deg,#0000CC 0%,#1C4DAA 100%);" align="center">
                             <div style="display:inline-block;background:#ffffff;border-radius:10px;padding:8px 14px;">
                               {logoBlock}
                             </div>
-                            <div style="margin-top:18px;font-size:54px;line-height:1.1;font-weight:800;color:#050505;">
-                              Bymedical &amp; Scientific
+                            <div style="margin-top:18px;font-size:38px;line-height:1.15;font-weight:800;color:#ffffff;">
+                              Bymed Medical &amp; Scientific
                             </div>
-                            <div style="margin-top:10px;font-size:36px;line-height:1.1;font-weight:700;letter-spacing:1px;color:#f4f4f4;">
-                              Empowering Through Technology
+                            <div style="margin-top:10px;font-size:28px;line-height:1.2;font-weight:700;letter-spacing:0.5px;color:#dbeafe;">
+                              Discover the unlimited possibilities
                             </div>
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding:34px 36px 20px;background:#f4f5f7;">
-                            <div style="font-size:58px;line-height:1.05;font-weight:800;color:#E0001B;text-align:center;">
+                          <td style="padding:34px 36px 20px;background:#ffffff;">
+                            <div style="font-size:44px;line-height:1.1;font-weight:800;color:#0000CC;text-align:center;">
                               {safePreheader}
                             </div>
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding:30px 40px 16px;background:#e7eaef;font-size:33px;line-height:1.6;color:#1f2937;">
+                          <td style="padding:30px 40px 16px;background:#ffffff;font-size:18px;line-height:1.6;color:#1f2937;">
                             <p style="margin:0 0 18px;">Hi {safeGreetingName},</p>
                             <p style="margin:0 0 18px;">{introHtml}</p>
                             <p style="margin:0 0 18px;">{secondaryHtml}</p>
@@ -230,14 +230,14 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
                         </tr>
                         {ctaBlock}
                         <tr>
-                          <td style="padding:8px 40px 28px;font-size:30px;color:#4b5563;line-height:1.6;background:#e7eaef;">
+                          <td style="padding:8px 40px 28px;font-size:16px;color:#4b5563;line-height:1.6;background:#ffffff;">
                             Regards,<br/>
                             <strong>{safeBrandName}</strong>
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding:22px 36px;background:#050505;font-size:34px;color:#f3f4f6;text-align:center;">
-                            <div style="width:280px;height:2px;background:linear-gradient(90deg,#E0001B 0%,#1C4DAA 100%);margin:0 auto 16px;"></div>
+                          <td style="padding:22px 36px;background:#050505;font-size:14px;color:#f3f4f6;text-align:center;">
+                            <div style="width:280px;height:2px;background:linear-gradient(90deg,#0000CC 0%,#1C4DAA 100%);margin:0 auto 16px;"></div>
                             <div>Copyright (C) {DateTime.UtcNow.Year} {safeBrandName}. All rights reserved.</div>
                             <div style="margin-top:12px;">
                               <a href="{System.Net.WebUtility.HtmlEncode(safeWebsite)}" style="color:#93c5fd;text-decoration:none;">{System.Net.WebUtility.HtmlEncode(safeWebsite)}</a>
