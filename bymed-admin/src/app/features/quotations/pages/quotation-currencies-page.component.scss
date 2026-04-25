@@ -1,0 +1,53 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-color-secondary);
+}
+
+.error {
+  margin: 0;
+  color: #dc2626;
+}
+
+.create-form {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr 1fr 0.6fr auto auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+@media (max-width: 960px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .create-form {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,161 @@
+@if (isInitializing()) {
+  <section class="state">Loading quotation builder...</section>
+} @else if (errorMessage()) {
+  <section class="state error">{{ errorMessage() }}</section>
+} @else {
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ isEditMode ? 'Edit quotation' : 'New quotation' }}</h1>
+      <p class="page-subtitle">
+        Build quotation lines from products, tune conversion and markup, then save as draft or finalize.
+      </p>
+      @if (quotation()) {
+        <p class="meta">Quotation {{ quotation()!.quotationNumber }} · {{ statusLabel() }}</p>
+      }
+    </div>
+    <div class="header-actions">
+      <a pButton routerLink="/quotations" severity="secondary" [outlined]="true" label="Back"></a>
+      <button pButton type="button" label="Save draft" (click)="saveDraft()" [disabled]="isSubmitting()"></button>
+      <button pButton type="button" severity="success" label="Finalize" (click)="finalizeQuotation()" [disabled]="isSubmitting()"></button>
+    </div>
+  </div>
+
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
+
+  <section class="card form-grid">
+    <h2>Customer and quotation details</h2>
+    <label>Customer name <input pInputText [ngModel]="form().customerName" (ngModelChange)="updateForm('customerName', $event)" /></label>
+    <label>Institution <input pInputText [ngModel]="form().customerInstitution" (ngModelChange)="updateForm('customerInstitution', $event)" /></label>
+    <label>Email <input pInputText type="email" [ngModel]="form().customerEmail" (ngModelChange)="updateForm('customerEmail', $event)" /></label>
+    <label>Phone <input pInputText [ngModel]="form().customerPhone" (ngModelChange)="updateForm('customerPhone', $event)" /></label>
+    <label>Address <input pInputText [ngModel]="form().customerAddress" (ngModelChange)="updateForm('customerAddress', $event)" /></label>
+    <label>Subject <input pInputText [ngModel]="form().subject" (ngModelChange)="updateForm('subject', $event)" /></label>
+    <label>
+      Target currency
+      <p-select
+        [options]="currencies()"
+        optionLabel="code"
+        optionValue="code"
+        [ngModel]="form().targetCurrencyCode"
+        (ngModelChange)="updateForm('targetCurrencyCode', $event)"
+        appendTo="body"
+      />
+    </label>
+    <label>
+      VAT %
+      <p-inputNumber [ngModel]="form().vatPercent" (ngModelChange)="updateForm('vatPercent', $event ?? 0)" [min]="0" [max]="100" [minFractionDigits]="1" [maxFractionDigits]="2" />
+    </label>
+    <label class="checkbox-row">
+      <p-checkbox [binary]="true" [ngModel]="form().showVatOnDocument" (ngModelChange)="updateForm('showVatOnDocument', !!$event)" inputId="showVat" />
+      <span>Show VAT on document</span>
+    </label>
+    <label class="full">
+      Notes
+      <textarea pTextarea [ngModel]="form().notes" (ngModelChange)="updateForm('notes', $event)" rows="3"></textarea>
+    </label>
+    <label class="full">
+      Terms and conditions
+      <textarea pTextarea [ngModel]="form().termsAndConditions" (ngModelChange)="updateForm('termsAndConditions', $event)" rows="4"></textarea>
+    </label>
+  </section>
+
+  <section class="card">
+    <h2>Add products</h2>
+    <div class="product-filters">
+      <p-select
+        [options]="[{ label: 'All categories', value: 'all' }, ...categories().map(x => ({ label: x.name, value: x.id }))]"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedCategoryId()"
+        (ngModelChange)="selectedCategoryId.set($event)"
+        appendTo="body"
+      />
+      <p-select
+        [options]="[
+          { label: 'All client types', value: 'all' },
+          { label: 'School', value: 'school' },
+          { label: 'University/College', value: 'university-college' },
+          { label: 'Hospital/Clinic', value: 'hospital-clinic' },
+          { label: 'Nursing School', value: 'nursing-school' },
+          { label: 'General', value: 'general' }
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedClientType()"
+        (ngModelChange)="selectedClientType.set($event)"
+        appendTo="body"
+      />
+      <input pInputText [ngModel]="productSearch()" (ngModelChange)="productSearch.set($event)" placeholder="Search by product name" />
+    </div>
+    <div class="product-list">
+      @for (product of productRows().slice(0, 50); track product.id) {
+        <div class="product-row">
+          <div>
+            <div class="cell-strong">{{ product.name }}</div>
+            <div class="cell-subtext">{{ product.sku || 'No SKU' }} · {{ product.currency }} {{ product.price }}</div>
+          </div>
+          <button pButton type="button" size="small" label="Add" (click)="addProduct(product)"></button>
+        </div>
+      } @empty {
+        <p class="cell-subtext">No matching products.</p>
+      }
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Quotation lines</h2>
+    <p-table [value]="lines()">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Product</th>
+          <th>Qty</th>
+          <th>Cost</th>
+          <th>Source</th>
+          <th>Rate</th>
+          <th>Markup</th>
+          <th>Include image</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-line>
+        <tr>
+          <td>
+            <div class="cell-strong">{{ line.productName }}</div>
+            <div class="cell-subtext">{{ line.productSku || 'No SKU' }}</div>
+          </td>
+          <td><p-inputNumber [ngModel]="line.quantity" (ngModelChange)="updateLine(line.localId, { quantity: $event ?? 1 })" [min]="1" /></td>
+          <td><p-inputNumber [ngModel]="line.supplierUnitCost" (ngModelChange)="updateLine(line.localId, { supplierUnitCost: $event ?? 0 })" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
+          <td>
+            <p-select
+              [options]="currencies()"
+              optionLabel="code"
+              optionValue="code"
+              [ngModel]="line.sourceCurrencyCode"
+              (ngModelChange)="updateLine(line.localId, { sourceCurrencyCode: $event })"
+              appendTo="body"
+            />
+          </td>
+          <td><p-inputNumber [ngModel]="line.exchangeRateToTarget" (ngModelChange)="updateLine(line.localId, { exchangeRateToTarget: $event ?? 1 })" [min]="0.000001" [minFractionDigits]="2" [maxFractionDigits]="8" /></td>
+          <td><p-inputNumber [ngModel]="line.markupMultiplier" (ngModelChange)="updateLine(line.localId, { markupMultiplier: $event ?? 1 })" [min]="0.01" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
+          <td>
+            <p-checkbox [binary]="true" [ngModel]="line.includeImage" (ngModelChange)="updateLine(line.localId, { includeImage: !!$event })" />
+          </td>
+          <td>{{ computeLineIncVat(line) | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</td>
+          <td><button pButton type="button" severity="danger" [outlined]="true" size="small" label="Remove" (click)="removeLine(line)"></button></td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td [attr.colspan]="9">No products added yet.</td></tr>
+      </ng-template>
+    </p-table>
+
+    <div class="totals">
+      <div>Sub total (ex VAT): {{ lineSubtotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+      <div>VAT: {{ lineVat() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+      <div class="grand">Total: {{ lineTotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+    </div>
+  </section>
+}
