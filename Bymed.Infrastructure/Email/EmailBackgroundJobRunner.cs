@@ -122,7 +122,12 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
         var recipients = (toRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var ccs = (ccRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (recipients.Length == 0)
-            recipients = [_options.ContactFormRecipient];
+        {
+            _logger.LogWarning(
+                "Skipping contact form email from {SenderEmail} because no active contact notification recipients were resolved.",
+                senderEmail);
+            return;
+        }
 
         await _smtpEmailSender.SendEmailAsync(recipients, normalizedSubject, body, ccs).ConfigureAwait(false);
     }
@@ -160,7 +165,12 @@ public sealed class EmailBackgroundJobRunner : IEmailBackgroundJobRunner
         var recipients = (toRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var ccs = (ccRecipients ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (recipients.Length == 0)
-            recipients = [_options.ContactFormRecipient];
+        {
+            _logger.LogWarning(
+                "Skipping quote request email for {QuoteRequestId} because no active contact notification recipients were resolved.",
+                quoteRequestId);
+            return;
+        }
 
         await _smtpEmailSender.SendEmailAsync(recipients, "New quote request submitted", body, ccs).ConfigureAwait(false);
     }

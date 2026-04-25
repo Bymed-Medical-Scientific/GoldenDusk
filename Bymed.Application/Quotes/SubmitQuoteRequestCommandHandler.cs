@@ -11,20 +11,20 @@ public sealed class SubmitQuoteRequestCommandHandler : IRequestHandler<SubmitQuo
 {
     private readonly IProductRepository _productRepository;
     private readonly IQuoteRequestRepository _quoteRequestRepository;
-    private readonly IQuoteNotificationRecipientRepository _quoteNotificationRecipientRepository;
+    private readonly IContactNotificationRecipientRepository _contactNotificationRecipientRepository;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
 
     public SubmitQuoteRequestCommandHandler(
         IProductRepository productRepository,
         IQuoteRequestRepository quoteRequestRepository,
-        IQuoteNotificationRecipientRepository quoteNotificationRecipientRepository,
+        IContactNotificationRecipientRepository contactNotificationRecipientRepository,
         IEmailService emailService,
         IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _quoteRequestRepository = quoteRequestRepository ?? throw new ArgumentNullException(nameof(quoteRequestRepository));
-        _quoteNotificationRecipientRepository = quoteNotificationRecipientRepository ?? throw new ArgumentNullException(nameof(quoteNotificationRecipientRepository));
+        _contactNotificationRecipientRepository = contactNotificationRecipientRepository ?? throw new ArgumentNullException(nameof(contactNotificationRecipientRepository));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
@@ -53,11 +53,24 @@ public sealed class SubmitQuoteRequestCommandHandler : IRequestHandler<SubmitQuo
         _quoteRequestRepository.Add(quote);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var configuredRecipients = await _quoteNotificationRecipientRepository.GetActiveAsync(cancellationToken).ConfigureAwait(false);
-        var toRecipients = configuredRecipients.Where(x => x.IsPrimaryRecipient).Select(x => x.Email).ToList();
-        var ccRecipients = configuredRecipients.Where(x => !x.IsPrimaryRecipient).Select(x => x.Email).ToList();
-        if (toRecipients.Count == 0)
-            toRecipients.Add("info@bymed.co.zw");
+        var configuredRecipients = await _contactNotificationRecipientRepository.GetActiveAsync(cancellationToken).ConfigureAwait(false);
+        var toRecipients = configuredRecipients
+            .Where(x => x.IsPrimaryRecipient)
+            .Select(x => x.Email)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var ccRecipients = configuredRecipients
+            .Where(x => !x.IsPrimaryRecipient)
+            .Select(x => x.Email)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        // Keep recipients sourced from active Contact Notification Recipients only.
+        if (toRecipients.Count == 0 && ccRecipients.Count > 0)
+        {
+            toRecipients.Add(ccRecipients[0]);
+            ccRecipients.RemoveAt(0);
+        }
 
         await _emailService.SendQuoteRequestSubmittedEmailAsync(
             quote.Id,

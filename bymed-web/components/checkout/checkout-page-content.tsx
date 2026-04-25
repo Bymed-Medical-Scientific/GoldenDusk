@@ -6,11 +6,16 @@ import { clearCart } from "@/lib/api/cart";
 import { submitQuoteRequest } from "@/lib/api/quotes";
 import { ApiError } from "@/lib/api/http";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const FALLBACK_CURRENCY = "USD";
 const STEPS = ["Contact", "Review"] as const;
+const TOAST_DISMISS_MS = 5000;
+
+type ToastState = {
+  kind: "success" | "error";
+  message: string;
+};
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -31,7 +36,6 @@ function inputClass(hasError: boolean): string {
 }
 
 export function CheckoutPageContent() {
-  const router = useRouter();
   const { items, totalItems, total, isLoading: cartLoading, error: cartError, refresh } = useCart();
   const [step, setStep] = useState(0);
   const [fullName, setFullName] = useState("");
@@ -43,6 +47,7 @@ export function CheckoutPageContent() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
 
   const currency = useMemo(
     () => items.find((i) => i.product?.currency)?.product?.currency ?? FALLBACK_CURRENCY,
@@ -50,6 +55,15 @@ export function CheckoutPageContent() {
   );
 
   const canCheckout = items.length > 0 && totalItems > 0;
+
+  useEffect(() => {
+    if (!toast || typeof window === "undefined") {
+      return;
+    }
+
+    const handle = window.setTimeout(() => setToast(null), TOAST_DISMISS_MS);
+    return () => window.clearTimeout(handle);
+  }, [toast]);
 
   function clearFieldError(key: string) {
     setFieldErrors((prev) => {
@@ -84,7 +98,9 @@ export function CheckoutPageContent() {
     setIsSubmitting(true);
     try {
       if (!canCheckout) {
-        setSubmitError("Your quote cart is empty.");
+        const message = "Your quote cart is empty.";
+        setSubmitError(message);
+        setToast({ kind: "error", message });
         return;
       }
 
@@ -98,54 +114,92 @@ export function CheckoutPageContent() {
         items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
       });
 
-      try {
-        await clearCart({ forceProxy: true });
-      } catch {
-        // Best effort for authenticated carts.
-      }
+      setToast({ kind: "success", message: "Quote request submitted successfully." });
+      setFullName("");
+      setInstitution("");
+      setEmail("");
+      setPhoneNumber("");
+      setAddress("");
+      setNotes("");
+      setFieldErrors({});
+      setStep(0);
 
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
-      }
-      await refresh();
-      router.replace("/contact?rfq=submitted");
+      // Run cleanup in the background so users do not wait on post-submit tasks.
+      void (async () => {
+        try {
+          await clearCart({ forceProxy: true });
+        } catch {
+          // Best effort for authenticated carts.
+        }
+
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+        }
+        await refresh();
+      })();
     } catch (err) {
+      let message = "Quote request failed. Please try again.";
       if (err instanceof ApiError) {
         if (err.validationIssues?.length) {
-          setSubmitError(err.validationIssues.map((i) => i.errorMessage).join(" "));
+          message = err.validationIssues.map((i) => i.errorMessage).join(" ");
         } else {
-          setSubmitError(err.message);
+          message = err.message;
         }
       } else if (err instanceof Error) {
-        setSubmitError(err.message);
-      } else {
-        setSubmitError("Quote request failed. Please try again.");
+        message = err.message;
       }
+      setSubmitError(message);
+      setToast({ kind: "error", message });
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const toastBanner = toast ? (
+    <p
+      role="status"
+      aria-live="polite"
+      className={[
+        "mb-4 rounded-md border px-3 py-2 text-sm",
+        toast.kind === "success"
+          ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"
+          : "border-red-300 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300",
+      ].join(" ")}
+    >
+      {toast.message}
+    </p>
+  ) : null;
+
   if (cartLoading) {
-    return <p className="text-muted-foreground">Loading quote request…</p>;
+    return (
+      <>
+        {toastBanner}
+        <p className="text-muted-foreground">Loading quote request…</p>
+      </>
+    );
   }
 
   if (!canCheckout) {
     return (
-      <div className="rounded-lg border border-border bg-card p-6">
-        <p className="text-muted-foreground">Your quote cart is empty. Add products before requesting a quotation.</p>
-        <Link
-          href="/products"
-          className="mt-4 inline-flex rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"
-        >
-          Browse products
-        </Link>
-      </div>
+      <>
+        {toastBanner}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <p className="text-muted-foreground">Your quote cart is empty. Add products before requesting a quotation.</p>
+          <Link
+            href="/products"
+            className="mt-4 inline-flex rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"
+          >
+            Browse products
+          </Link>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
       <div>
+        {toastBanner}
         <nav aria-label="Quote request steps" className="mb-8">
           <ol className="flex flex-wrap gap-2">
             {STEPS.map((label, i) => (

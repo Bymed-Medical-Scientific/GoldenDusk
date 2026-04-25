@@ -79,19 +79,20 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
         var toRecipients = configuredRecipients
             .Where(x => x.IsPrimaryRecipient)
             .Select(x => x.Email)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         var ccRecipients = configuredRecipients
             .Where(x => !x.IsPrimaryRecipient)
             .Select(x => x.Email)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        if (toRecipients.Count == 0)
-            toRecipients.Add("info@bymed.co.zw");
-
-        if (!ccRecipients.Contains("nmalaba@bymed.co.zw", StringComparer.OrdinalIgnoreCase))
-            ccRecipients.Add("nmalaba@bymed.co.zw");
-        if (!ccRecipients.Contains("ttmalaba@bymed.co.zw", StringComparer.OrdinalIgnoreCase))
-            ccRecipients.Add("ttmalaba@bymed.co.zw");
+        // Keep recipients sourced from active Contact Notification Recipients only.
+        if (toRecipients.Count == 0 && ccRecipients.Count > 0)
+        {
+            toRecipients.Add(ccRecipients[0]);
+            ccRecipients.RemoveAt(0);
+        }
 
         await _emailService
             .SendContactFormEmailAsync(email, name, organization, subject, message, toRecipients, ccRecipients, cancellationToken)
