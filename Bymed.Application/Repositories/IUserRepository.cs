@@ -13,6 +13,7 @@ public interface IUserRepository
     Task<IReadOnlyList<Address>> GetAddressesByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<Address?> GetAddressByIdAsync(Guid addressId, CancellationToken cancellationToken = default);
     Task<PagedResult<User>> GetPagedAsync(PaginationParams pagination, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<User>> GetPendingAdminRegistrationsAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<string>> GetEmailsByRoleAndActiveAsync(UserRole role, bool isActive, Guid? excludeUserId = null, CancellationToken cancellationToken = default);
     void Add(User user);
     void Update(User user);

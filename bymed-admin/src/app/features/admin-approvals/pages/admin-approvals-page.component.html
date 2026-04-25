@@ -1,0 +1,57 @@
+<section class="approvals-page">
+  <header class="approvals-header">
+    <div>
+      <h2>Admin approvals</h2>
+      <p>Review new admin registrations and activate verified accounts.</p>
+    </div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+  </header>
+
+  @if (isLoading()) {
+    <div class="state-box">
+      <p-progressSpinner ariaLabel="Loading pending approvals" strokeWidth="4"></p-progressSpinner>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="state-box">No pending admin approvals right now.</div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Email verified</th>
+            <th>Requested</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.email }}</td>
+              <td>
+                <span class="chip" [class.ok]="row.emailConfirmed" [class.warn]="!row.emailConfirmed">
+                  {{ row.emailConfirmed ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>{{ row.creationTime | date: 'medium' }}</td>
+              <td class="actions">
+                <button
+                  pButton
+                  type="button"
+                  label="Approve"
+                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                  [loading]="isApproving(row.id)"
+                  (click)="approve(row.id)"
+                ></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

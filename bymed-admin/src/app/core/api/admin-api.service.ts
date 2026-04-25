@@ -24,6 +24,7 @@ import {
   CreatePageContentRequestDto,
   UpdatePageContentRequestDto,
   PagedResultDto,
+  PendingAdminRegistrationDto,
   ProductDto,
   ProductImageDto,
   UpdateCategoryRequestDto,
@@ -261,6 +262,14 @@ export class AdminApiService {
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {
     return this.apiService.get<PagedResultDto<UserSummaryDto>>('users', { pageNumber, pageSize });
+  }
+
+  public getPendingAdminRegistrations(): Observable<PendingAdminRegistrationDto[]> {
+    return this.apiService.get<PendingAdminRegistrationDto[]>('admin/pending-admin-registrations');
+  }
+
+  public approvePendingAdminRegistration(userId: string): Observable<void> {
+    return this.apiService.postNoContent(`admin/pending-admin-registrations/${userId}/approve`, {});
   }
 
   /** CMS pages including drafts (admin). */

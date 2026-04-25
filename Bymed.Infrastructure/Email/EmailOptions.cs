@@ -31,8 +31,20 @@ public sealed class EmailOptions
 
     [Required]
     public string PasswordResetBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional admin-specific reset-password page URL.
+    /// Falls back to <see cref="PasswordResetBaseUrl"/> when empty.
+    /// </summary>
+    public string AdminPasswordResetBaseUrl { get; set; } = string.Empty;
     [Required]
     public string EmailVerificationBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional admin-specific verify-email page URL.
+    /// Falls back to <see cref="EmailVerificationBaseUrl"/> when empty.
+    /// </summary>
+    public string AdminEmailVerificationBaseUrl { get; set; } = string.Empty;
 
     /// <summary>Comma-separated addresses that receive &quot;pending admin registration&quot; emails.</summary>
     public string AdminApprovalNotifyRecipients { get; set; } = string.Empty;

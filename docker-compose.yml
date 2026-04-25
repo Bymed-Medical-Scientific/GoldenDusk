@@ -68,7 +68,9 @@ services:
       Email__Password:              ${EMAIL_PASSWORD:-${Email__Password:-${SMTP_PASSWORD:-}}}
       Email__ContactFormRecipient:  ${EMAIL_CONTACT_RECIPIENT:-${Email__ContactFormRecipient:-}}
       Email__PasswordResetBaseUrl:  ${PASSWORD_RESET_BASE_URL:-${Email__PasswordResetBaseUrl:-https://bymed.co.zw/reset-password}}
+      Email__AdminPasswordResetBaseUrl: ${ADMIN_PASSWORD_RESET_BASE_URL:-${Email__AdminPasswordResetBaseUrl:-http://localhost:4200/reset-password}}
       Email__EmailVerificationBaseUrl: ${EMAIL_VERIFICATION_BASE_URL:-${Email__EmailVerificationBaseUrl:-https://bymed.co.zw/verify-email}}
+      Email__AdminEmailVerificationBaseUrl: ${ADMIN_EMAIL_VERIFICATION_BASE_URL:-${Email__AdminEmailVerificationBaseUrl:-http://localhost:4200/verify-email}}
       Email__AdminApprovalNotifyRecipients: ${EMAIL_ADMIN_APPROVAL_RECIPIENTS:-${Email__AdminApprovalNotifyRecipients:-}}
       Email__AdminPanelBaseUrl:       ${ADMIN_PANEL_BASE_URL:-${Email__AdminPanelBaseUrl:-http://localhost:4200}}
 

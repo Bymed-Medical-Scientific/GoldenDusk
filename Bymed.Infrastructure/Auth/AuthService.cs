@@ -105,7 +105,7 @@ public sealed class AuthService : IAuthService
         if (user == null)
             return Result<AuthResponse>.Failure("User was created but could not be retrieved.");
 
-        await SendVerificationEmailAsync(appUser, cancellationToken).ConfigureAwait(false);
+        await SendVerificationEmailAsync(appUser, request.RegistrationChannel, cancellationToken).ConfigureAwait(false);
         var pendingAdminApproval = request.RegistrationChannel == RegistrationChannel.AdminPanel;
 
         return Result<AuthResponse>.Success(new AuthResponse
@@ -295,7 +295,9 @@ public sealed class AuthService : IAuthService
         if (string.IsNullOrEmpty(token))
             return Result.Success();
 
-        var baseUrl = _emailOptions.PasswordResetBaseUrl.TrimEnd('/');
+        var baseUrl = user.Role == UserRole.Admin
+            ? ResolveAdminPasswordResetBaseUrl()
+            : _emailOptions.PasswordResetBaseUrl.TrimEnd('/');
         var resetLink = $"{baseUrl}?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
         await _emailService.SendPasswordResetEmailAsync(email, user.Name, resetLink, cancellationToken).ConfigureAwait(false);
 
@@ -409,15 +411,42 @@ public sealed class AuthService : IAuthService
         };
     }
 
-    private async Task SendVerificationEmailAsync(ApplicationUser user, CancellationToken cancellationToken)
+    private async Task SendVerificationEmailAsync(
+        ApplicationUser user,
+        RegistrationChannel registrationChannel,
+        CancellationToken cancellationToken)
     {
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user).ConfigureAwait(false);
-        var baseUrl = _emailOptions.EmailVerificationBaseUrl.TrimEnd('/');
+        var baseUrl = registrationChannel == RegistrationChannel.AdminPanel
+            ? ResolveAdminEmailVerificationBaseUrl()
+            : _emailOptions.EmailVerificationBaseUrl.TrimEnd('/');
         var verificationLink = $"{baseUrl}?email={Uri.EscapeDataString(user.UserName ?? string.Empty)}&token={Uri.EscapeDataString(token)}";
 
         await _emailService
             .SendEmailVerificationAsync(user.UserName ?? string.Empty, user.Name ?? user.UserName ?? "User", verificationLink, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private string ResolveAdminEmailVerificationBaseUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(_emailOptions.AdminEmailVerificationBaseUrl))
+            return _emailOptions.AdminEmailVerificationBaseUrl.TrimEnd('/');
+
+        if (!string.IsNullOrWhiteSpace(_emailOptions.AdminPanelBaseUrl))
+            return $"{_emailOptions.AdminPanelBaseUrl.TrimEnd('/')}/verify-email";
+
+        return _emailOptions.EmailVerificationBaseUrl.TrimEnd('/');
+    }
+
+    private string ResolveAdminPasswordResetBaseUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(_emailOptions.AdminPasswordResetBaseUrl))
+            return _emailOptions.AdminPasswordResetBaseUrl.TrimEnd('/');
+
+        if (!string.IsNullOrWhiteSpace(_emailOptions.AdminPanelBaseUrl))
+            return $"{_emailOptions.AdminPanelBaseUrl.TrimEnd('/')}/reset-password";
+
+        return _emailOptions.PasswordResetBaseUrl.TrimEnd('/');
     }
 
     private async Task NotifyApproversOfPendingAdminAsync(User pendingUser, IReadOnlyList<string> approverEmails, CancellationToken cancellationToken)

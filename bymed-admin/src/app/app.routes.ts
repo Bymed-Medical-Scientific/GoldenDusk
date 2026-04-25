@@ -21,11 +21,27 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'verify-email',
+    canActivate: [loginRouteGuard],
+    loadComponent: () =>
+      import('@features/auth/pages/verify-email-page.component').then(
+        (m) => m.VerifyEmailPageComponent
+      )
+  },
+  {
     path: 'forgot-password',
     canActivate: [loginRouteGuard],
     loadComponent: () =>
       import('@features/auth/pages/forgot-password-page.component').then(
         (m) => m.ForgotPasswordPageComponent
+      )
+  },
+  {
+    path: 'reset-password',
+    canActivate: [loginRouteGuard],
+    loadComponent: () =>
+      import('@features/auth/pages/reset-password-page.component').then(
+        (m) => m.ResetPasswordPageComponent
       )
   },
   {
@@ -155,6 +171,13 @@ export const routes: Routes = [
         path: 'orders/:id',
         loadComponent: () =>
           import('@features/orders/order-detail/order-detail.component').then((m) => m.OrderDetailComponent)
+      },
+      {
+        path: 'admin-approvals',
+        loadComponent: () =>
+          import('@features/admin-approvals/pages/admin-approvals-page.component').then(
+            (m) => m.AdminApprovalsPageComponent
+          )
       }
     ]
   },

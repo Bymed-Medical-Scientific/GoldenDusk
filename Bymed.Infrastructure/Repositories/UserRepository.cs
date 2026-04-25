@@ -85,6 +85,16 @@ public class UserRepository : IUserRepository
         return new PagedResult<User>(items, pagination.PageNumber, pagination.PageSize, totalCount);
     }
 
+    public async Task<IReadOnlyList<User>> GetPendingAdminRegistrationsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == UserRole.Admin && !u.IsActive)
+            .OrderByDescending(u => u.CreationTime)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<string>> GetEmailsByRoleAndActiveAsync(
         UserRole role,
         bool isActive,

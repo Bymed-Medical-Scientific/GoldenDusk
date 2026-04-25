@@ -43,6 +43,12 @@ export interface ResetPasswordRequestDto {
   readonly email: string;
 }
 
+export interface ConfirmResetPasswordRequestDto {
+  readonly email: string;
+  readonly token: string;
+  readonly newPassword: string;
+}
+
 export interface RefreshTokenRequestDto {
   readonly refreshToken: string;
 }
