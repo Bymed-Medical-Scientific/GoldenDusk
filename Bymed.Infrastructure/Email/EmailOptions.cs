@@ -39,4 +39,10 @@ public sealed class EmailOptions
 
     /// <summary>Base URL of the Angular admin app (used in approval notification emails).</summary>
     public string AdminPanelBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional public logo URL used in branded email templates.</summary>
+    public string LogoUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional company website shown in email footers.</summary>
+    public string CompanyWebsiteUrl { get; set; } = string.Empty;
 }
