@@ -88,13 +88,23 @@ public class EmailContentCompletenessPropertyTests
                     body.Contains(s.OrderNumber, StringComparison.Ordinal)),
                 Arg.Any<CancellationToken>());
 
-            sut.SendContactFormEmailAsync(s.ToEmail, s.SenderName, s.Subject, s.Message).GetAwaiter().GetResult();
+            sut.SendContactFormEmailAsync(
+                    s.ToEmail,
+                    s.SenderName,
+                    "Test Org",
+                    s.Subject,
+                    s.Message,
+                    ["support@example.com"],
+                    ["cc@example.com"])
+                .GetAwaiter()
+                .GetResult();
             smtp.Received().SendEmailAsync(
-                "support@example.com",
+                Arg.Is<IReadOnlyCollection<string>>(to => to.Contains("support@example.com")),
                 Arg.Is<string>(emailSubject => emailSubject.Contains(s.Subject, StringComparison.Ordinal)),
                 Arg.Is<string>(body =>
                     body.Contains(s.SenderName, StringComparison.Ordinal) &&
                     body.Contains(s.ToEmail, StringComparison.Ordinal)),
+                Arg.Any<IReadOnlyCollection<string>>(),
                 Arg.Any<CancellationToken>());
 
             sut.SendPasswordResetEmailAsync(s.ToEmail, s.CustomerName, s.ResetLink).GetAwaiter().GetResult();

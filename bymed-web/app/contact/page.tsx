@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 type FormState = {
   name: string;
   email: string;
+  organization: string;
   subject: string;
   message: string;
 };
@@ -39,6 +40,7 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 const initialForm: FormState = {
   name: "",
   email: "",
+  organization: "",
   subject: "",
   message: "",
 };
@@ -83,6 +85,14 @@ function validateSubject(value: string): string | null {
   return null;
 }
 
+function validateOrganization(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed.length > 200) {
+    return "Organization must not exceed 200 characters.";
+  }
+  return null;
+}
+
 function validateMessage(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return "Message is required.";
@@ -94,11 +104,13 @@ function validateForm(form: FormState): FormErrors {
   const errors: FormErrors = {};
   const nameError = validateName(form.name);
   const emailError = validateEmail(form.email);
+  const organizationError = validateOrganization(form.organization);
   const subjectError = validateSubject(form.subject);
   const messageError = validateMessage(form.message);
 
   if (nameError) errors.name = nameError;
   if (emailError) errors.email = emailError;
+  if (organizationError) errors.organization = organizationError;
   if (subjectError) errors.subject = subjectError;
   if (messageError) errors.message = messageError;
 
@@ -111,6 +123,7 @@ function toValidationErrors(error: ApiError): FormErrors {
     const field = issue.propertyName.toLowerCase();
     if (field === "name") errors.name = issue.errorMessage;
     if (field === "email") errors.email = issue.errorMessage;
+    if (field === "organization") errors.organization = issue.errorMessage;
     if (field === "subject") errors.subject = issue.errorMessage;
     if (field === "message") errors.message = issue.errorMessage;
   }
@@ -176,6 +189,7 @@ export default function ContactPage() {
       await submitContactForm({
         name: form.name.trim(),
         email: form.email.trim(),
+        organization: form.organization.trim(),
         subject: form.subject.trim(),
         message: form.message.trim(),
       });
@@ -272,19 +286,20 @@ export default function ContactPage() {
                 <Input
                   id="contact-organization"
                   type="text"
-                  onChange={(e) => {
-                    const organization = e.target.value.trim();
-                    const rest = form.message
-                      .replace(/^Organization:\s.*\n\n/g, "")
-                      .trimStart();
-                    const nextMessage = organization
-                      ? `Organization: ${organization}\n\n${rest}`
-                      : rest;
-                    updateField("message", nextMessage);
-                  }}
+                  value={form.organization}
+                  onChange={(e) => updateField("organization", e.target.value)}
                   placeholder="Central Research Hospital"
+                  aria-invalid={Boolean(fieldErrors.organization)}
+                  aria-describedby={
+                    fieldErrors.organization ? "contact-organization-error" : undefined
+                  }
                   className="h-11 rounded-xl bg-muted/35"
                 />
+                {fieldErrors.organization ? (
+                  <p id="contact-organization-error" className="text-xs text-destructive">
+                    {fieldErrors.organization}
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-2">

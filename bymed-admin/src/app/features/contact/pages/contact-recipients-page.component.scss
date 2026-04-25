@@ -1,0 +1,100 @@
+.contact-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  opacity: 0.8;
+}
+
+.create-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: var(--surface-card, #fff);
+}
+
+.create-box input[type='email'] {
+  min-width: 18rem;
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+}
+
+.create-box label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.state-box {
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--surface-card, #fff);
+}
+
+.state-box.error {
+  border-color: #dc2626;
+  color: #b91c1c;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 12px;
+  background: var(--surface-card, #fff);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chip.ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.chip.warn {
+  background: #fef3c7;
+  color: #92400e;
+}

@@ -1,5 +1,8 @@
 using Bymed.Application.Contact;
 using Bymed.Application.Notifications;
+using Bymed.Application.Persistence;
+using Bymed.Application.Repositories;
+using Bymed.Domain.Entities;
 using FluentAssertions;
 using FsCheck;
 using FsCheck.Fluent;
@@ -25,12 +28,14 @@ public class ContactFormPropertyTests
 
         return (from name in nonEmptyGen.Where(s => s.Length <= 100)
             from localPart in safeEmailLocalPartGen
+            from organization in ArbMap.Default.GeneratorFor<string>().Select(s => s?.Trim() ?? string.Empty).Where(s => s.Length <= 200)
             from subject in nonEmptyGen.Where(s => s.Length <= 200)
             from message in nonEmptyGen.Where(s => s.Length <= 5000)
             select new SubmitContactFormRequest
             {
                 Name = name,
                 Email = $"{localPart}@example.com",
+                Organization = organization,
                 Subject = subject,
                 Message = message
             }).ToArbitrary();
@@ -47,15 +52,37 @@ public class ContactFormPropertyTests
 
         return (from name in nonEmptyGen.Where(s => s.Length <= 100)
             from email in invalidEmailGen
+            from organization in ArbMap.Default.GeneratorFor<string>().Select(s => s?.Trim() ?? string.Empty).Where(s => s.Length <= 200)
             from subject in nonEmptyGen.Where(s => s.Length <= 200)
             from message in nonEmptyGen.Where(s => s.Length <= 5000)
             select new SubmitContactFormRequest
             {
                 Name = name,
                 Email = email,
+                Organization = organization,
                 Subject = subject,
                 Message = message
             }).ToArbitrary();
+    }
+
+    private static SubmitContactFormCommandHandler CreateSut(IEmailService emailService)
+    {
+        var contactMessageRepository = Substitute.For<IContactMessageRepository>();
+        var recipientsRepository = Substitute.For<IContactNotificationRecipientRepository>();
+        recipientsRepository
+            .GetActiveAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<ContactNotificationRecipient>
+            {
+                new("info@example.com", isPrimaryRecipient: true),
+                new("cc@example.com", isPrimaryRecipient: false)
+            });
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        return new SubmitContactFormCommandHandler(
+            emailService,
+            contactMessageRepository,
+            recipientsRepository,
+            unitOfWork);
     }
 
     // Feature: bymed-website, Property 36: Contact Form Submission
@@ -65,7 +92,7 @@ public class ContactFormPropertyTests
         return Prop.ForAll(ValidRequestArbitrary(), request =>
         {
             var emailService = Substitute.For<IEmailService>();
-            var sut = new SubmitContactFormCommandHandler(emailService);
+            var sut = CreateSut(emailService);
 
             var result = sut
                 .Handle(new SubmitContactFormCommand(request), CancellationToken.None)
@@ -76,8 +103,11 @@ public class ContactFormPropertyTests
             emailService.Received(1).SendContactFormEmailAsync(
                 request.Email.Trim(),
                 request.Name.Trim(),
+                request.Organization.Trim(),
                 request.Subject.Trim(),
                 request.Message.Trim(),
+                Arg.Any<IReadOnlyCollection<string>>(),
+                Arg.Any<IReadOnlyCollection<string>>(),
                 Arg.Any<CancellationToken>());
             return true;
         });
@@ -90,7 +120,7 @@ public class ContactFormPropertyTests
         return Prop.ForAll(ValidRequestArbitrary(), request =>
         {
             var emailService = Substitute.For<IEmailService>();
-            var sut = new SubmitContactFormCommandHandler(emailService);
+            var sut = CreateSut(emailService);
 
             var result = sut
                 .Handle(new SubmitContactFormCommand(request), CancellationToken.None)
@@ -101,6 +131,7 @@ public class ContactFormPropertyTests
             result.Value.Should().NotBeNull();
             result.Value!.Name.Should().Be(request.Name.Trim());
             result.Value.Email.Should().Be(request.Email.Trim());
+            result.Value.Organization.Should().Be(request.Organization.Trim());
             result.Value.Subject.Should().Be(request.Subject.Trim());
             result.Value.Message.Should().Be(request.Message.Trim());
             result.Value.SubmittedAtUtc.Should().BeOnOrBefore(DateTime.UtcNow);
@@ -115,7 +146,7 @@ public class ContactFormPropertyTests
         return Prop.ForAll(InvalidEmailRequestArbitrary(), request =>
         {
             var emailService = Substitute.For<IEmailService>();
-            var sut = new SubmitContactFormCommandHandler(emailService);
+            var sut = CreateSut(emailService);
 
             var result = sut
                 .Handle(new SubmitContactFormCommand(request), CancellationToken.None)
@@ -124,7 +155,7 @@ public class ContactFormPropertyTests
 
             result.IsSuccess.Should().BeFalse();
             result.Error.Should().NotBeNullOrWhiteSpace();
-            emailService.DidNotReceiveWithAnyArgs().SendContactFormEmailAsync(default!, default!, default!, default!, default);
+            emailService.DidNotReceiveWithAnyArgs().SendContactFormEmailAsync(default!, default!, default!, default!, default!, default!, default!);
             return true;
         });
     }
@@ -136,7 +167,7 @@ public class ContactFormPropertyTests
         return Prop.ForAll(InvalidEmailRequestArbitrary(), request =>
         {
             var emailService = Substitute.For<IEmailService>();
-            var sut = new SubmitContactFormCommandHandler(emailService);
+            var sut = CreateSut(emailService);
             var original = request with { };
 
             var result = sut

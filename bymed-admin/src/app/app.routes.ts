@@ -173,6 +173,20 @@ export const routes: Routes = [
           import('@features/orders/order-detail/order-detail.component').then((m) => m.OrderDetailComponent)
       },
       {
+        path: 'contact-messages',
+        loadComponent: () =>
+          import('@features/contact/pages/contact-messages-page.component').then(
+            (m) => m.ContactMessagesPageComponent
+          )
+      },
+      {
+        path: 'contact-recipients',
+        loadComponent: () =>
+          import('@features/contact/pages/contact-recipients-page.component').then(
+            (m) => m.ContactRecipientsPageComponent
+          )
+      },
+      {
         path: 'admin-approvals',
         loadComponent: () =>
           import('@features/admin-approvals/pages/admin-approvals-page.component').then(

@@ -15,6 +15,9 @@ public sealed class SubmitContactFormRequestValidator : AbstractValidator<Submit
             .MaximumLength(254).WithMessage("Email must not exceed 254 characters.")
             .EmailAddress().WithMessage("Email format is invalid.");
 
+        RuleFor(x => x.Organization)
+            .MaximumLength(200).WithMessage("Organization must not exceed 200 characters.");
+
         RuleFor(x => x.Subject)
             .NotEmpty().WithMessage("Subject is required.")
             .MaximumLength(200).WithMessage("Subject must not exceed 200 characters.");

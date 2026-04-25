@@ -1,6 +1,9 @@
 using System.Net.Mail;
 using Bymed.Application.Common;
 using Bymed.Application.Notifications;
+using Bymed.Application.Persistence;
+using Bymed.Application.Repositories;
+using Bymed.Domain.Entities;
 using MediatR;
 
 namespace Bymed.Application.Contact;
@@ -9,14 +12,25 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
 {
     private const int NameMaxLength = 100;
     private const int EmailMaxLength = 254;
+    private const int OrganizationMaxLength = 200;
     private const int SubjectMaxLength = 200;
     private const int MessageMaxLength = 5000;
 
     private readonly IEmailService _emailService;
+    private readonly IContactMessageRepository _contactMessageRepository;
+    private readonly IContactNotificationRecipientRepository _contactNotificationRecipientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SubmitContactFormCommandHandler(IEmailService emailService)
+    public SubmitContactFormCommandHandler(
+        IEmailService emailService,
+        IContactMessageRepository contactMessageRepository,
+        IContactNotificationRecipientRepository contactNotificationRecipientRepository,
+        IUnitOfWork unitOfWork)
     {
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        _contactMessageRepository = contactMessageRepository ?? throw new ArgumentNullException(nameof(contactMessageRepository));
+        _contactNotificationRecipientRepository = contactNotificationRecipientRepository ?? throw new ArgumentNullException(nameof(contactNotificationRecipientRepository));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
 
     public async Task<Result<ContactFormDto>> Handle(SubmitContactFormCommand request, CancellationToken cancellationToken)
@@ -25,6 +39,7 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
 
         var name = payload.Name?.Trim() ?? string.Empty;
         var email = payload.Email?.Trim() ?? string.Empty;
+        var organization = payload.Organization?.Trim() ?? string.Empty;
         var subject = payload.Subject?.Trim() ?? string.Empty;
         var message = payload.Message?.Trim() ?? string.Empty;
 
@@ -40,6 +55,9 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
         if (!IsValidEmail(email))
             return Result<ContactFormDto>.Failure("Email format is invalid.");
 
+        if (organization.Length > OrganizationMaxLength)
+            return Result<ContactFormDto>.Failure($"Organization must not exceed {OrganizationMaxLength} characters.");
+
         if (string.IsNullOrWhiteSpace(subject))
             return Result<ContactFormDto>.Failure("Subject is required.");
         if (subject.Length > SubjectMaxLength)
@@ -50,17 +68,43 @@ public sealed class SubmitContactFormCommandHandler : IRequestHandler<SubmitCont
         if (message.Length > MessageMaxLength)
             return Result<ContactFormDto>.Failure($"Message must not exceed {MessageMaxLength} characters.");
 
+        var submittedAtUtc = DateTime.UtcNow;
+        var contactMessage = new ContactMessage(name, email, organization, subject, message, submittedAtUtc);
+        _contactMessageRepository.Add(contactMessage);
+        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        var configuredRecipients = await _contactNotificationRecipientRepository
+            .GetActiveAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var toRecipients = configuredRecipients
+            .Where(x => x.IsPrimaryRecipient)
+            .Select(x => x.Email)
+            .ToList();
+        var ccRecipients = configuredRecipients
+            .Where(x => !x.IsPrimaryRecipient)
+            .Select(x => x.Email)
+            .ToList();
+
+        if (toRecipients.Count == 0)
+            toRecipients.Add("info@bymed.co.zw");
+
+        if (!ccRecipients.Contains("nmalaba@bymed.co.zw", StringComparer.OrdinalIgnoreCase))
+            ccRecipients.Add("nmalaba@bymed.co.zw");
+        if (!ccRecipients.Contains("ttmalaba@bymed.co.zw", StringComparer.OrdinalIgnoreCase))
+            ccRecipients.Add("ttmalaba@bymed.co.zw");
+
         await _emailService
-            .SendContactFormEmailAsync(email, name, subject, message, cancellationToken)
+            .SendContactFormEmailAsync(email, name, organization, subject, message, toRecipients, ccRecipients, cancellationToken)
             .ConfigureAwait(false);
 
         return Result<ContactFormDto>.Success(new ContactFormDto
         {
             Name = name,
             Email = email,
+            Organization = organization,
             Subject = subject,
             Message = message,
-            SubmittedAtUtc = DateTime.UtcNow
+            SubmittedAtUtc = submittedAtUtc
         });
     }
 
