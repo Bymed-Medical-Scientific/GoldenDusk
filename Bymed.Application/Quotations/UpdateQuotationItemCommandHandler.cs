@@ -38,7 +38,35 @@ public sealed class UpdateQuotationItemCommandHandler : IRequestHandler<UpdateQu
             return Result<QuotationDto>.Failure(ex.Message);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return Result<QuotationDto>.Success(QuotationMappings.ToDto(quotation));
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return Result<QuotationDto>.Success(QuotationMappings.ToDto(quotation));
+        }
+        catch (Exception ex) when (ex.GetType().Name.Equals("DbUpdateConcurrencyException", StringComparison.Ordinal))
+        {
+            _unitOfWork.ClearTrackedChanges();
+            try
+            {
+                var retryQuotation = await _quotationRepository.GetByIdAsync(request.QuotationId, cancellationToken).ConfigureAwait(false);
+                if (retryQuotation is null)
+                    return Result<QuotationDto>.Failure("Quotation not found.");
+
+                retryQuotation.UpdateItem(
+                    request.ItemId,
+                    req.Quantity,
+                    req.SupplierUnitCost,
+                    req.SourceCurrencyCode,
+                    req.ExchangeRateToTarget,
+                    req.MarkupMultiplier);
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                return Result<QuotationDto>.Success(QuotationMappings.ToDto(retryQuotation));
+            }
+            catch
+            {
+                return Result<QuotationDto>.Failure("Quotation was modified concurrently. Please try saving again.");
+            }
+        }
     }
 }

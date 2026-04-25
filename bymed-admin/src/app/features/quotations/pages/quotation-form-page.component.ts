@@ -2,7 +2,21 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, concatMap, EMPTY, finalize, forkJoin, from, map, of, reduce, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  concatMap,
+  delay,
+  EMPTY,
+  finalize,
+  forkJoin,
+  from,
+  map,
+  Observable,
+  of,
+  reduce,
+  switchMap,
+  tap
+} from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import {
@@ -155,36 +169,7 @@ export class QuotationFormPageComponent implements OnInit {
 
           return this.adminApi.getQuotationById(this.quotationId).pipe(
             tap((quotation) => {
-              this.quotation.set(quotation);
-              this.form.set({
-                customerName: quotation.customerName,
-                customerInstitution: quotation.customerInstitution,
-                customerEmail: quotation.customerEmail,
-                customerPhone: quotation.customerPhone,
-                customerAddress: quotation.customerAddress,
-                subject: quotation.subject,
-                targetCurrencyCode: quotation.targetCurrencyCode,
-                vatPercent: quotation.vatPercent,
-                showVatOnDocument: quotation.showVatOnDocument,
-                notes: quotation.notes ?? '',
-                termsAndConditions: quotation.termsAndConditions ?? ''
-              });
-              this.lines.set(
-                quotation.items.map((item) => ({
-                  localId: crypto.randomUUID(),
-                  itemId: item.id,
-                  productId: item.productId,
-                  productName: item.productNameSnapshot,
-                  productSku: item.productSkuSnapshot,
-                  productImageUrl: item.productImageUrlSnapshot,
-                  quantity: item.quantity,
-                  supplierUnitCost: item.supplierUnitCost,
-                  sourceCurrencyCode: item.sourceCurrencyCode,
-                  exchangeRateToTarget: item.exchangeRateToTarget,
-                  markupMultiplier: item.markupMultiplier,
-                  includeImage: Boolean(item.productImageUrlSnapshot)
-                }))
-              );
+              this.hydrateDraftFromQuotation(quotation);
             })
           );
         }),
@@ -234,6 +219,36 @@ export class QuotationFormPageComponent implements OnInit {
     );
   }
 
+  protected updateLineNumber(
+    localId: string,
+    key: 'quantity' | 'supplierUnitCost' | 'exchangeRateToTarget' | 'markupMultiplier',
+    rawValue: string,
+    fallback: number
+  ): void {
+    const parsed = Number(rawValue);
+    if (!Number.isFinite(parsed)) {
+      this.updateLine(localId, { [key]: fallback } as Partial<DraftQuotationLine>);
+      return;
+    }
+
+    if (key === 'quantity') {
+      this.updateLine(localId, { quantity: Math.max(1, Math.round(parsed)) });
+      return;
+    }
+
+    if (key === 'supplierUnitCost') {
+      this.updateLine(localId, { supplierUnitCost: Math.max(0, parsed) });
+      return;
+    }
+
+    if (key === 'exchangeRateToTarget') {
+      this.updateLine(localId, { exchangeRateToTarget: Math.max(0.000001, parsed) });
+      return;
+    }
+
+    this.updateLine(localId, { markupMultiplier: Math.max(0.01, parsed) });
+  }
+
   protected saveDraft(): void {
     this.persist(false);
   }
@@ -243,6 +258,10 @@ export class QuotationFormPageComponent implements OnInit {
   }
 
   private persist(finalizeAfterSave: boolean): void {
+    if (this.isSubmitting()) {
+      return;
+    }
+
     this.errorMessage.set(null);
     this.pageMessage.set(null);
 
@@ -295,7 +314,7 @@ export class QuotationFormPageComponent implements OnInit {
             return;
           }
 
-          this.quotation.set(quotation);
+          this.hydrateDraftFromQuotation(quotation);
           this.removedItemIds.set([]);
           this.pageMessage.set('Draft saved.');
           if (!this.isEditMode) {
@@ -303,33 +322,123 @@ export class QuotationFormPageComponent implements OnInit {
           }
         },
         error: (error: unknown) => {
-          this.errorMessage.set(error instanceof ApiError ? error.message : 'Could not save quotation.');
+          const message =
+            error instanceof ApiError ? error.message : 'Could not save quotation.';
+          this.errorMessage.set(
+            message.toLowerCase().includes('expected to affect 1 row')
+              ? 'Draft save hit a temporary write conflict. Please save again once.'
+              : message.toLowerCase().includes('unexpected')
+                ? 'Draft save failed due to a temporary conflict. Please click Save draft again.'
+              : message
+          );
         }
       });
   }
 
   private syncLines(quotationId: string) {
-    const lineRequests = this.lines().map((line) => {
-      const request = this.mapLineToRequest(line);
-      return line.itemId
-        ? this.adminApi.updateQuotationItem(quotationId, line.itemId, request)
-        : this.adminApi.addQuotationItem(quotationId, request);
-    });
-    const removeRequests = this.removedItemIds().map((itemId) => this.adminApi.removeQuotationItem(quotationId, itemId));
-    const all = [...lineRequests, ...removeRequests];
-    if (all.length === 0) {
+    const currentQuotation = this.quotation();
+    const existingItemsById = new Map(
+      (currentQuotation?.items ?? []).map((item) => [item.id, item])
+    );
+    const operationsWithGaps: Array<(() => Observable<unknown>) | null> = [
+      ...this.lines().map((line) => {
+        if (line.itemId) {
+          const existingItem = existingItemsById.get(line.itemId);
+          if (!existingItem) {
+            const request = this.mapLineToRequest(line);
+            return () => this.adminApi.addQuotationItem(quotationId, request);
+          }
+
+          if (!this.hasLineChanged(line, existingItem)) {
+            return null;
+          }
+        }
+
+        const request = this.mapLineToRequest(line);
+        return () =>
+          line.itemId
+            ? this.adminApi.updateQuotationItem(quotationId, line.itemId, request)
+            : this.adminApi.addQuotationItem(quotationId, request);
+      }),
+      ...this.removedItemIds().map(
+        (itemId) => () => this.adminApi.removeQuotationItem(quotationId, itemId)
+      )
+    ];
+
+    const operations = operationsWithGaps.filter(
+      (operation): operation is () => Observable<unknown> => operation !== null
+    );
+
+    if (operations.length === 0) {
       return of(null);
     }
 
-    return from(all).pipe(
-      concatMap((request$) =>
-        request$.pipe(
+    return from(operations).pipe(
+      concatMap((runOperation) =>
+        runOperation().pipe(
           catchError((error) => {
-            throw error;
+            // Retry once for transient optimistic concurrency collisions.
+            return of(null).pipe(
+              delay(120),
+              switchMap(() => runOperation()),
+              catchError(() => {
+                throw error;
+              })
+            );
           })
         )
       ),
       reduce((_, __) => null, null)
+    );
+  }
+
+  private hydrateDraftFromQuotation(quotation: QuotationDetailDto): void {
+    this.quotation.set(quotation);
+    this.form.set({
+      customerName: quotation.customerName,
+      customerInstitution: quotation.customerInstitution,
+      customerEmail: quotation.customerEmail,
+      customerPhone: quotation.customerPhone,
+      customerAddress: quotation.customerAddress,
+      subject: quotation.subject,
+      targetCurrencyCode: quotation.targetCurrencyCode,
+      vatPercent: quotation.vatPercent,
+      showVatOnDocument: quotation.showVatOnDocument,
+      notes: quotation.notes ?? '',
+      termsAndConditions: quotation.termsAndConditions ?? ''
+    });
+    this.lines.set(
+      quotation.items.map((item) => ({
+        localId: crypto.randomUUID(),
+        itemId: item.id,
+        productId: item.productId,
+        productName: item.productNameSnapshot,
+        productSku: item.productSkuSnapshot,
+        productImageUrl: item.productImageUrlSnapshot,
+        quantity: item.quantity,
+        supplierUnitCost: item.supplierUnitCost,
+        sourceCurrencyCode: item.sourceCurrencyCode,
+        exchangeRateToTarget: item.exchangeRateToTarget,
+        markupMultiplier: item.markupMultiplier,
+        includeImage: Boolean(item.productImageUrlSnapshot)
+      }))
+    );
+  }
+
+  private hasLineChanged(line: DraftQuotationLine, existingItem: QuotationDetailDto['items'][number]): boolean {
+    const normalizedSku = line.productSku || null;
+    const normalizedImage = line.includeImage ? line.productImageUrl || null : null;
+
+    return (
+      line.productId !== existingItem.productId ||
+      line.productName !== existingItem.productNameSnapshot ||
+      normalizedSku !== (existingItem.productSkuSnapshot || null) ||
+      normalizedImage !== (existingItem.productImageUrlSnapshot || null) ||
+      line.quantity !== existingItem.quantity ||
+      line.supplierUnitCost !== existingItem.supplierUnitCost ||
+      line.sourceCurrencyCode !== existingItem.sourceCurrencyCode ||
+      line.exchangeRateToTarget !== existingItem.exchangeRateToTarget ||
+      line.markupMultiplier !== existingItem.markupMultiplier
     );
   }
 

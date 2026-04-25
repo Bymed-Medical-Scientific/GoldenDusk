@@ -126,8 +126,38 @@
             <div class="cell-strong">{{ line.productName }}</div>
             <div class="cell-subtext">{{ line.productSku || 'No SKU' }}</div>
           </td>
-          <td><p-inputNumber [ngModel]="line.quantity" (ngModelChange)="updateLine(line.localId, { quantity: $event ?? 1 })" [min]="1" /></td>
-          <td><p-inputNumber [ngModel]="line.supplierUnitCost" (ngModelChange)="updateLine(line.localId, { supplierUnitCost: $event ?? 0 })" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
+          <td>
+            <div class="number-edit">
+              <input
+                pInputText
+                class="line-number-input"
+                type="number"
+                min="1"
+                step="1"
+                [ngModel]="line.quantity"
+                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                (focus)="($any($event.target)).select()"
+                (keydown.enter)="$any($event.target).blur()"
+                (ngModelChange)="updateLineNumber(line.localId, 'quantity', $event, line.quantity)"
+              />
+            </div>
+          </td>
+          <td>
+            <div class="number-edit">
+              <input
+                pInputText
+                class="line-number-input"
+                type="number"
+                min="0"
+                step="0.0001"
+                [ngModel]="line.supplierUnitCost"
+                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                (focus)="($any($event.target)).select()"
+                (keydown.enter)="$any($event.target).blur()"
+                (ngModelChange)="updateLineNumber(line.localId, 'supplierUnitCost', $event, line.supplierUnitCost)"
+              />
+            </div>
+          </td>
           <td>
             <p-select
               [options]="currencies()"
@@ -138,8 +168,38 @@
               appendTo="body"
             />
           </td>
-          <td><p-inputNumber [ngModel]="line.exchangeRateToTarget" (ngModelChange)="updateLine(line.localId, { exchangeRateToTarget: $event ?? 1 })" [min]="0.000001" [minFractionDigits]="2" [maxFractionDigits]="8" /></td>
-          <td><p-inputNumber [ngModel]="line.markupMultiplier" (ngModelChange)="updateLine(line.localId, { markupMultiplier: $event ?? 1 })" [min]="0.01" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
+          <td>
+            <div class="number-edit">
+              <input
+                pInputText
+                class="line-number-input"
+                type="number"
+                min="0.000001"
+                step="0.000001"
+                [ngModel]="line.exchangeRateToTarget"
+                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                (focus)="($any($event.target)).select()"
+                (keydown.enter)="$any($event.target).blur()"
+                (ngModelChange)="updateLineNumber(line.localId, 'exchangeRateToTarget', $event, line.exchangeRateToTarget)"
+              />
+            </div>
+          </td>
+          <td>
+            <div class="number-edit">
+              <input
+                pInputText
+                class="line-number-input"
+                type="number"
+                min="0.01"
+                step="0.01"
+                [ngModel]="line.markupMultiplier"
+                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                (focus)="($any($event.target)).select()"
+                (keydown.enter)="$any($event.target).blur()"
+                (ngModelChange)="updateLineNumber(line.localId, 'markupMultiplier', $event, line.markupMultiplier)"
+              />
+            </div>
+          </td>
           <td>
             <p-checkbox [binary]="true" [ngModel]="line.includeImage" (ngModelChange)="updateLine(line.localId, { includeImage: !!$event })" />
           </td>
