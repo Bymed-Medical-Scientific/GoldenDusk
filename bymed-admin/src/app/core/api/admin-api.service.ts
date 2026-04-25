@@ -4,10 +4,14 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   CategoryDto,
+  ClientDto,
+  ClientTypeDto,
   BulkOperationResultDto,
   BulkDeleteProductsRequestDto,
   BulkSetProductAvailabilityRequestDto,
   CreateCategoryRequestDto,
+  CreateClientRequestDto,
+  CreateClientTypeRequestDto,
   CreateProductRequestDto,
   AdjustInventoryRequestDto,
   ImportProductsResultDto,
@@ -31,6 +35,8 @@ import {
   ProductDto,
   ProductImageDto,
   UpdateCategoryRequestDto,
+  UpdateClientRequestDto,
+  UpdateClientTypeRequestDto,
   UpdateProductRequestDto,
   UserSummaryDto
 } from '@shared/models';
@@ -60,6 +66,46 @@ export class AdminApiService {
 
   public deleteCategory(categoryId: string): Observable<void> {
     return this.apiService.delete<void>(`categories/${categoryId}`);
+  }
+
+  public getClientTypes(): Observable<ClientTypeDto[]> {
+    return this.apiService.get<ClientTypeDto[]>('clienttypes');
+  }
+
+  public getClientTypeById(clientTypeId: string): Observable<ClientTypeDto> {
+    return this.apiService.get<ClientTypeDto>(`clienttypes/${clientTypeId}`);
+  }
+
+  public createClientType(request: CreateClientTypeRequestDto): Observable<ClientTypeDto> {
+    return this.apiService.post<CreateClientTypeRequestDto, ClientTypeDto>('clienttypes', request);
+  }
+
+  public updateClientType(clientTypeId: string, request: UpdateClientTypeRequestDto): Observable<ClientTypeDto> {
+    return this.apiService.put<UpdateClientTypeRequestDto, ClientTypeDto>(`clienttypes/${clientTypeId}`, request);
+  }
+
+  public deleteClientType(clientTypeId: string): Observable<void> {
+    return this.apiService.delete<void>(`clienttypes/${clientTypeId}`);
+  }
+
+  public getClients(): Observable<ClientDto[]> {
+    return this.apiService.get<ClientDto[]>('clients');
+  }
+
+  public getClientById(clientId: string): Observable<ClientDto> {
+    return this.apiService.get<ClientDto>(`clients/${clientId}`);
+  }
+
+  public createClient(request: CreateClientRequestDto): Observable<ClientDto> {
+    return this.apiService.post<CreateClientRequestDto, ClientDto>('clients', request);
+  }
+
+  public updateClient(clientId: string, request: UpdateClientRequestDto): Observable<ClientDto> {
+    return this.apiService.put<UpdateClientRequestDto, ClientDto>(`clients/${clientId}`, request);
+  }
+
+  public deleteClient(clientId: string): Observable<void> {
+    return this.apiService.delete<void>(`clients/${clientId}`);
   }
 
   public getProducts(

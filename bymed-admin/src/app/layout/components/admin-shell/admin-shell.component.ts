@@ -65,6 +65,8 @@ export class AdminShellComponent {
     { label: 'Content', icon: 'pi pi-file-edit', route: '/content' },
     { label: 'Categories', icon: 'pi pi-th-large', route: '/categories' },
     { label: 'Products', icon: 'pi pi-box', route: '/products' },
+    { label: 'Client Types', icon: 'pi pi-tags', route: '/client-types' },
+    { label: 'Clients', icon: 'pi pi-building', route: '/clients' },
     { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
     { label: 'Orders', icon: 'pi pi-shopping-cart', route: '/orders', exact: true },
     { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' },

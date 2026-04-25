@@ -135,6 +135,42 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'client-types',
+        loadComponent: () =>
+          import('@features/clients/client-type-list/client-type-list.component').then(
+            (m) => m.ClientTypeListComponent
+          )
+      },
+      {
+        path: 'client-types/new',
+        loadComponent: () =>
+          import('@features/clients/client-type-form/client-type-form.component').then(
+            (m) => m.ClientTypeFormComponent
+          )
+      },
+      {
+        path: 'client-types/:id/edit',
+        loadComponent: () =>
+          import('@features/clients/client-type-form/client-type-form.component').then(
+            (m) => m.ClientTypeFormComponent
+          )
+      },
+      {
+        path: 'clients',
+        loadComponent: () =>
+          import('@features/clients/client-list/client-list.component').then((m) => m.ClientListComponent)
+      },
+      {
+        path: 'clients/new',
+        loadComponent: () =>
+          import('@features/clients/client-form/client-form.component').then((m) => m.ClientFormComponent)
+      },
+      {
+        path: 'clients/:id/edit',
+        loadComponent: () =>
+          import('@features/clients/client-form/client-form.component').then((m) => m.ClientFormComponent)
+      },
+      {
         path: 'inventory/adjust',
         loadComponent: () =>
           import('@features/inventory/inventory-adjust/inventory-adjust-page.component').then(

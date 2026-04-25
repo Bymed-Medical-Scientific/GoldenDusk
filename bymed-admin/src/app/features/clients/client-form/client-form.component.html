@@ -1,0 +1,56 @@
+<section class="page">
+  <header class="page-header">
+    <h1>{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h1>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (!isInitializing()) {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <label>
+        Institution Name
+        <input pInputText formControlName="institutionName" />
+      </label>
+      <label>
+        Address
+        <input pInputText formControlName="address" />
+      </label>
+      <label>
+        Type
+        <p-select
+          formControlName="clientTypeId"
+          [options]="clientTypes()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select type"></p-select>
+      </label>
+
+      <label><span>Email 1</span><input pInputText formControlName="email1" /></label>
+      <label><span>Email 2</span><input pInputText formControlName="email2" /></label>
+      <label><span>Email 3</span><input pInputText formControlName="email3" /></label>
+
+      <label><span>Phone Number 1</span><input pInputText formControlName="phoneNumber1" /></label>
+      <label><span>Phone Number 2</span><input pInputText formControlName="phoneNumber2" /></label>
+      <label><span>Phone Number 3</span><input pInputText formControlName="phoneNumber3" /></label>
+
+      <label><span>Telephone Number 1</span><input pInputText formControlName="telephoneNumber1" /></label>
+      <label><span>Telephone Number 2</span><input pInputText formControlName="telephoneNumber2" /></label>
+      <label><span>Telephone Number 3</span><input pInputText formControlName="telephoneNumber3" /></label>
+
+      <label><span>Contact Person 1</span><input pInputText formControlName="contactPerson1Name" /></label>
+      <label><span>Contact Person 1 Email</span><input pInputText formControlName="contactPerson1Email" /></label>
+      <label><span>Contact Person 1 Telephone</span><input pInputText formControlName="contactPerson1Telephone" /></label>
+
+      <label><span>Contact Person 2</span><input pInputText formControlName="contactPerson2Name" /></label>
+      <label><span>Contact Person 2 Email</span><input pInputText formControlName="contactPerson2Email" /></label>
+      <label><span>Contact Person 2 Telephone</span><input pInputText formControlName="contactPerson2Telephone" /></label>
+
+      <div class="actions">
+        <a pButton routerLink="/clients" severity="secondary" label="Cancel"></a>
+        <button pButton type="submit" label="Save" [loading]="isSubmitting()"></button>
+      </div>
+    </form>
+  }
+</section>
