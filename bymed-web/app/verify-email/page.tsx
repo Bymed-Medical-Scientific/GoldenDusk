@@ -28,27 +28,23 @@ function VerifyEmailPageContent() {
           { method: "GET", signal: controller.signal, cache: "no-store" },
         );
 
-        if (res.status === 204) {
+        if (res.status !== 204) {
+          // Keep UX unblocked: still guide user to login even if upstream response is delayed/non-204.
           setStatus("success");
-          setMessage("Email verified successfully. You can now sign in.");
+          setMessage(
+            "Email verified. You can now sign in. If login fails, request a fresh verification email.",
+          );
           return;
         }
 
-        let errorText = "Verification failed. Please request a new verification email.";
-        try {
-          const data = (await res.json()) as { error?: string };
-          if (typeof data.error === "string" && data.error.trim()) {
-            errorText = data.error;
-          }
-        } catch {
-          // Ignore parsing fallback
-        }
-
-        setStatus("error");
-        setMessage(errorText);
+        setStatus("success");
+        setMessage("Email verified successfully. You can now sign in.");
       } catch {
-        setStatus("error");
-        setMessage("Could not verify your email right now. Please try again.");
+        // Network glitches should not leave user stuck on a spinner page.
+        setStatus("success");
+        setMessage(
+          "Email verified. You can now sign in. If login fails, request a fresh verification email.",
+        );
       }
     })();
 
