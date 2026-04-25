@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const from = searchParams.get("from") || "/account/orders";
+  const from = searchParams.get("from") || "/products";
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {

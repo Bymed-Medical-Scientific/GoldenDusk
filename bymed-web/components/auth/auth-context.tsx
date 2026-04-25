@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     await new Promise((r) => setTimeout(r, 150));
     await refreshSession();
+    router.replace("/");
     router.refresh();
   }, [refreshSession, router]);
 

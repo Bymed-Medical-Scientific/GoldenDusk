@@ -55,7 +55,7 @@ describe("LoginPage", () => {
 
     await waitFor(() => {
       expect(loginMock).toHaveBeenCalledWith("user@example.com", "Password123!");
-      expect(replaceMock).toHaveBeenCalledWith("/account/orders");
+      expect(replaceMock).toHaveBeenCalledWith("/products");
     });
   });
 });
