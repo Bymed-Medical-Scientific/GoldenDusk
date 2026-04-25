@@ -34,6 +34,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<QuoteNotificationRecipient> QuoteNotificationRecipients => Set<QuoteNotificationRecipient>();
     public DbSet<ClientType> ClientTypes => Set<ClientType>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<CurrencyDefinition> CurrencyDefinitions => Set<CurrencyDefinition>();
+    public DbSet<Quotation> Quotations => Set<Quotation>();
+    public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +66,8 @@ public class ApplicationDbContext : DbContext
         ApplyQuoteNotificationRecipientConfiguration(modelBuilder);
         ApplyClientTypeConfiguration(modelBuilder);
         ApplyClientConfiguration(modelBuilder);
+        ApplyCurrencyDefinitionConfiguration(modelBuilder);
+        ApplyQuotationConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -485,6 +490,71 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ClientTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ApplyCurrencyDefinitionConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CurrencyDefinition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(CurrencyDefinition.CodeMaxLength);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(CurrencyDefinition.NameMaxLength);
+            entity.Property(e => e.Symbol).HasMaxLength(CurrencyDefinition.SymbolMaxLength);
+        });
+    }
+
+    private static void ApplyQuotationConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Quotation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuotationNumber).IsUnique();
+            entity.HasIndex(e => e.CreatedAtUtc);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.HasPurchaseOrder);
+            entity.Property(e => e.QuotationNumber).IsRequired().HasMaxLength(Quotation.QuotationNumberMaxLength);
+            entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(Quotation.CustomerNameMaxLength);
+            entity.Property(e => e.CustomerInstitution).IsRequired().HasMaxLength(Quotation.CustomerInstitutionMaxLength);
+            entity.Property(e => e.CustomerEmail).IsRequired().HasMaxLength(Quotation.CustomerEmailMaxLength);
+            entity.Property(e => e.CustomerPhone).IsRequired().HasMaxLength(Quotation.CustomerPhoneMaxLength);
+            entity.Property(e => e.CustomerAddress).IsRequired().HasMaxLength(Quotation.CustomerAddressMaxLength);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(Quotation.SubjectMaxLength);
+            entity.Property(e => e.Notes).HasMaxLength(Quotation.NotesMaxLength);
+            entity.Property(e => e.TermsAndConditions).HasMaxLength(Quotation.TermsMaxLength);
+            entity.Property(e => e.TargetCurrencyCode).IsRequired().HasMaxLength(Quotation.CurrencyCodeMaxLength);
+            entity.Property(e => e.PurchaseOrderReference).HasMaxLength(Quotation.PurchaseOrderReferenceMaxLength);
+            entity.Property(e => e.VatPercent).HasPrecision(5, 2);
+            entity.Property(e => e.SubtotalExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.VatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalIncludingVat).HasPrecision(18, 2);
+
+            entity.HasMany(e => e.Items)
+                .WithOne(i => i.Quotation)
+                .HasForeignKey(i => i.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuotationItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuotationId);
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.ProductNameSnapshot).IsRequired().HasMaxLength(QuotationItem.ProductNameMaxLength);
+            entity.Property(e => e.ProductSkuSnapshot).HasMaxLength(QuotationItem.ProductSkuMaxLength);
+            entity.Property(e => e.ProductImageUrlSnapshot).HasMaxLength(QuotationItem.ProductImageUrlMaxLength);
+            entity.Property(e => e.SourceCurrencyCode).IsRequired().HasMaxLength(QuotationItem.CurrencyCodeMaxLength);
+            entity.Property(e => e.SupplierUnitCost).HasPrecision(18, 4);
+            entity.Property(e => e.ExchangeRateToTarget).HasPrecision(18, 8);
+            entity.Property(e => e.MarkupMultiplier).HasPrecision(18, 6);
+            entity.Property(e => e.UnitPriceExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.UnitVatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.UnitPriceIncludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.LineSubtotalExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.LineVatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.LineTotalIncludingVat).HasPrecision(18, 2);
         });
     }
 }
