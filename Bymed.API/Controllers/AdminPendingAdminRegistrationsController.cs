@@ -21,6 +21,20 @@ public sealed class AdminPendingAdminRegistrationsController : ControllerBase
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     }
 
+    /// <summary>Returns pending admin registrations waiting for approval.</summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<PendingAdminRegistrationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetPending(CancellationToken cancellationToken)
+    {
+        var items = await _mediator
+            .Send(new GetPendingAdminRegistrationsQuery(), cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(items);
+    }
+
     /// <summary>Activates an admin account that was created from the admin SPA and is waiting for approval.</summary>
     [HttpPost("{userId:guid}/approve")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

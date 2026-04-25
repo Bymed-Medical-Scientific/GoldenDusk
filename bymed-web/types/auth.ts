@@ -5,6 +5,7 @@ export type AuthUserDto = {
   email: string;
   name: string;
   role: UserRole;
+  emailConfirmed?: boolean;
   isActive: boolean;
 };
 

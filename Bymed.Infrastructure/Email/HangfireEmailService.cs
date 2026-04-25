@@ -47,6 +47,13 @@ public sealed class HangfireEmailService : IEmailService
         return Task.CompletedTask;
     }
 
+    public Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink, CancellationToken cancellationToken = default)
+    {
+        _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
+            runner.SendEmailVerificationAsync(toEmail, customerName, verificationLink));
+        return Task.CompletedTask;
+    }
+
     public Task SendPendingAdminRegistrationNotificationAsync(
         string toEmail,
         string pendingUserName,

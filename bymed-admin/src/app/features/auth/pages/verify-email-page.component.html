@@ -1,0 +1,39 @@
+<section class="auth-page">
+  <div class="auth-page__gradient auth-page__gradient--top"></div>
+  <div class="auth-page__gradient auth-page__gradient--bottom"></div>
+
+  <div class="theme-toggle-wrapper">
+    <button
+      pButton
+      type="button"
+      class="theme-toggle-button p-button-rounded p-button-text"
+      [icon]="isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'"
+      [attr.aria-label]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+      (click)="toggleTheme()"
+    ></button>
+  </div>
+
+  <article class="auth-card auth-card--wide">
+    <header class="auth-card__header">
+      <h1>Email verification</h1>
+      <p>Confirming your admin account email address.</p>
+    </header>
+
+    @if (isSubmitting()) {
+      <div class="auth-card__info auth-card__info--muted">
+        <p-progressSpinner ariaLabel="Verifying email" strokeWidth="4" styleClass="auth-spinner"></p-progressSpinner>
+        <span>Verifying your email...</span>
+      </div>
+    }
+
+    @if (!isSubmitting() && successMessage()) {
+      <p class="auth-card__success">{{ successMessage() }}</p>
+      <button pButton type="button" class="auth-card__submit" (click)="goToLogin()">Go to login</button>
+    }
+
+    @if (!isSubmitting() && errorMessage()) {
+      <p class="auth-card__error">{{ errorMessage() }}</p>
+      <a routerLink="/register" class="auth-card__link">Back to register</a>
+    }
+  </article>
+</section>

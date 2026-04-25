@@ -58,18 +58,21 @@ services:
       Jwt__Audience:           ${JWT_AUDIENCE:-BymedApi}
       Jwt__ExpirationMinutes:  ${JWT_EXPIRATION_MINUTES:-60}
 
-      # Email (EMAIL_* preferred; SMTP_USER / SMTP_PASSWORD / EMAIL_FROM are optional aliases)
-      Email__FromAddress:           ${EMAIL_FROM_ADDRESS:-${EMAIL_FROM:-}}
-      Email__FromName:              ${EMAIL_FROM_NAME:-Bymed}
-      Email__Host:                  ${EMAIL_HOST:-${SMTP_HOST:-smtp.gmail.com}}
-      Email__Port:                  ${EMAIL_PORT:-${SMTP_PORT:-587}}
-      Email__UseSsl:                ${EMAIL_USE_SSL:-true}
-      Email__Username:              ${EMAIL_USERNAME:-${SMTP_USER:-}}
-      Email__Password:              ${EMAIL_PASSWORD:-${SMTP_PASSWORD:-}}
-      Email__ContactFormRecipient:  ${EMAIL_CONTACT_RECIPIENT}
-      Email__PasswordResetBaseUrl:  ${PASSWORD_RESET_BASE_URL:-https://bymed.co.zw/reset-password}
-      Email__AdminApprovalNotifyRecipients: ${EMAIL_ADMIN_APPROVAL_RECIPIENTS:-}
-      Email__AdminPanelBaseUrl:       ${ADMIN_PANEL_BASE_URL:-http://localhost:4200}
+      # Email (supports both EMAIL_* aliases and direct Email__* keys from .env)
+      Email__FromAddress:           ${EMAIL_FROM_ADDRESS:-${Email__FromAddress:-${EMAIL_FROM:-}}}
+      Email__FromName:              ${EMAIL_FROM_NAME:-${Email__FromName:-Bymed}}
+      Email__Host:                  ${EMAIL_HOST:-${Email__Host:-${SMTP_HOST:-smtp.gmail.com}}}
+      Email__Port:                  ${EMAIL_PORT:-${Email__Port:-${SMTP_PORT:-587}}}
+      Email__UseSsl:                ${EMAIL_USE_SSL:-${Email__UseSsl:-true}}
+      Email__Username:              ${EMAIL_USERNAME:-${Email__Username:-${SMTP_USER:-}}}
+      Email__Password:              ${EMAIL_PASSWORD:-${Email__Password:-${SMTP_PASSWORD:-}}}
+      Email__ContactFormRecipient:  ${EMAIL_CONTACT_RECIPIENT:-${Email__ContactFormRecipient:-}}
+      Email__PasswordResetBaseUrl:  ${PASSWORD_RESET_BASE_URL:-${Email__PasswordResetBaseUrl:-https://bymed.co.zw/reset-password}}
+      Email__AdminPasswordResetBaseUrl: ${ADMIN_PASSWORD_RESET_BASE_URL:-${Email__AdminPasswordResetBaseUrl:-http://localhost:4200/reset-password}}
+      Email__EmailVerificationBaseUrl: ${EMAIL_VERIFICATION_BASE_URL:-${Email__EmailVerificationBaseUrl:-https://bymed.co.zw/verify-email}}
+      Email__AdminEmailVerificationBaseUrl: ${ADMIN_EMAIL_VERIFICATION_BASE_URL:-${Email__AdminEmailVerificationBaseUrl:-http://localhost:4200/verify-email}}
+      Email__AdminApprovalNotifyRecipients: ${EMAIL_ADMIN_APPROVAL_RECIPIENTS:-${Email__AdminApprovalNotifyRecipients:-}}
+      Email__AdminPanelBaseUrl:       ${ADMIN_PANEL_BASE_URL:-${Email__AdminPanelBaseUrl:-http://localhost:4200}}
 
       # CORS — must match the public-facing origins browsers use (localhost and 127.0.0.1).
       Cors__AllowedOrigins__0: ${WEB_ORIGIN:-http://localhost:3000}

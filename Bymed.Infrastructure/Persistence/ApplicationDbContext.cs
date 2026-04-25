@@ -128,6 +128,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.AccessFailedCount).HasDefaultValue(0);
             entity.Property(e => e.LockoutEnd);
             entity.Property(e => e.LockoutEnabled).HasDefaultValue(true);
+            entity.Property(e => e.EmailConfirmed).HasDefaultValue(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasMany(e => e.Addresses)

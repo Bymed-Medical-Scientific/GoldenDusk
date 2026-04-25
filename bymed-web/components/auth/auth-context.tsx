@@ -112,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(await readErrorMessage(res));
       const data = (await res.json()) as {
         user: AuthUserDto;
+        requiresEmailVerification?: boolean;
         pendingAdminApproval?: boolean;
       };
       if (data.pendingAdminApproval) {
@@ -119,6 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           "Your account was created but is not active yet. You can sign in after an administrator approves your access.",
         );
       }
+      if (data.requiresEmailVerification) {
+        throw Object.assign(new Error("EMAIL_VERIFICATION_REQUIRED"), {
+          code: "EMAIL_VERIFICATION_REQUIRED",
+        });
+      }
+
       setUser(data.user);
     },
     [],

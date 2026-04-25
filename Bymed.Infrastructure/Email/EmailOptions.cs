@@ -32,9 +32,29 @@ public sealed class EmailOptions
     [Required]
     public string PasswordResetBaseUrl { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional admin-specific reset-password page URL.
+    /// Falls back to <see cref="PasswordResetBaseUrl"/> when empty.
+    /// </summary>
+    public string AdminPasswordResetBaseUrl { get; set; } = string.Empty;
+    [Required]
+    public string EmailVerificationBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional admin-specific verify-email page URL.
+    /// Falls back to <see cref="EmailVerificationBaseUrl"/> when empty.
+    /// </summary>
+    public string AdminEmailVerificationBaseUrl { get; set; } = string.Empty;
+
     /// <summary>Comma-separated addresses that receive &quot;pending admin registration&quot; emails.</summary>
     public string AdminApprovalNotifyRecipients { get; set; } = string.Empty;
 
     /// <summary>Base URL of the Angular admin app (used in approval notification emails).</summary>
     public string AdminPanelBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional public logo URL used in branded email templates.</summary>
+    public string LogoUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional company website shown in email footers.</summary>
+    public string CompanyWebsiteUrl { get; set; } = string.Empty;
 }

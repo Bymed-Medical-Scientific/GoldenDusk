@@ -5,6 +5,7 @@ import {
   AdminRegisterOutcome,
   LoginRequestDto,
   LoginResponseDto,
+  ConfirmResetPasswordRequestDto,
   RefreshTokenRequestDto,
   RefreshTokenResponseDto,
   RegisterRequestDto,
@@ -94,6 +95,15 @@ export class AuthService {
   /** Sends a password reset link to the email (API always returns 204 for privacy). */
   public requestPasswordReset(body: ResetPasswordRequestDto): Observable<void> {
     return this.apiService.postNoContent('auth/reset-password', body);
+  }
+
+  public confirmPasswordReset(body: ConfirmResetPasswordRequestDto): Observable<void> {
+    return this.apiService.postNoContent('auth/reset-password/confirm', body);
+  }
+
+  /** Confirms email verification using tokenized link query params. */
+  public confirmEmail(email: string, token: string): Observable<void> {
+    return this.apiService.get<unknown>('auth/confirm-email', { email, token }).pipe(map(() => void 0));
   }
 
   public isAuthenticated(): boolean {

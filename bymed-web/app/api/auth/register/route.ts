@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     token?: string | null;
     refreshToken?: string | null;
     pendingAdminApproval?: boolean;
+    emailConfirmed?: boolean;
   };
 
   if (data.pendingAdminApproval || upstream.status === 202) {
@@ -46,10 +47,11 @@ export async function POST(req: Request) {
     );
   }
 
+  // New registration flow: users verify email before a session is issued.
   if (!data.token || !data.refreshToken) {
     return NextResponse.json(
-      { error: "Registration response missing session tokens." },
-      { status: 502 },
+      { user: data.user, requiresEmailVerification: true },
+      { status: 201 },
     );
   }
 

@@ -76,7 +76,8 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
             user.UserName.Trim(),
             user.Name ?? user.UserName.Trim(),
             user.Role,
-            user.IsActive);
+            user.IsActive,
+            user.EmailConfirmed);
         domainUser.PrepareEntityForCreate(new Account(id));
 
         // Placeholder hash; UserManager will call SetPasswordHashAsync after CreateAsync.
@@ -100,6 +101,7 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
 
         domainUser.UpdateEmail(user.UserName ?? string.Empty);
         domainUser.UpdateProfile(user.Name ?? string.Empty);
+        domainUser.SetEmailConfirmed(user.EmailConfirmed);
         domainUser.SetActive(user.IsActive);
         if (!string.IsNullOrEmpty(user.PasswordHash) && user.PasswordHash != "PENDING")
             domainUser.SetPasswordHash(user.PasswordHash);
@@ -191,12 +193,23 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
     public Task<bool> GetEmailConfirmedAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return Task.FromResult(true);
+        return Task.FromResult(user.EmailConfirmed);
     }
 
-    public Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed, CancellationToken cancellationToken = default)
+    public async Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed, CancellationToken cancellationToken = default)
     {
-        return Task.CompletedTask;
+        ArgumentNullException.ThrowIfNull(user);
+        user.EmailConfirmed = confirmed;
+
+        if (!Guid.TryParse(user.Id, out var id))
+            return;
+
+        var domainUser = await _userRepository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (domainUser is null)
+            return;
+
+        domainUser.SetEmailConfirmed(confirmed);
+        _userRepository.Update(domainUser);
     }
 
     public async Task<ApplicationUser?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
@@ -286,6 +299,7 @@ public sealed class BymedUserStore : IUserStore<ApplicationUser>,
             PasswordHash = user.PasswordHash,
             Name = user.Name,
             Role = user.Role,
+            EmailConfirmed = user.EmailConfirmed,
             IsActive = user.IsActive,
             AccessFailedCount = user.AccessFailedCount,
             LockoutEnd = user.LockoutEnd,
