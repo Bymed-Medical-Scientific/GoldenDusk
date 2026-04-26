@@ -8,17 +8,21 @@ export const primaryNavLinks = [
 ] as const;
 
 export const footerProductLinks = [
-  { href: "/products", label: "Diagnostic imaging" },
-  { href: "/products", label: "Laboratory systems" },
-  { href: "/products", label: "Patient monitoring" },
-  { href: "/products", label: "Theatre & surgical" },
+  { href: "/products", label: "Medical Equipment" },
+  { href: "/products", label: "Medical Teaching Equipment" },
+  { href: "/products", label: "Technical Teaching Equipment" },
+  { href: "/products", label: "Industrial & Lab Scales" },
+  { href: "/products", label: "Point of Care" },
+  { href: "/products", label: "Theatre & Surgical" },
+  { href: "/products", label: "Hospital Equipment" },
+  { href: "/products", label: "Instruments & Consumables" },
 ] as const;
 
 export const footerServiceLinks = [
   { href: "/services", label: "Installation" },
   { href: "/services", label: "Training" },
-  { href: "/services", label: "Maintenance" },
-  { href: "/contact", label: "Repairs & support" },
+  { href: "/services", label: "Maintenance & Repairs" },
+  { href: "/contact", label: "Support" },
 ] as const;
 
 export const footerExploreLinks = [

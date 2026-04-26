@@ -53,6 +53,19 @@ function IconLinkedin({ className }: { className?: string }) {
   );
 }
 
+function IconInstagram({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5zm8.95 1.55a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z" />
+    </svg>
+  );
+}
+
 export function SiteFooter() {
   return (
     <footer className="relative bg-muted text-foreground">
@@ -101,6 +114,17 @@ export function SiteFooter() {
                   target="_blank"
                 >
                   <IconLinkedin className="size-4" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.instagram.com/"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border/60 transition hover:text-primary"
+                  aria-label="Instagram"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <IconInstagram className="size-4" />
                 </a>
               </li>
             </ul>
