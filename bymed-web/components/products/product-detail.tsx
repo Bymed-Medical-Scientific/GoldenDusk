@@ -136,7 +136,7 @@ export function ProductDetail({
               productPrice={product.price}
               productCurrency={product.currency}
               productImageUrl={product.primaryImageUrl}
-              disabled={!inStock}
+              disabled={!product.isAvailable}
               maxQuantity={product.inventoryCount}
             />
           </div>
