@@ -7,6 +7,7 @@ export type AuthUserDto = {
   role: UserRole;
   emailConfirmed?: boolean;
   isActive: boolean;
+  canViewPrices?: boolean;
 };
 
 export type AuthResponse = {

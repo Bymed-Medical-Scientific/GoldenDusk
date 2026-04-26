@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>Quote request details</h2>
+<mat-dialog-content class="dialog-content">
+  @if (isLoading()) {
+    <div class="state-box">
+      <mat-spinner diameter="36" />
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (detail()) {
+    <div class="detail-grid">
+      <div><strong>Submitted:</strong> {{ detail()!.submittedAtUtc | date: 'EEEE d MMMM y, h:mm a' }}</div>
+      <div><strong>Status:</strong> {{ detail()!.status }}</div>
+      <div><strong>Name:</strong> {{ detail()!.fullName }}</div>
+      <div><strong>Institution:</strong> {{ detail()!.institution }}</div>
+      <div><strong>Email:</strong> {{ detail()!.email }}</div>
+      <div><strong>Phone:</strong> {{ detail()!.phoneNumber }}</div>
+      <div class="full-row"><strong>Address:</strong> {{ detail()!.address }}</div>
+      <div class="full-row"><strong>Notes:</strong> {{ detail()!.notes || '-' }}</div>
+    </div>
+
+    <h3>Requested products</h3>
+    @if (detail()!.items.length === 0) {
+      <p class="muted">No items attached to this quote request.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of detail()!.items; track item.productId) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td>{{ item.productSku || '-' }}</td>
+                <td>{{ item.quantity }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-flat-button type="button" mat-dialog-close>Close</button>
+</mat-dialog-actions>

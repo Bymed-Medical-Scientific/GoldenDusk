@@ -72,6 +72,8 @@ export class AdminShellComponent {
     { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' },
     { label: 'Contact Messages', icon: 'pi pi-envelope', route: '/contact-messages' },
     { label: 'Contact Recipients', icon: 'pi pi-users', route: '/contact-recipients' },
+    { label: 'Quote Requests', icon: 'pi pi-inbox', route: '/quote-requests' },
+    { label: 'Quotations', icon: 'pi pi-file', route: '/quotations' },
     { label: 'Admin Approvals', icon: 'pi pi-user-plus', route: '/admin-approvals' }
   ];
 

@@ -13,9 +13,11 @@
     </div>
   } @else if (errorMessage()) {
     <div class="state-box error">{{ errorMessage() }}</div>
-  } @else if (rows().length === 0) {
-    <div class="state-box">No pending admin approvals right now.</div>
   } @else {
+    <h3>Pending admin approvals</h3>
+    @if (rows().length === 0) {
+      <div class="state-box">No pending admin approvals right now.</div>
+    } @else {
     <div class="table-wrap">
       <table>
         <thead>
@@ -53,5 +55,66 @@
         </tbody>
       </table>
     </div>
+    }
+
+    <h3 class="mt-4">Pending customer approvals</h3>
+    @if (customerRows().length === 0) {
+      <div class="state-box">No pending customer approvals right now.</div>
+    } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Email verified</th>
+            <th>Requested</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of customerRows(); track row.id) {
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.email }}</td>
+              <td>
+                <span class="chip" [class.ok]="row.emailConfirmed" [class.warn]="!row.emailConfirmed">
+                  {{ row.emailConfirmed ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>{{ row.creationTime | date: 'medium' }}</td>
+              <td class="actions">
+                <button
+                  pButton
+                  type="button"
+                  label="Approve + Show prices"
+                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                  [loading]="isApproving(row.id)"
+                  (click)="approveCustomer(row.id, true)"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  label="Approve (hide prices)"
+                  class="p-button-secondary"
+                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                  (click)="approveCustomer(row.id, false)"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  label="Decline"
+                  class="p-button-danger"
+                  [disabled]="isDeclining(row.id)"
+                  [loading]="isDeclining(row.id)"
+                  (click)="declineCustomer(row.id)"
+                ></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
   }
 </section>

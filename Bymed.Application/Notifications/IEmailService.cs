@@ -14,8 +14,21 @@ public interface IEmailService
         IReadOnlyCollection<string> toRecipients,
         IReadOnlyCollection<string> ccRecipients,
         CancellationToken cancellationToken = default);
+    Task SendQuoteRequestSubmittedEmailAsync(
+        Guid quoteRequestId,
+        string fullName,
+        string institution,
+        string email,
+        string phoneNumber,
+        string address,
+        string notes,
+        IReadOnlyCollection<(string ProductName, string ProductSku, int Quantity)> items,
+        IReadOnlyCollection<string> toRecipients,
+        IReadOnlyCollection<string> ccRecipients,
+        CancellationToken cancellationToken = default);
     Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default);
     Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink, CancellationToken cancellationToken = default);
+    Task SendCustomerAccountUnderReviewEmailAsync(string toEmail, string customerName, CancellationToken cancellationToken = default);
 
     /// <summary>Notifies configured admin recipient(s) that a new admin registration is waiting for approval.</summary>
     Task SendPendingAdminRegistrationNotificationAsync(

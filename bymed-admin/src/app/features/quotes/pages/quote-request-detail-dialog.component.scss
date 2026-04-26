@@ -1,0 +1,51 @@
+.dialog-content {
+  min-width: min(760px, 92vw);
+  max-width: 900px;
+  max-height: min(75vh, 760px);
+}
+
+.state-box {
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.state-box.error {
+  color: #b91c1c;
+  border-color: #dc2626;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 0.6rem 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 1rem;
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.muted {
+  color: var(--text-color-secondary, #6b7280);
+}

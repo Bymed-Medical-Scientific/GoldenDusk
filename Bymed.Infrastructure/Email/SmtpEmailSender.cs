@@ -62,7 +62,11 @@ public sealed class SmtpEmailSender : ISmtpEmailSender
             Credentials = new NetworkCredential(_options.Username, _options.Password)
         };
 
-        _logger.LogInformation("Sending email to {RecipientCount} recipient(s) with subject {Subject}.", message.To.Count, subject);
+        _logger.LogInformation(
+            "Sending email from {FromAddress} to {RecipientCount} recipient(s) with subject {Subject}.",
+            _options.FromAddress,
+            message.To.Count,
+            subject);
         cancellationToken.ThrowIfCancellationRequested();
         await smtp.SendMailAsync(message).ConfigureAwait(false);
     }

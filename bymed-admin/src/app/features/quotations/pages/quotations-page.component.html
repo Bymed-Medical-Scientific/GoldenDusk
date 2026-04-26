@@ -1,0 +1,117 @@
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Quotations</h1>
+      <p class="page-subtitle">Track quotation outcomes and manage purchase-order conversion analytics.</p>
+    </div>
+    <div class="header-actions">
+      <a pButton routerLink="/quotations/new" icon="pi pi-plus" label="New quotation"></a>
+      <a pButton routerLink="/quotations/currencies" [outlined]="true" severity="secondary" label="Currencies"></a>
+    </div>
+  </div>
+
+  <div class="toolbar-filters">
+    <span class="search-box">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        pInputText
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search quotation, client, institution"
+        aria-label="Search quotations"
+      />
+    </span>
+
+    <p-select
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusChange($event)"
+      appendTo="body"
+    />
+
+    <p-select
+      [options]="poOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="poOutcomeFilter()"
+      (ngModelChange)="onPoFilterChange($event)"
+      appendTo="body"
+    />
+
+    <button pButton type="button" [outlined]="true" severity="secondary" label="Clear filters" (click)="clearFilters()"></button>
+  </div>
+
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
+
+  <div class="table-wrap">
+    <p-table [value]="items()" [loading]="isLoading()" styleClass="quotation-table">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Quotation</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>PO Outcome</th>
+          <th>Created</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>
+            <div class="cell-strong">{{ row.quotationNumber }}</div>
+            <div class="cell-subtext">{{ row.subject }}</div>
+          </td>
+          <td>
+            <div class="cell-strong">{{ row.customerName }}</div>
+            <div class="cell-subtext">{{ row.customerInstitution }}</div>
+          </td>
+          <td>{{ statusLabel(row.status) }}</td>
+          <td>{{ row.totalIncludingVat | currency: row.targetCurrencyCode:'symbol':'1.2-2' }}</td>
+          <td>
+            <div class="po-toggle-wrap">
+              <label class="po-radio">
+                <input type="radio" name="po-{{ row.id }}" [checked]="row.hasPurchaseOrder === true" [disabled]="!canUpdatePurchaseOrder(row) || isUpdatingPo() === row.id" (change)="togglePurchaseOrder(row, true)" />
+                <span>Yes</span>
+              </label>
+              <label class="po-radio">
+                <input type="radio" name="po-{{ row.id }}" [checked]="row.hasPurchaseOrder === false" [disabled]="!canUpdatePurchaseOrder(row) || isUpdatingPo() === row.id" (change)="togglePurchaseOrder(row, false)" />
+                <span>No</span>
+              </label>
+            </div>
+            @if (row.purchaseOrderReference) {
+              <div class="cell-subtext">Ref: {{ row.purchaseOrderReference }}</div>
+            }
+          </td>
+          <td>{{ row.createdAtUtc | date: 'medium' }}</td>
+          <td class="col-actions">
+            <div class="action-buttons">
+              <a pButton [routerLink]="['/quotations', row.id, 'edit']" [outlined]="true" severity="secondary" label="Edit"></a>
+              <button pButton type="button" [outlined]="true" label="PDF" [disabled]="isExportingPdf() === row.id" (click)="exportPdf(row)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="7">No quotations found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [first]="(pageNumber() - 1) * pageSize()"
+      [rows]="pageSize()"
+      [totalRecords]="totalCount()"
+      [rowsPerPageOptions]="pageSizeOptions"
+      (onPageChange)="onPageChange($event)"
+    ></p-paginator>
+  </div>
+}

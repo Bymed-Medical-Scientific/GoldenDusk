@@ -223,6 +223,41 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'quote-requests',
+        loadComponent: () =>
+          import('@features/quotes/pages/quote-requests-page.component').then(
+            (m) => m.QuoteRequestsPageComponent
+          )
+      },
+      {
+        path: 'quotations',
+        loadComponent: () =>
+          import('@features/quotations/pages/quotations-page.component').then(
+            (m) => m.QuotationsPageComponent
+          )
+      },
+      {
+        path: 'quotations/new',
+        loadComponent: () =>
+          import('@features/quotations/pages/quotation-form-page.component').then(
+            (m) => m.QuotationFormPageComponent
+          )
+      },
+      {
+        path: 'quotations/:id/edit',
+        loadComponent: () =>
+          import('@features/quotations/pages/quotation-form-page.component').then(
+            (m) => m.QuotationFormPageComponent
+          )
+      },
+      {
+        path: 'quotations/currencies',
+        loadComponent: () =>
+          import('@features/quotations/pages/quotation-currencies-page.component').then(
+            (m) => m.QuotationCurrenciesPageComponent
+          )
+      },
+      {
         path: 'admin-approvals',
         loadComponent: () =>
           import('@features/admin-approvals/pages/admin-approvals-page.component').then(

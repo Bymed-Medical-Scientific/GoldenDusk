@@ -103,9 +103,15 @@ export function ProductDetail({
             </p>
           ) : null}
 
-          <p className="mt-4 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
-            <FormattedPrice amount={product.price} currency={product.currency} />
-          </p>
+          {product.price > 0 ? (
+            <p className="mt-4 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">
+              <FormattedPrice amount={product.price} currency={product.currency} />
+            </p>
+          ) : (
+            <p className="mt-4 text-base font-medium text-muted-foreground sm:text-lg">
+              Login with an approved account to view pricing.
+            </p>
+          )}
 
           <div className="mt-3 text-sm">
             {inStock ? (

@@ -11,6 +11,7 @@ public sealed class ApplicationUser
     public UserRole Role { get; set; } = UserRole.Customer;
     public bool EmailConfirmed { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool CanViewPrices { get; set; }
     public int AccessFailedCount { get; set; }
     public DateTimeOffset? LockoutEnd { get; set; }
     public bool LockoutEnabled { get; set; } = true;

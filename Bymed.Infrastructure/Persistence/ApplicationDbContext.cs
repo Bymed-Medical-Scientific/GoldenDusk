@@ -29,8 +29,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
+    public DbSet<QuoteRequest> QuoteRequests => Set<QuoteRequest>();
+    public DbSet<QuoteRequestItem> QuoteRequestItems => Set<QuoteRequestItem>();
+    public DbSet<QuoteNotificationRecipient> QuoteNotificationRecipients => Set<QuoteNotificationRecipient>();
     public DbSet<ClientType> ClientTypes => Set<ClientType>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<CurrencyDefinition> CurrencyDefinitions => Set<CurrencyDefinition>();
+    public DbSet<Quotation> Quotations => Set<Quotation>();
+    public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,8 +62,12 @@ public class ApplicationDbContext : DbContext
         ApplyRefreshTokenConfiguration(modelBuilder);
         ApplyContactMessageConfiguration(modelBuilder);
         ApplyContactNotificationRecipientConfiguration(modelBuilder);
+        ApplyQuoteRequestConfiguration(modelBuilder);
+        ApplyQuoteNotificationRecipientConfiguration(modelBuilder);
         ApplyClientTypeConfiguration(modelBuilder);
         ApplyClientConfiguration(modelBuilder);
+        ApplyCurrencyDefinitionConfiguration(modelBuilder);
+        ApplyQuotationConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -138,6 +148,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LockoutEnabled).HasDefaultValue(true);
             entity.Property(e => e.EmailConfirmed).HasDefaultValue(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CanViewPrices).HasDefaultValue(false);
 
             entity.HasMany(e => e.Addresses)
                 .WithOne(e => e.User)
@@ -396,6 +407,48 @@ public class ApplicationDbContext : DbContext
         });
     }
 
+    private static void ApplyQuoteRequestConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<QuoteRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SubmittedAtUtc);
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Status);
+            entity.Property(e => e.FullName).IsRequired().HasMaxLength(QuoteRequest.FullNameMaxLength);
+            entity.Property(e => e.Institution).IsRequired().HasMaxLength(QuoteRequest.InstitutionMaxLength);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(QuoteRequest.EmailMaxLength);
+            entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(QuoteRequest.PhoneMaxLength);
+            entity.Property(e => e.Address).IsRequired().HasMaxLength(QuoteRequest.AddressMaxLength);
+            entity.Property(e => e.Notes).IsRequired().HasMaxLength(QuoteRequest.NotesMaxLength);
+            entity.HasMany(e => e.Items)
+                .WithOne(i => i.QuoteRequest)
+                .HasForeignKey(i => i.QuoteRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuoteRequestItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuoteRequestId);
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.ProductNameSnapshot).IsRequired().HasMaxLength(QuoteRequestItem.ProductNameMaxLength);
+            entity.Property(e => e.ProductSkuSnapshot).HasMaxLength(QuoteRequestItem.ProductSkuMaxLength);
+        });
+    }
+
+    private static void ApplyQuoteNotificationRecipientConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<QuoteNotificationRecipient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.IsPrimaryRecipient, e.IsActive });
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(QuoteNotificationRecipient.EmailMaxLength);
+        });
+    }
+
     private static void ApplyClientTypeConfiguration(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ClientType>(entity =>
@@ -437,6 +490,71 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ClientTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ApplyCurrencyDefinitionConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CurrencyDefinition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(CurrencyDefinition.CodeMaxLength);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(CurrencyDefinition.NameMaxLength);
+            entity.Property(e => e.Symbol).HasMaxLength(CurrencyDefinition.SymbolMaxLength);
+        });
+    }
+
+    private static void ApplyQuotationConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Quotation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuotationNumber).IsUnique();
+            entity.HasIndex(e => e.CreatedAtUtc);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.HasPurchaseOrder);
+            entity.Property(e => e.QuotationNumber).IsRequired().HasMaxLength(Quotation.QuotationNumberMaxLength);
+            entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(Quotation.CustomerNameMaxLength);
+            entity.Property(e => e.CustomerInstitution).IsRequired().HasMaxLength(Quotation.CustomerInstitutionMaxLength);
+            entity.Property(e => e.CustomerEmail).IsRequired().HasMaxLength(Quotation.CustomerEmailMaxLength);
+            entity.Property(e => e.CustomerPhone).IsRequired().HasMaxLength(Quotation.CustomerPhoneMaxLength);
+            entity.Property(e => e.CustomerAddress).IsRequired().HasMaxLength(Quotation.CustomerAddressMaxLength);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(Quotation.SubjectMaxLength);
+            entity.Property(e => e.Notes).HasMaxLength(Quotation.NotesMaxLength);
+            entity.Property(e => e.TermsAndConditions).HasMaxLength(Quotation.TermsMaxLength);
+            entity.Property(e => e.TargetCurrencyCode).IsRequired().HasMaxLength(Quotation.CurrencyCodeMaxLength);
+            entity.Property(e => e.PurchaseOrderReference).HasMaxLength(Quotation.PurchaseOrderReferenceMaxLength);
+            entity.Property(e => e.VatPercent).HasPrecision(5, 2);
+            entity.Property(e => e.SubtotalExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.VatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalIncludingVat).HasPrecision(18, 2);
+
+            entity.HasMany(e => e.Items)
+                .WithOne(i => i.Quotation)
+                .HasForeignKey(i => i.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuotationItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.QuotationId);
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.ProductNameSnapshot).IsRequired().HasMaxLength(QuotationItem.ProductNameMaxLength);
+            entity.Property(e => e.ProductSkuSnapshot).HasMaxLength(QuotationItem.ProductSkuMaxLength);
+            entity.Property(e => e.ProductImageUrlSnapshot).HasMaxLength(QuotationItem.ProductImageUrlMaxLength);
+            entity.Property(e => e.SourceCurrencyCode).IsRequired().HasMaxLength(QuotationItem.CurrencyCodeMaxLength);
+            entity.Property(e => e.SupplierUnitCost).HasPrecision(18, 4);
+            entity.Property(e => e.ExchangeRateToTarget).HasPrecision(18, 8);
+            entity.Property(e => e.MarkupMultiplier).HasPrecision(18, 6);
+            entity.Property(e => e.UnitPriceExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.UnitVatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.UnitPriceIncludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.LineSubtotalExcludingVat).HasPrecision(18, 2);
+            entity.Property(e => e.LineVatAmount).HasPrecision(18, 2);
+            entity.Property(e => e.LineTotalIncludingVat).HasPrecision(18, 2);
         });
     }
 }

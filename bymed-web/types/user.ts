@@ -15,6 +15,8 @@ export type UserProfileDto = {
   id: string;
   email: string;
   name: string;
+  isActive: boolean;
+  canViewPrices: boolean;
   addresses: UserAddressDto[];
 };
 

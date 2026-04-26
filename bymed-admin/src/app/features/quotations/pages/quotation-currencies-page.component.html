@@ -1,0 +1,52 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Currencies</h1>
+      <p>Manage currency definitions used in quotation pricing.</p>
+    </div>
+    <a pButton routerLink="/quotations" label="Back to quotations" severity="secondary" [outlined]="true"></a>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <div class="create-form">
+    <input pInputText [ngModel]="form().code" (ngModelChange)="updateForm('code', $event)" maxlength="3" placeholder="Code (e.g. USD)" />
+    <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" placeholder="Name" />
+    <input pInputText [ngModel]="form().symbol" (ngModelChange)="updateForm('symbol', $event)" placeholder="Symbol" />
+    <p-inputNumber [ngModel]="form().decimalPlaces" (ngModelChange)="updateForm('decimalPlaces', $event ?? 2)" [min]="0" [max]="6"></p-inputNumber>
+    <label class="checkbox-row">
+      <p-checkbox [binary]="true" [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', !!$event)"></p-checkbox>
+      <span>Active</span>
+    </label>
+    <button pButton type="button" label="Add currency" (click)="create()" [disabled]="isSaving()"></button>
+  </div>
+
+  <p-table [value]="rows()" [loading]="isLoading()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Symbol</th>
+        <th>Decimals</th>
+        <th>Active</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.code }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.symbol || '—' }}</td>
+        <td>{{ row.decimalPlaces }}</td>
+        <td>{{ row.isActive ? 'Yes' : 'No' }}</td>
+        <td class="actions">
+          <button pButton type="button" size="small" label="Edit" [outlined]="true" (click)="edit(row)"></button>
+          <button pButton type="button" size="small" [label]="row.isActive ? 'Deactivate' : 'Activate'" [outlined]="true" (click)="toggleActive(row)"></button>
+          <button pButton type="button" size="small" severity="danger" [outlined]="true" label="Delete" (click)="remove(row)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

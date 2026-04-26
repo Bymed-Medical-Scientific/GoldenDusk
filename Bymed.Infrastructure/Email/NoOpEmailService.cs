@@ -32,11 +32,28 @@ public sealed class NoOpEmailService : IEmailService
         CancellationToken cancellationToken = default)
         => LogAsync("ContactForm", string.Join(",", toRecipients));
 
+    public Task SendQuoteRequestSubmittedEmailAsync(
+        Guid quoteRequestId,
+        string fullName,
+        string institution,
+        string email,
+        string phoneNumber,
+        string address,
+        string notes,
+        IReadOnlyCollection<(string ProductName, string ProductSku, int Quantity)> items,
+        IReadOnlyCollection<string> toRecipients,
+        IReadOnlyCollection<string> ccRecipients,
+        CancellationToken cancellationToken = default)
+        => LogAsync("QuoteRequestSubmitted", string.Join(",", toRecipients));
+
     public Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default)
         => LogAsync("PasswordReset", toEmail);
 
     public Task SendEmailVerificationAsync(string toEmail, string customerName, string verificationLink, CancellationToken cancellationToken = default)
         => LogAsync("EmailVerification", toEmail);
+
+    public Task SendCustomerAccountUnderReviewEmailAsync(string toEmail, string customerName, CancellationToken cancellationToken = default)
+        => LogAsync("CustomerAccountUnderReview", toEmail);
 
     public Task SendPendingAdminRegistrationNotificationAsync(
         string toEmail,

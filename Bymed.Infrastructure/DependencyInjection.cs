@@ -5,6 +5,7 @@ using Bymed.Application.Files;
 using Bymed.Application.Notifications;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
+using Bymed.Application.Quotations;
 using Bymed.Application.Repositories;
 using Bymed.Infrastructure.Currency;
 using Bymed.Infrastructure.Email;
@@ -13,6 +14,7 @@ using Bymed.Infrastructure.Caching;
 using Bymed.Infrastructure.Files;
 using Bymed.Infrastructure.Payments;
 using Bymed.Infrastructure.Persistence;
+using Bymed.Infrastructure.Quotations;
 using Bymed.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -50,6 +52,7 @@ public static class DependencyInjection
         services.Configure<CurrencyOptions>(configuration.GetSection(CurrencyOptions.SectionName));
         services.AddHttpClient<CurrencyService>();
         services.AddScoped<ICurrencyService, CurrencyService>();
+        services.AddScoped<IQuotationPdfRenderer, QuestPdfQuotationRenderer>();
 
         return services.AddInfrastructureRepositories();
     }
@@ -67,8 +70,12 @@ public static class DependencyInjection
         services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
         services.AddScoped<IContactNotificationRecipientRepository, ContactNotificationRecipientRepository>();
+        services.AddScoped<IQuoteRequestRepository, QuoteRequestRepository>();
+        services.AddScoped<IQuoteNotificationRecipientRepository, QuoteNotificationRecipientRepository>();
         services.AddScoped<IClientTypeRepository, ClientTypeRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();
+        services.AddScoped<ICurrencyDefinitionRepository, CurrencyDefinitionRepository>();
+        services.AddScoped<IQuotationRepository, QuotationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         if (!services.Any(d => d.ServiceType == typeof(IDistributedCache)))

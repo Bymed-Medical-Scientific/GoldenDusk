@@ -1,4 +1,5 @@
 using Bymed.Application.Categories;
+using Bymed.Application.Quotations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(GetCategoriesQueryHandler).Assembly));
         services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
+        services.AddScoped<IPricingCalculator, PricingCalculator>();
         return services;
     }
 }

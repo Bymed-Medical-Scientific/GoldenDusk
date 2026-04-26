@@ -48,6 +48,35 @@ public sealed class HangfireEmailService : IEmailService
         return Task.CompletedTask;
     }
 
+    public Task SendQuoteRequestSubmittedEmailAsync(
+        Guid quoteRequestId,
+        string fullName,
+        string institution,
+        string email,
+        string phoneNumber,
+        string address,
+        string notes,
+        IReadOnlyCollection<(string ProductName, string ProductSku, int Quantity)> items,
+        IReadOnlyCollection<string> toRecipients,
+        IReadOnlyCollection<string> ccRecipients,
+        CancellationToken cancellationToken = default)
+    {
+        var lineItems = items.Select(x => $"{x.ProductName} ({x.ProductSku}) x{x.Quantity}").ToArray();
+        _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
+            runner.SendQuoteRequestSubmittedEmailAsync(
+                quoteRequestId,
+                fullName,
+                institution,
+                email,
+                phoneNumber,
+                address,
+                notes,
+                lineItems,
+                toRecipients.ToArray(),
+                ccRecipients.ToArray()));
+        return Task.CompletedTask;
+    }
+
     public Task SendPasswordResetEmailAsync(string toEmail, string customerName, string resetLink, CancellationToken cancellationToken = default)
     {
         _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
@@ -59,6 +88,13 @@ public sealed class HangfireEmailService : IEmailService
     {
         _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
             runner.SendEmailVerificationAsync(toEmail, customerName, verificationLink));
+        return Task.CompletedTask;
+    }
+
+    public Task SendCustomerAccountUnderReviewEmailAsync(string toEmail, string customerName, CancellationToken cancellationToken = default)
+    {
+        _backgroundJobClient.Enqueue<IEmailBackgroundJobRunner>(runner =>
+            runner.SendCustomerAccountUnderReviewEmailAsync(toEmail, customerName));
         return Task.CompletedTask;
     }
 

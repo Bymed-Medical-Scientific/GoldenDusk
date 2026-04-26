@@ -32,8 +32,20 @@ import {
   UpdatePageContentRequestDto,
   PagedResultDto,
   PendingAdminRegistrationDto,
+  PendingCustomerRegistrationDto,
   ProductDto,
   ProductImageDto,
+  QuoteRequestDetailDto,
+  QuoteRequestSummaryDto,
+  QuotationDetailDto,
+  QuotationSummaryDto,
+  CurrencyDefinitionDto,
+  CreateCurrencyDefinitionRequestDto,
+  UpdateCurrencyDefinitionRequestDto,
+  CreateQuotationRequestDto,
+  UpdateQuotationRequestDto,
+  UpsertQuotationItemRequestDto,
+  UpdateQuotationPurchaseOrderRequestDto,
   UpdateCategoryRequestDto,
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
@@ -319,6 +331,151 @@ export class AdminApiService {
 
   public approvePendingAdminRegistration(userId: string): Observable<void> {
     return this.apiService.postNoContent(`admin/pending-admin-registrations/${userId}/approve`, {});
+  }
+
+  public getPendingCustomerRegistrations(): Observable<PendingCustomerRegistrationDto[]> {
+    return this.apiService.get<PendingCustomerRegistrationDto[]>('admin/customer-approvals/pending');
+  }
+
+  public approvePendingCustomerRegistration(userId: string, canViewPrices: boolean): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/approve?canViewPrices=${canViewPrices}`, {});
+  }
+
+  public declinePendingCustomerRegistration(userId: string): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/decline`, {});
+  }
+
+  public setCustomerPriceVisibility(userId: string, canViewPrices: boolean): Observable<void> {
+    return this.apiService.postNoContent(`admin/customer-approvals/${userId}/price-visibility?canViewPrices=${canViewPrices}`, {});
+  }
+
+  public getQuoteRequests(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly email?: string | null;
+      readonly fullName?: string | null;
+      readonly institution?: string | null;
+      readonly phoneNumber?: string | null;
+      readonly dateFromUtc?: string | null;
+      readonly dateToUtc?: string | null;
+    }
+  ): Observable<PagedResultDto<QuoteRequestSummaryDto>> {
+    return this.apiService.get<PagedResultDto<QuoteRequestSummaryDto>>('admin/quote-requests', {
+      pageNumber,
+      pageSize,
+      email: query?.email?.trim() ? query.email.trim() : undefined,
+      fullName: query?.fullName?.trim() ? query.fullName.trim() : undefined,
+      institution: query?.institution?.trim() ? query.institution.trim() : undefined,
+      phoneNumber: query?.phoneNumber?.trim() ? query.phoneNumber.trim() : undefined,
+      dateFromUtc: query?.dateFromUtc?.trim() ? query.dateFromUtc.trim() : undefined,
+      dateToUtc: query?.dateToUtc?.trim() ? query.dateToUtc.trim() : undefined
+    });
+  }
+
+  public getQuoteRequestById(quoteRequestId: string): Observable<QuoteRequestDetailDto> {
+    return this.apiService.get<QuoteRequestDetailDto>(`admin/quote-requests/${quoteRequestId}`);
+  }
+
+  public getQuotations(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly status?: number | null;
+      readonly hasPurchaseOrder?: boolean | null;
+      readonly search?: string | null;
+    }
+  ): Observable<PagedResultDto<QuotationSummaryDto>> {
+    return this.apiService.get<PagedResultDto<QuotationSummaryDto>>('admin/quotations', {
+      page: pageNumber,
+      pageSize,
+      status: query?.status,
+      hasPurchaseOrder: query?.hasPurchaseOrder,
+      search: query?.search?.trim() ? query.search.trim() : undefined
+    });
+  }
+
+  public getQuotationById(quotationId: string): Observable<QuotationDetailDto> {
+    return this.apiService.get<QuotationDetailDto>(`admin/quotations/${quotationId}`);
+  }
+
+  public createQuotation(request: CreateQuotationRequestDto): Observable<QuotationDetailDto> {
+    return this.apiService.post<CreateQuotationRequestDto, QuotationDetailDto>('admin/quotations', request);
+  }
+
+  public updateQuotation(quotationId: string, request: UpdateQuotationRequestDto): Observable<QuotationDetailDto> {
+    return this.apiService.put<UpdateQuotationRequestDto, QuotationDetailDto>(
+      `admin/quotations/${quotationId}`,
+      request
+    );
+  }
+
+  public addQuotationItem(quotationId: string, request: UpsertQuotationItemRequestDto): Observable<QuotationDetailDto> {
+    return this.apiService.post<UpsertQuotationItemRequestDto, QuotationDetailDto>(
+      `admin/quotations/${quotationId}/items`,
+      request
+    );
+  }
+
+  public updateQuotationItem(
+    quotationId: string,
+    itemId: string,
+    request: UpsertQuotationItemRequestDto
+  ): Observable<QuotationDetailDto> {
+    return this.apiService.put<UpsertQuotationItemRequestDto, QuotationDetailDto>(
+      `admin/quotations/${quotationId}/items/${itemId}`,
+      request
+    );
+  }
+
+  public removeQuotationItem(quotationId: string, itemId: string): Observable<QuotationDetailDto> {
+    return this.apiService.delete<QuotationDetailDto>(`admin/quotations/${quotationId}/items/${itemId}`);
+  }
+
+  public finalizeQuotation(quotationId: string): Observable<QuotationDetailDto> {
+    return this.apiService.post<Record<string, never>, QuotationDetailDto>(
+      `admin/quotations/${quotationId}/finalize`,
+      {}
+    );
+  }
+
+  public updateQuotationPurchaseOrder(
+    quotationId: string,
+    request: UpdateQuotationPurchaseOrderRequestDto
+  ): Observable<QuotationDetailDto> {
+    return this.apiService.patch<UpdateQuotationPurchaseOrderRequestDto, QuotationDetailDto>(
+      `admin/quotations/${quotationId}/purchase-order`,
+      request
+    );
+  }
+
+  public exportQuotationPdf(quotationId: string): Observable<Blob> {
+    return this.apiService.getBlob(`admin/quotations/${quotationId}/pdf`);
+  }
+
+  public getCurrencies(): Observable<CurrencyDefinitionDto[]> {
+    return this.apiService.get<CurrencyDefinitionDto[]>('admin/currencies');
+  }
+
+  public createCurrency(request: CreateCurrencyDefinitionRequestDto): Observable<CurrencyDefinitionDto> {
+    return this.apiService.post<CreateCurrencyDefinitionRequestDto, CurrencyDefinitionDto>(
+      'admin/currencies',
+      request
+    );
+  }
+
+  public updateCurrency(
+    currencyId: string,
+    request: UpdateCurrencyDefinitionRequestDto
+  ): Observable<CurrencyDefinitionDto> {
+    return this.apiService.put<UpdateCurrencyDefinitionRequestDto, CurrencyDefinitionDto>(
+      `admin/currencies/${currencyId}`,
+      request
+    );
+  }
+
+  public deleteCurrency(currencyId: string): Observable<void> {
+    return this.apiService.delete<void>(`admin/currencies/${currencyId}`);
   }
 
   public getContactMessages(

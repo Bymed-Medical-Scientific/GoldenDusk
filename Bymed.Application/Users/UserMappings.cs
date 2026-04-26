@@ -20,6 +20,8 @@ internal static class UserMappings
             Id = user.Id,
             Email = user.Email,
             Name = user.Name,
+            IsActive = user.IsActive,
+            CanViewPrices = user.CanViewPrices,
             Addresses = addresses
         };
     }

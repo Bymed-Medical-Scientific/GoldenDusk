@@ -1,0 +1,75 @@
+<section class="quote-page">
+  <header class="page-header">
+    <div>
+      <h2>Quote requests</h2>
+      <p>Review customer RFQ submissions from the storefront.</p>
+    </div>
+    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+  </header>
+
+  <div class="filters-box">
+    <input type="text" [(ngModel)]="fullNameFilter" placeholder="Filter by customer name" />
+    <input type="text" [(ngModel)]="institutionFilter" placeholder="Filter by institution" />
+    <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
+    <input type="text" [(ngModel)]="phoneFilter" placeholder="Filter by phone number" />
+    <label>
+      <span>From</span>
+      <input type="date" [(ngModel)]="dateFromFilter" />
+    </label>
+    <label>
+      <span>To</span>
+      <input type="date" [(ngModel)]="dateToFilter" />
+    </label>
+    <div class="filters-actions">
+      <button pButton type="button" label="Apply" (click)="applyFilters()"></button>
+      <button pButton type="button" class="p-button-outlined" label="Clear" (click)="clearFilters()"></button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-box">
+      <p-progressSpinner ariaLabel="Loading quote requests" strokeWidth="4"></p-progressSpinner>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-box error">{{ errorMessage() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="state-box">No quote requests submitted yet.</div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Submitted</th>
+            <th>Name</th>
+            <th>Institution</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Items</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.submittedAtUtc | date: 'EEEE d MMMM y, h:mm a' }}</td>
+              <td>{{ row.fullName }}</td>
+              <td>{{ row.institution }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.phoneNumber }}</td>
+              <td>{{ row.itemCount }}</td>
+              <td class="actions">
+                <button pButton type="button" class="p-button-sm p-button-outlined" label="View" (click)="openDetails(row)"></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button pButton type="button" class="p-button-text" icon="pi pi-chevron-left" label="Previous" [disabled]="!hasPrevious()" (click)="previousPage()"></button>
+      <span>Page {{ pageNumber() }} of {{ totalPages() }}</span>
+      <button pButton type="button" class="p-button-text" iconPos="right" icon="pi pi-chevron-right" label="Next" [disabled]="!hasNext()" (click)="nextPage()"></button>
+    </div>
+  }
+</section>
