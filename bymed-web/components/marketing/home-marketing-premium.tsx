@@ -249,12 +249,12 @@ export function HomeMarketingPremium({
               >
                 Contact sales team
               </Link>
-              <Link
+              {/* <Link
                 href="/products"
                 className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-card px-8 text-sm font-semibold text-card-foreground ring-1 ring-border transition hover:bg-muted"
               >
                 Download catalog
-              </Link>
+              </Link> */}
             </div>
           </MotionFadeUp>
         </div>
