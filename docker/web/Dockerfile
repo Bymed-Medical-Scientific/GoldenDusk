@@ -44,6 +44,12 @@ COPY --from=builder /app/public                            ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static    ./.next/static
 
+# Pre-create the image optimizer cache dir owned by nextjs so a Docker named
+# volume mounted at this path inherits 1001:1001 ownership on first start.
+# Without this, the volume would be root-owned and Sharp writes would fail.
+RUN mkdir -p /app/.next/cache/images \
+    && chown -R nextjs:nodejs /app/.next/cache
+
 USER nextjs
 
 EXPOSE 3000

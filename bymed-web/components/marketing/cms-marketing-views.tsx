@@ -71,6 +71,7 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
               alt=""
               fill
               priority
+              fetchPriority="high"
               className="object-cover object-center"
               sizes="100vw"
               placeholder="blur"
@@ -390,6 +391,7 @@ export function ServicesMarketingView({
               alt=""
               fill
               priority
+              fetchPriority="high"
               className="object-cover object-center"
               sizes="100vw"
               placeholder="blur"

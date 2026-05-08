@@ -1,6 +1,7 @@
 "use client";
 
 import type { HomeMarketingContent } from "@/lib/content/marketing-pages";
+import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 import Image from "next/image";
 
@@ -90,18 +91,28 @@ export function HomeWhatWeOfferSection({ data }: { data: HomeMarketingContent })
 
           <MotionFadeUp>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {categories.map((category) => (
+              {categories.map((category, index) => (
                 <article
                   key={category.title}
                   className="group relative overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm"
                 >
-                  <div className="relative aspect-[16/9]">
+                  <div className="relative aspect-[16/9] bg-muted">
                     <Image
                       src={category.imageSrc}
                       alt={category.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      // Shimmer placeholder so cards never appear blank while
+                      // the optimized variant is fetching — same UX pattern the
+                      // about/services hero already use.
+                      placeholder="blur"
+                      blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
+                      // Top row (3 cards on desktop, 2 on tablet, 1 on mobile)
+                      // is what users see first when the section scrolls into
+                      // view. Eager-load those so they're decoded by the time
+                      // the section animates in; the rest stay lazy.
+                      loading={index < 3 ? "eager" : "lazy"}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
                     <h3 className="absolute bottom-3 left-3 right-3 text-lg font-semibold uppercase tracking-wide text-white">

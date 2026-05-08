@@ -77,7 +77,13 @@ export function HomeHeroCarousel({
                       src={slide.imageSrc}
                       alt=""
                       fill
-                      priority={i === 0}
+                      // Preload the first two slides so the carousel swap from
+                      // slide 0 → slide 1 doesn't show a black panel while the
+                      // next image decodes. Subsequent slides stay lazy.
+                      priority={i <= 1}
+                      // Keep "high" exclusive to the LCP slide; slide 1 is
+                      // preloaded but should not contend with it for bandwidth.
+                      fetchPriority={i === 0 ? "high" : "auto"}
                       className="object-cover object-center"
                       sizes="100vw"
                       quality={

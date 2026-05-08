@@ -120,6 +120,10 @@ services:
       NEXT_PUBLIC_APP_URL: ${WEB_PUBLIC_URL:-http://localhost:3000}
       # Server-side (SSR) calls go directly over the Docker bridge network.
       BYMED_API_INTERNAL_URL: http://api:8080
+    volumes:
+      # Persist Next's on-disk image optimizer cache across container rebuilds.
+      # Without this, every redeploy re-runs Sharp for the hero on first hit.
+      - next_image_cache:/app/.next/cache/images
     depends_on:
       - api
     restart: unless-stopped
@@ -147,3 +151,4 @@ volumes:
   redis_data:
   uploads_data:
   logs_data:
+  next_image_cache:
