@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  // Keep content visible by default in case mobile IntersectionObserver fails.
+  // We still animate vertical movement when in-view triggers.
+  hidden: { opacity: 1, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
@@ -29,7 +31,7 @@ export function MotionSection({
     <motion.section
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-72px", amount: 0.2 }}
+      viewport={{ once: true, margin: "0px 0px -72px 0px", amount: 0.1 }}
       variants={stagger}
       className={cn(className)}
       {...props}
