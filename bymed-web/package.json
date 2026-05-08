@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "fix-logo-matte": "python scripts/remove-logo-matte.py",
+    "optimize:images": "node scripts/optimize-public-images.mjs",
     "test": "jest",
     "test:watch": "jest --watch"
   },

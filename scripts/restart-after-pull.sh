@@ -69,6 +69,29 @@ echo "==> Env file: $ENV_FILE"
 
 cd "$ROOT_DIR"
 
+echo "==> Optimizing bymed-web/public/images to WebP (idempotent)..."
+OPTIMIZE_SCRIPT_REL="bymed-web/scripts/optimize-public-images.mjs"
+if [[ -f "$ROOT_DIR/$OPTIMIZE_SCRIPT_REL" ]]; then
+  # Run sharp in a one-shot Node container so the deploy host doesn't need
+  # Node installed. The script skips assets whose .webp peer is already up to
+  # date, so re-runs across deploys are essentially no-ops. We chown the output
+  # back to the host user to avoid root-owned files in the bind mount.
+  HOST_UID="$(id -u)"
+  HOST_GID="$(id -g)"
+  docker run --rm \
+    -v "$ROOT_DIR/bymed-web:/work" \
+    -w /work \
+    -e HOST_UID="$HOST_UID" \
+    -e HOST_GID="$HOST_GID" \
+    node:22-alpine sh -ec '
+      npm install --silent --no-save --no-audit --no-fund sharp@0.33
+      node scripts/optimize-public-images.mjs
+      chown -R "$HOST_UID:$HOST_GID" public/images/
+    '
+else
+  echo "  - $OPTIMIZE_SCRIPT_REL not present — skipping image optimization."
+fi
+
 echo "==> Building and restarting all services..."
 docker compose --env-file "$ENV_FILE" up -d --build --remove-orphans
 

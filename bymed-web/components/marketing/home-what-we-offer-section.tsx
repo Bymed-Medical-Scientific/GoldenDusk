@@ -26,24 +26,24 @@ function normalize(value: string): string {
 
 function imageForCategory(title: string): string {
   const key = normalize(title);
-  if (key.includes("technical teaching")) return "/images/technical-teaching.jpg";
-  if (key.includes("medical teaching")) return "/images/medical-teaching.jpg";
-  if (key.includes("scales")) return "/images/industrial-lab-scales.png";
+  if (key.includes("technical teaching")) return "/images/technical-teaching.webp";
+  if (key.includes("medical teaching")) return "/images/medical-teaching.webp";
+  if (key.includes("scales")) return "/images/industrial-lab-scales.webp";
   if (key.includes("imaging")) return "/images/imaging.webp";
   if (key.includes("point of care"))
     return "/images/CH155f_PP_001-852f2e8b.webp";
-  if (key.includes("icu") || key.includes("scbu")) return "/images/icu-scbu.png";
+  if (key.includes("icu") || key.includes("scbu")) return "/images/icu-scbu.webp";
   if (key.includes("theatre")) return "/images/tekno-operating.webp";
-  if (key.includes("hospital furniture")) return "/images/furniture.jpg";
-  if (key.includes("hospital")) return "/images/main-picture.jpg";
+  if (key.includes("hospital furniture")) return "/images/furniture.webp";
+  if (key.includes("hospital")) return "/images/main-picture.webp";
   if (key.includes("orthopedic") || key.includes("implant"))
-    return "/images/orthopaedic-implants.jpg";
+    return "/images/orthopaedic-implants.webp";
   if (key.includes("autoclave") || key.includes("sterilizer"))
     return "/images/autoclave.webp";
-  if (key.includes("instruments")) return "/images/instrument.jpg";
+  if (key.includes("instruments")) return "/images/instrument.webp";
   if (key.includes("consumables"))
-    return "/images/consumables.png";
-  return "/images/main-picture.jpg";
+    return "/images/consumables.webp";
+  return "/images/main-picture.webp";
 }
 
 export function HomeWhatWeOfferSection({ data }: { data: HomeMarketingContent }) {

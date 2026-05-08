@@ -679,10 +679,10 @@ export function parseHomeMarketingContent(
 }
 
 const DEFAULT_HERO_BACKGROUNDS = [
-  "/images/main-picture.jpg",
-  "/images/technical-teaching.jpg",
-  "/images/medical-teaching.jpg",
-  "/images/industrial-lab-scales.png",
+  "/images/main-picture.webp",
+  "/images/technical-teaching.webp",
+  "/images/medical-teaching.webp",
+  "/images/industrial-lab-scales.webp",
   "/images/tekno-operating.webp",
 ] as const;
 
