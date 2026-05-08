@@ -162,19 +162,13 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
     "From teaching labs and theatres to hospitals and point-of-care settings—we supply equipment, instruments, and consumables aligned to how you work.",
   offerings: [
     {
-      title: "Technical teaching equipment",
+      title: "Technical Teaching Equipment",
       blurb:
         "Industrial and classroom training systems for engineering and applied sciences programmes.",
       partners: [{ label: "Edibon", href: "https://www.edibon.com/en/" }],
     },
     {
-      title: "Theatre",
-      blurb:
-        "Operating theatre integration: lights, tables, surgical support, and related technologies.",
-      partners: [{ label: "Tekno", href: "https://www.tekno-medical.com/en/" }],
-    },
-    {
-      title: "Medical teaching equipment",
+      title: "Medical Teaching Equipment",
       blurb:
         "Anatomical models, simulation, and education tools for medical and health sciences training.",
       partners: [
@@ -182,31 +176,52 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
       ],
     },
     {
-      title: "Industrial and lab scales",
+      title: "Industrial and Laboratory Scales",
       blurb:
         "Robust industrial scales and laboratory balances for quality control, production, mining, agriculture, and education.",
       partners: [{ label: "Adam", href: "https://www.adamequipment.com/" }],
     },
     {
-      title: "Hospital equipment",
+      title: "Imaging",
+      blurb:
+        "Diagnostic imaging solutions including X-ray, ultrasound, and related accessories for reliable clinical workflows.",
+    },
+    {
+      title: "Point of Care",
+      blurb:
+        "Rapid diagnostics and bedside devices for clinics, wards, and outreach programmes.",
+    },
+    {
+      title: "ICU/SCBU",
+      blurb:
+        "Critical care and neonatal support equipment for intensive care units and special care baby units.",
+    },
+    {
+      title: "Theatre Equipment",
+      blurb:
+        "Operating theatre integration: lights, tables, surgical support, and related technologies.",
+      partners: [{ label: "Tekno", href: "https://www.tekno-medical.com/en/" }],
+    },
+    {
+      title: "Hospital Equipment",
       blurb:
         "Full-facility coverage: ICU and SCBU, patient monitoring, diagnostic imaging, theatre support, ward equipment, furniture, and orthopaedic implants.",
       partners: [{ label: "Narang", href: "https://www.narang.com/" }],
     },
     {
-      title: "Point of care",
+      title: "Orthopedic Implants",
       blurb:
-        "Rapid diagnostics and bedside devices for clinics, wards, and outreach programmes.",
+        "Comprehensive implant solutions for trauma, reconstructive, and orthopaedic surgical procedures.",
+    },
+    {
+      title: "Autoclaves & Sterilizers",
+      blurb:
+        "Reliable sterilization systems for CSSD, laboratories, and clinical environments to maintain infection-control standards.",
     },
     {
       title: "Instruments",
       blurb:
         "Precision surgical and diagnostic instruments for daily clinical and laboratory use.",
-    },
-    {
-      title: "Laboratory equipment for schools",
-      blurb:
-        "Physics, chemistry, and biology teaching labs—safe, curriculum-aligned apparatus for secondary schools and colleges.",
     },
     {
       title: "Consumables",
@@ -664,10 +679,10 @@ export function parseHomeMarketingContent(
 }
 
 const DEFAULT_HERO_BACKGROUNDS = [
-  "/images/main-picture.jpg",
-  "/images/technical-teaching.jpg",
-  "/images/medical-teaching.jpg",
-  "/images/industrial-lab-scales.png",
+  "/images/main-picture.webp",
+  "/images/technical-teaching.webp",
+  "/images/medical-teaching.webp",
+  "/images/industrial-lab-scales.webp",
   "/images/tekno-operating.webp",
 ] as const;
 

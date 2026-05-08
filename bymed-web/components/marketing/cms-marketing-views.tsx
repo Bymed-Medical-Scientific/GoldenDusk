@@ -67,10 +67,11 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
         >
           <div className="relative min-h-[100svh] w-full">
             <Image
-              src="/images/main-picture.jpg"
+              src="/images/main-picture.webp"
               alt=""
               fill
               priority
+              fetchPriority="high"
               className="object-cover object-center"
               sizes="100vw"
               placeholder="blur"
@@ -123,7 +124,7 @@ export function AboutMarketingView({ data }: { data: AboutMarketingContent }) {
           <div className="grid gap-8 rounded-[1.75rem] bg-muted/45 p-4 ring-1 ring-border/70 md:grid-cols-[1.05fr_1fr] md:p-8">
             <div className="relative min-h-[18rem] overflow-hidden rounded-2xl bg-muted sm:min-h-[22rem]">
               <Image
-                src="/images/medical-teaching.jpg"
+                src="/images/medical-teaching.webp"
                 alt="ByMed team supporting healthcare and research operations"
                 fill
                 sizes="(max-width: 767px) 100vw, 50vw"
@@ -390,6 +391,7 @@ export function ServicesMarketingView({
               alt=""
               fill
               priority
+              fetchPriority="high"
               className="object-cover object-center"
               sizes="100vw"
               placeholder="blur"
@@ -442,7 +444,7 @@ export function ServicesMarketingView({
           <div className="grid gap-8 rounded-[1.75rem] bg-muted/45 p-4 ring-1 ring-border/70 md:grid-cols-[1.05fr_1fr] md:p-8">
             <div className="relative min-h-[18rem] overflow-hidden rounded-2xl bg-muted sm:min-h-[22rem]">
               <Image
-                src="/images/technical-teaching.jpg"
+                src="/images/technical-teaching.webp"
                 alt="ByMed field engineers and trainers supporting equipment operations"
                 fill
                 sizes="(max-width: 767px) 100vw, 50vw"
