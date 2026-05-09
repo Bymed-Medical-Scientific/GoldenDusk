@@ -10,10 +10,8 @@ import {
 } from "@/lib/catalog/catalog-params";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
 import { listProducts } from "@/lib/api/products";
-import { listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/http";
 import { absoluteUrl } from "@/lib/site-url";
-import type { CategoryDto } from "@/types/category";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -47,21 +45,17 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const query = parseCatalogQuery(searchParams);
 
   let productResult;
-  let categories: CategoryDto[] = [];
   try {
-    [productResult, categories] = await Promise.all([
-      listProducts({
-        pageNumber: query.pageNumber,
-        pageSize: query.pageSize,
-        search: query.q,
-        categoryId: query.categoryId,
-        brand: query.brand,
-        clientType: query.clientType,
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-      }),
-      listCategories(),
-    ]);
+    productResult = await listProducts({
+      pageNumber: query.pageNumber,
+      pageSize: query.pageSize,
+      search: query.q,
+      categoryId: query.categoryId,
+      brand: query.brand,
+      clientType: query.clientType,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+    });
   } catch (e) {
     const message =
       e instanceof ApiError
@@ -172,7 +166,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       </header>
       <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
         <CategoryFilterSidebar
-          categories={categories}
           activeCategoryId={query.categoryId}
           q={query.q}
           brand={query.brand}
