@@ -54,9 +54,6 @@ export function ProductDetail({
   galleryImages,
   relatedProducts,
 }: ProductDetailProps) {
-  const inStock = product.isAvailable && product.inventoryCount > 0;
-  const lowStock =
-    inStock && product.inventoryCount <= product.lowStockThreshold;
   const specEntries = product.specifications
     ? Object.entries(product.specifications).filter(
         ([k, v]) => k.trim() && String(v).trim(),
@@ -112,22 +109,6 @@ export function ProductDetail({
               Login with an approved account to view pricing.
             </p>
           )}
-
-          <div className="mt-3 text-sm">
-            {inStock ? (
-              <p>
-                <span className="font-medium text-foreground">In stock</span>
-                {lowStock ? (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    — only {product.inventoryCount} left
-                  </span>
-                ) : null}
-              </p>
-            ) : (
-              <p className="font-medium text-foreground">Out of stock</p>
-            )}
-          </div>
 
           <div className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
             <AddToCartButton

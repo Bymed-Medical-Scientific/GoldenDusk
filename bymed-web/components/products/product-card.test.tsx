@@ -92,21 +92,6 @@ describe("ProductCard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows out of stock when isAvailable is false", () => {
-    renderCard({ ...base, isAvailable: false, inventoryCount: 2 });
-    expect(screen.getByText("Out of stock")).toBeInTheDocument();
-  });
-
-  it("shows out of stock when inventoryCount is zero", () => {
-    renderCard({ ...base, isAvailable: true, inventoryCount: 0 });
-    expect(screen.getByText("Out of stock")).toBeInTheDocument();
-  });
-
-  it("does not show out of stock when in stock", () => {
-    renderCard(base);
-    expect(screen.queryByText("Out of stock")).not.toBeInTheDocument();
-  });
-
   it("formats price using the product catalog currency", () => {
     const { rerender } = renderCard({ ...base, price: 88, currency: "usd" });
     expect(screen.getByTestId("product-card-price")).toHaveTextContent(
