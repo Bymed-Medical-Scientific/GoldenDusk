@@ -22,7 +22,6 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const inStock = product.isAvailable && product.inventoryCount > 0;
   const href = `/products/${product.id}`;
 
   return (
@@ -51,15 +50,6 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             No image
           </div>
-        )}
-        {!inStock ? (
-          <span className="absolute right-2 top-2 rounded-full bg-foreground/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-background">
-            Out of stock
-          </span>
-        ) : (
-          <span className="absolute right-2 top-2 rounded-full bg-emerald-700/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-            In stock
-          </span>
         )}
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-4" id={`${product.id}-meta`}>

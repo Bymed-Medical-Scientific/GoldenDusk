@@ -1,14 +1,12 @@
 "use client";
 
 import { GUEST_CART_STORAGE_KEY, useCart, type CartViewItem } from "@/components/cart/cart-context";
-import { FormattedPrice } from "@/components/price/formatted-price";
 import { clearCart } from "@/lib/api/cart";
 import { submitQuoteRequest } from "@/lib/api/quotes";
 import { ApiError } from "@/lib/api/http";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-const FALLBACK_CURRENCY = "USD";
 const STEPS = ["Contact", "Review"] as const;
 const TOAST_DISMISS_MS = 5000;
 
@@ -36,7 +34,7 @@ function inputClass(hasError: boolean): string {
 }
 
 export function CheckoutPageContent() {
-  const { items, totalItems, total, isLoading: cartLoading, error: cartError, refresh } = useCart();
+  const { items, totalItems, isLoading: cartLoading, error: cartError, refresh } = useCart();
   const [step, setStep] = useState(0);
   const [fullName, setFullName] = useState("");
   const [institution, setInstitution] = useState("");
@@ -48,11 +46,6 @@ export function CheckoutPageContent() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
-
-  const currency = useMemo(
-    () => items.find((i) => i.product?.currency)?.product?.currency ?? FALLBACK_CURRENCY,
-    [items],
-  );
 
   const canCheckout = items.length > 0 && totalItems > 0;
 
@@ -400,23 +393,9 @@ export function CheckoutPageContent() {
           <h2 className="text-lg font-semibold text-foreground">Quote summary</h2>
           <ul className="mt-4 max-h-64 space-y-3 overflow-y-auto text-sm">
             {items.map((line) => (
-              <CheckoutLine key={line.productId} line={line} currency={currency} />
+              <CheckoutLine key={line.productId} line={line} />
             ))}
           </ul>
-          <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
-            <div className="flex justify-between text-muted-foreground">
-              <dt>Subtotal</dt>
-              <dd className="tabular-nums text-foreground">
-                <FormattedPrice amount={total} currency={currency} />
-              </dd>
-            </div>
-            <div className="flex justify-between border-t border-border pt-3 text-base font-semibold text-foreground">
-              <dt>Estimated total</dt>
-              <dd className="tabular-nums">
-                <FormattedPrice amount={total} currency={currency} />
-              </dd>
-            </div>
-          </dl>
           <Link
             href="/cart"
             className="mt-4 inline-block text-sm font-medium text-brand hover:underline"
@@ -429,15 +408,12 @@ export function CheckoutPageContent() {
   );
 }
 
-function CheckoutLine({ line, currency }: { line: CartViewItem; currency: string }) {
+function CheckoutLine({ line }: { line: CartViewItem }) {
   const title = line.product?.name ?? "Product";
   return (
     <li className="flex justify-between gap-2">
       <span className="text-foreground">
         {title} × {line.quantity}
-      </span>
-      <span className="shrink-0 tabular-nums text-muted-foreground">
-        <FormattedPrice amount={line.quantity * line.unitPrice} currency={currency} />
       </span>
     </li>
   );

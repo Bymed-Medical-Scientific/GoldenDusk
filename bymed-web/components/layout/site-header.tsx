@@ -12,8 +12,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { listCategories } from "@/lib/api/categories";
+import { ApiError } from "@/lib/api/http";
 import { primaryNavLinks } from "@/lib/site-nav";
 import { cn } from "@/lib/utils";
+import type { CategoryDto } from "@/types/category";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -166,6 +169,79 @@ function PrimaryNavLink({
   );
 }
 
+function ProductsNavDropdown({
+  overlay,
+  categories,
+}: {
+  overlay: boolean;
+  categories: CategoryDto[];
+}) {
+  const pathname = usePathname();
+  const active = pathname.startsWith("/products");
+  const sortedCategories = [...categories].sort(
+    (a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name),
+  );
+
+  return (
+    <div className="group relative">
+      <Link
+        href="/products"
+        className={cn(
+          "group/link relative inline-flex items-center gap-1 whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors",
+          overlay
+            ? active
+              ? "text-white"
+              : "text-white/85 hover:text-white"
+            : active
+              ? "text-primary"
+              : "text-foreground/80 hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground",
+        )}
+        aria-current={active ? "page" : undefined}
+      >
+        Products
+        <svg
+          className="mt-0.5 h-3.5 w-3.5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span
+          className={cn(
+            "absolute bottom-0 left-3 right-3 h-0.5 rounded-full transition-transform duration-200 ease-out",
+            overlay ? "bg-white" : "bg-brand",
+            active ? "scale-x-100" : "scale-x-0 group-hover/link:scale-x-100",
+          )}
+          aria-hidden
+        />
+      </Link>
+
+      <div className="pointer-events-none invisible absolute left-0 top-full z-[65] mt-1 w-72 rounded-xl border border-border bg-popover p-2 opacity-0 shadow-premium transition-all duration-150 group-hover:visible group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+        {sortedCategories.length > 0 ? (
+          sortedCategories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/products/category/${encodeURIComponent(category.slug)}`}
+              className="block rounded-lg px-3 py-2 text-sm text-foreground/90 transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {category.name}
+            </Link>
+          ))
+        ) : (
+          <p className="px-3 py-2 text-xs text-muted-foreground">
+            Categories will appear here.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const iconBtnOverlay =
   "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50";
 
@@ -180,6 +256,7 @@ export function SiteHeader() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const siteSearchInputId = useId();
@@ -230,6 +307,26 @@ export function SiteHeader() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [searchOpen]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadCategories() {
+      try {
+        const data = await listCategories();
+        if (!isCancelled) {
+          setCategories(data);
+        }
+      } catch (error) {
+        if (error instanceof ApiError || error instanceof Error) {
+          // Header navigation should stay usable even if categories fail.
+        }
+      }
+    }
+    void loadCategories();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const isHome = pathname === "/";
   const isAbout = pathname === "/about";
@@ -283,20 +380,65 @@ export function SiteHeader() {
               const active =
                 pathname === href ||
                 (href !== "/" && pathname.startsWith(href));
+
+              if (href !== "/products") {
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-brand/12 text-brand"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {label}
+                  </Link>
+                );
+              }
+
+              const sortedCategories = [...categories].sort(
+                (a, b) =>
+                  a.displayOrder - b.displayOrder || a.name.localeCompare(b.name),
+              );
+
               return (
-                <Link
+                <details
                   key={href}
-                  href={href}
-                  className={cn(
-                    "rounded-lg px-3 py-3 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-brand/12 text-brand"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                  aria-current={active ? "page" : undefined}
+                  className="rounded-lg border border-border/60 bg-background/80"
+                  open={active}
                 >
-                  {label}
-                </Link>
+                  <summary className="cursor-pointer list-none rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted [&::-webkit-details-marker]:hidden">
+                    <span className="inline-flex items-center gap-1.5">
+                      Products
+                      <svg
+                        className="h-3.5 w-3.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="space-y-1 px-2 pb-2">
+                    {sortedCategories.map((category) => (
+                      <Link
+                        key={category.id}
+                        href={`/products/category/${encodeURIComponent(category.slug)}`}
+                        className="block rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
               );
             })}
             <Link
@@ -373,14 +515,22 @@ export function SiteHeader() {
           aria-label="Primary"
         >
           <div className="flex items-center gap-0.5 xl:gap-1">
-            {primaryNavLinks.map(({ href, label }) => (
-              <PrimaryNavLink
-                key={href}
-                href={href}
-                label={label}
-                overlay={overlayNav}
-              />
-            ))}
+            {primaryNavLinks.map(({ href, label }) =>
+              href === "/products" ? (
+                <ProductsNavDropdown
+                  key={href}
+                  overlay={overlayNav}
+                  categories={categories}
+                />
+              ) : (
+                <PrimaryNavLink
+                  key={href}
+                  href={href}
+                  label={label}
+                  overlay={overlayNav}
+                />
+              ),
+            )}
           </div>
         </nav>
 
