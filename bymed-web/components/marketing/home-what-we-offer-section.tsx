@@ -4,6 +4,7 @@ import type { HomeMarketingContent } from "@/lib/content/marketing-pages";
 import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 import Image from "next/image";
+import Link from "next/link";
 
 const OFFER_CATEGORY_ORDER = [
   "Technical Teaching Equipment",
@@ -22,6 +23,11 @@ const OFFER_CATEGORY_ORDER = [
 
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function categoryHref(title: string): string {
+  const slug = normalize(title).replace(/\s+/g, "-");
+  return `/products/category/${encodeURIComponent(slug)}`;
 }
 
 function imageForCategory(title: string): string {
@@ -92,8 +98,9 @@ export function HomeWhatWeOfferSection({ data }: { data: HomeMarketingContent })
           <MotionFadeUp>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {categories.map((category, index) => (
-                <article
+                <Link
                   key={category.title}
+                  href={categoryHref(category.title)}
                   className="group relative overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm"
                 >
                   <div className="relative aspect-[16/9] bg-muted">
@@ -119,7 +126,7 @@ export function HomeWhatWeOfferSection({ data }: { data: HomeMarketingContent })
                       {category.title}
                     </h3>
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
           </MotionFadeUp>
