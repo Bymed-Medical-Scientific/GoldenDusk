@@ -11,6 +11,7 @@ type CartItemProps = {
   quantity: number;
   lineTotal: number;
   isAvailable: boolean;
+  showPrices?: boolean;
   onDecrease: () => void;
   onIncrease: () => void;
   onRemove: () => void;
@@ -25,6 +26,7 @@ export function CartItem({
   quantity,
   lineTotal,
   isAvailable,
+  showPrices = true,
   onDecrease,
   onIncrease,
   onRemove,
@@ -37,9 +39,11 @@ export function CartItem({
           <Link href={`/products/${productId}`} className="text-base font-semibold text-foreground hover:underline">
             {productName}
           </Link>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Unit price: <FormattedPrice amount={unitPrice} currency={currency} />
-          </p>
+          {showPrices ? (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Unit price: <FormattedPrice amount={unitPrice} currency={currency} />
+            </p>
+          ) : null}
           {!isAvailable ? (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">Currently unavailable</p>
           ) : null}
@@ -78,9 +82,11 @@ export function CartItem({
             +
           </button>
         </div>
-        <p className="text-base font-semibold tabular-nums text-foreground">
-          <FormattedPrice amount={lineTotal} currency={currency} />
-        </p>
+        {showPrices ? (
+          <p className="text-base font-semibold tabular-nums text-foreground">
+            <FormattedPrice amount={lineTotal} currency={currency} />
+          </p>
+        ) : null}
       </div>
     </article>
   );
