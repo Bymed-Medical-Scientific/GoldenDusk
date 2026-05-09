@@ -1,7 +1,6 @@
 import { CatalogPagination } from "@/components/products/catalog-pagination";
 import { CategoryFilterSidebar } from "@/components/products/category-filter-sidebar";
 import { ProductGrid } from "@/components/products/product-grid";
-import { CurrencySelector } from "@/components/currency/currency-selector";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 import {
@@ -12,9 +11,11 @@ import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url"
 import { listProducts } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/http";
 import { absoluteUrl } from "@/lib/site-url";
+import { BYMED_ACCESS_COOKIE, BYMED_REFRESH_COOKIE } from "@/lib/auth/cookie-names";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 type ProductsPageProps = {
   searchParams: Record<string, string | string[] | undefined>;
@@ -42,6 +43,10 @@ export async function generateMetadata({
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const cookieStore = cookies();
+  const isAuthenticated =
+    Boolean(cookieStore.get(BYMED_ACCESS_COOKIE)?.value) ||
+    Boolean(cookieStore.get(BYMED_REFRESH_COOKIE)?.value);
   const query = parseCatalogQuery(searchParams);
 
   let productResult;
@@ -156,23 +161,24 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             >
               Clear search
             </Link>
-            <CurrencySelector
-              variant="drawer"
-              className="w-40 shrink-0"
-              selectId="products-currency"
-            />
           </div>
         </div>
       </header>
-      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-        <CategoryFilterSidebar
-          activeCategoryId={query.categoryId}
-          q={query.q}
-          brand={query.brand}
-          clientType={query.clientType}
-          minPrice={query.minPrice}
-          maxPrice={query.maxPrice}
-        />
+      <div
+        className={
+          isAuthenticated
+            ? "grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start"
+            : "min-w-0"
+        }
+      >
+        {isAuthenticated ? (
+          <CategoryFilterSidebar
+            activeCategoryId={query.categoryId}
+            q={query.q}
+            minPrice={query.minPrice}
+            maxPrice={query.maxPrice}
+          />
+        ) : null}
         <div className="min-w-0">
           {productResult.items.length === 0 ? (
             <EmptyState
