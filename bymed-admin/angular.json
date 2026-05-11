@@ -62,6 +62,11 @@
               "outputHashing": "all"
             },
             "docker": {
+              "optimization": {
+                "fonts": {
+                  "inline": false
+                }
+              },
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

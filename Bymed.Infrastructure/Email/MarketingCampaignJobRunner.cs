@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Bymed.Domain.Entities;
 using Bymed.Infrastructure.Files;
 using Bymed.Infrastructure.Persistence;
@@ -65,7 +66,7 @@ public sealed class MarketingCampaignJobRunner
 
         if (pendingBefore == 0)
         {
-            await MarkCampaignCompletedAsync(campaignId).ConfigureAwait(false);
+            await FinalizeCampaignAfterRecipientsProcessedAsync(campaignId).ConfigureAwait(false);
             return;
         }
 
@@ -80,9 +81,16 @@ public sealed class MarketingCampaignJobRunner
 
         if (batch.Count == 0)
         {
-            await MarkCampaignCompletedAsync(campaignId).ConfigureAwait(false);
+            await FinalizeCampaignAfterRecipientsProcessedAsync(campaignId).ConfigureAwait(false);
             return;
         }
+
+        _logger.LogInformation(
+            "Marketing campaign {CampaignId}: processing send batch of {BatchRecipientCount} message(s) ({PendingBefore} were pending, batch size cap {BatchSize}).",
+            campaignId,
+            batch.Count,
+            pendingBefore,
+            batchSize);
 
         var load = await LoadAttachmentPayloadsAsync(campaign.Attachments).ConfigureAwait(false);
         if (!load.Success)
@@ -122,7 +130,8 @@ public sealed class MarketingCampaignJobRunner
                     campaign.Subject,
                     html,
                     load.Attachments!,
-                    CancellationToken.None).ConfigureAwait(false);
+                    CancellationToken.None,
+                    marketingCampaignId: campaignId).ConfigureAwait(false);
 
                 var sentAt = DateTime.UtcNow;
                 await _db.MarketingCampaignRecipients
@@ -135,7 +144,7 @@ public sealed class MarketingCampaignJobRunner
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                var msg = ex.Message.Length > 1900 ? ex.Message[..1900] : ex.Message;
+                var msg = BuildRecipientFailureMessage(ex, MarketingCampaignRecipient.ErrorMessageMaxLength);
                 _logger.LogError(ex, "Failed to send marketing email to {Email} for campaign {CampaignId}.", recipient.Email, campaignId);
                 await _db.MarketingCampaignRecipients
                     .Where(r => r.Id == recipient.Id)
@@ -153,12 +162,16 @@ public sealed class MarketingCampaignJobRunner
 
         if (pendingAfter > 0)
         {
+            _logger.LogInformation(
+                "Marketing campaign {CampaignId}: {PendingAfter} recipient(s) still pending; enqueueing next batch.",
+                campaignId,
+                pendingAfter);
             _backgroundJobClient.Enqueue<MarketingCampaignJobRunner>(runner =>
                 runner.ProcessNextBatchAsync(campaignId));
         }
         else
         {
-            await MarkCampaignCompletedAsync(campaignId).ConfigureAwait(false);
+            await FinalizeCampaignAfterRecipientsProcessedAsync(campaignId).ConfigureAwait(false);
         }
     }
 
@@ -186,14 +199,139 @@ public sealed class MarketingCampaignJobRunner
         return (true, null, list);
     }
 
-    private async Task MarkCampaignCompletedAsync(Guid campaignId)
+    /// <summary>
+    /// When no recipients are left in Pending, either mark the campaign Completed (at least one send succeeded)
+    /// or Failed (zero sends, or no recipient rows). Re-enqueues if counts look inconsistent (race safety).
+    /// </summary>
+    private async Task FinalizeCampaignAfterRecipientsProcessedAsync(Guid campaignId)
     {
-        var completedAt = DateTime.UtcNow;
-        await _db.MarketingCampaigns
+        var finishedAt = DateTime.UtcNow;
+
+        var total = await _db.MarketingCampaignRecipients
+            .AsNoTracking()
+            .CountAsync(r => r.MarketingCampaignId == campaignId)
+            .ConfigureAwait(false);
+        var pending = await _db.MarketingCampaignRecipients
+            .AsNoTracking()
+            .CountAsync(r => r.MarketingCampaignId == campaignId && r.Status == MarketingCampaignRecipientStatus.Pending)
+            .ConfigureAwait(false);
+        var sent = await _db.MarketingCampaignRecipients
+            .AsNoTracking()
+            .CountAsync(r => r.MarketingCampaignId == campaignId && r.Status == MarketingCampaignRecipientStatus.Sent)
+            .ConfigureAwait(false);
+        var failed = await _db.MarketingCampaignRecipients
+            .AsNoTracking()
+            .CountAsync(r => r.MarketingCampaignId == campaignId && r.Status == MarketingCampaignRecipientStatus.Failed)
+            .ConfigureAwait(false);
+
+        if (pending > 0)
+        {
+            _logger.LogWarning(
+                "Marketing campaign {CampaignId}: finalize called but {Pending} recipient(s) still pending; scheduling another batch.",
+                campaignId,
+                pending);
+            _backgroundJobClient.Enqueue<MarketingCampaignJobRunner>(runner =>
+                runner.ProcessNextBatchAsync(campaignId));
+            return;
+        }
+
+        if (total == 0)
+        {
+            var rowsNoRecipients = await _db.MarketingCampaigns
+                .Where(c => c.Id == campaignId && c.Status == MarketingCampaignStatus.Sending)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(c => c.Status, MarketingCampaignStatus.Failed)
+                    .SetProperty(c => c.CompletedAtUtc, finishedAt)
+                    .SetProperty(c => c.LastError, "No recipient rows exist for this campaign; nothing was sent."))
+                .ConfigureAwait(false);
+            if (rowsNoRecipients > 0)
+            {
+                _logger.LogWarning(
+                    "Marketing campaign {CampaignId}: marked Failed (no recipient rows) at {FinishedAtUtc:o}.",
+                    campaignId,
+                    finishedAt);
+            }
+
+            return;
+        }
+
+        if (sent == 0 && failed > 0)
+        {
+            var summary =
+                $"No marketing emails were accepted by SMTP for any recipient ({failed} failed). Check Email/SMTP configuration, marketing From address, and API logs.";
+            var rowsAllFailed = await _db.MarketingCampaigns
+                .Where(c => c.Id == campaignId && c.Status == MarketingCampaignStatus.Sending)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(c => c.Status, MarketingCampaignStatus.Failed)
+                    .SetProperty(c => c.CompletedAtUtc, finishedAt)
+                    .SetProperty(c => c.LastError, summary))
+                .ConfigureAwait(false);
+            if (rowsAllFailed > 0)
+            {
+                _logger.LogWarning(
+                    "Marketing campaign {CampaignId}: marked Failed (0 sent, {Failed} failed) at {FinishedAtUtc:o}.",
+                    campaignId,
+                    failed,
+                    finishedAt);
+            }
+
+            return;
+        }
+
+        string? lastError = null;
+        if (sent > 0 && failed > 0)
+        {
+            lastError = $"{failed} of {total} recipient(s) failed SMTP send; {sent} were accepted by SMTP. Check failed rows and spam folders.";
+        }
+
+        var updated = await _db.MarketingCampaigns
             .Where(c => c.Id == campaignId && c.Status == MarketingCampaignStatus.Sending)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(c => c.Status, MarketingCampaignStatus.Completed)
-                .SetProperty(c => c.CompletedAtUtc, completedAt))
+                .SetProperty(c => c.CompletedAtUtc, finishedAt)
+                .SetProperty(c => c.LastError, lastError))
             .ConfigureAwait(false);
+
+        if (updated > 0)
+        {
+            _logger.LogInformation(
+                "Marketing campaign {CampaignId}: recipients finished (sent {Sent}, failed {Failed}, total {Total}); campaign marked Completed at {FinishedAtUtc:o}.",
+                campaignId,
+                sent,
+                failed,
+                total,
+                finishedAt);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="SmtpException"/> often only exposes "Failure sending mail." on <see cref="Exception.Message"/>;
+    /// the actionable reason is usually in <see cref="SmtpException.StatusCode"/> and inner exceptions.
+    /// </summary>
+    private static string BuildRecipientFailureMessage(Exception ex, int maxLength)
+    {
+        var parts = new List<string>(8);
+
+        if (ex is SmtpException smtp)
+        {
+            parts.Add($"{smtp.Message.Trim()} (SMTP StatusCode: {smtp.StatusCode})");
+        }
+        else
+        {
+            parts.Add(ex.Message.Trim());
+        }
+
+        for (var inner = ex.InnerException; inner is not null; inner = inner.InnerException)
+        {
+            var t = inner.Message.Trim();
+            if (t.Length > 0)
+                parts.Add(t);
+        }
+
+        var text = string.Join(" | ", parts);
+        if (text.Length > maxLength)
+            return text[..maxLength];
+
+        return text;
     }
 }

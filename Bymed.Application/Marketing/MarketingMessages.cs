@@ -18,7 +18,12 @@ public sealed record AddMarketingCampaignAttachmentsCommand(
     Guid CampaignId,
     IReadOnlyList<MarketingAttachmentFile> Files) : IRequest<Result>;
 
-public sealed record StartMarketingCampaignCommand(Guid CampaignId) : IRequest<Result>;
+/// <param name="CampaignId">Campaign to start.</param>
+/// <summary>
+/// On success, <see cref="Result{T}.Value"/> is <c>true</c> when the campaign was newly transitioned to sending (Hangfire was enqueued),
+/// or <c>false</c> when it was already sending or completed (idempotent no-op).
+/// </summary>
+public sealed record StartMarketingCampaignCommand(Guid CampaignId) : IRequest<Result<bool>>;
 
 public sealed record GetMarketingCampaignPreviewQuery(Guid CampaignId) : IRequest<Result<MarketingCampaignPreviewDto>>;
 

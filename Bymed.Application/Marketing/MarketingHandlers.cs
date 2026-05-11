@@ -86,21 +86,33 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
     private readonly IMarketingCampaignRepository _campaigns;
     private readonly IFileStorageService _files;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMarketingCampaignMutationLock _campaignMutationLock;
     private readonly MarketingOptions _options;
 
     public AddMarketingCampaignAttachmentsCommandHandler(
         IMarketingCampaignRepository campaigns,
         IFileStorageService files,
         IUnitOfWork unitOfWork,
+        IMarketingCampaignMutationLock campaignMutationLock,
         IOptions<MarketingOptions> options)
     {
         _campaigns = campaigns ?? throw new ArgumentNullException(nameof(campaigns));
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _campaignMutationLock = campaignMutationLock ?? throw new ArgumentNullException(nameof(campaignMutationLock));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
     public async Task<Result> Handle(AddMarketingCampaignAttachmentsCommand request, CancellationToken cancellationToken)
+    {
+        await using var session = await _campaignMutationLock.BeginAsync(request.CampaignId, cancellationToken).ConfigureAwait(false);
+        var result = await HandleCoreAsync(request, cancellationToken).ConfigureAwait(false);
+        if (result.IsSuccess)
+            await session.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return result;
+    }
+
+    private async Task<Result> HandleCoreAsync(AddMarketingCampaignAttachmentsCommand request, CancellationToken cancellationToken)
     {
         var campaign = await _campaigns.GetByIdAsync(request.CampaignId, track: true, cancellationToken).ConfigureAwait(false);
         if (campaign is null)
@@ -150,11 +162,19 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
     }
 }
 
-public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<StartMarketingCampaignCommand, Result>
+public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<StartMarketingCampaignCommand, Result<bool>>
 {
+    private enum StartCampaignOutcome
+    {
+        Failed,
+        AlreadyRunningOrDone,
+        StartedNew
+    }
+
     private readonly IMarketingCampaignRepository _campaigns;
     private readonly IClientRepository _clients;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMarketingCampaignMutationLock _campaignMutationLock;
     private readonly IMarketingCampaignJobQueue _queue;
     private readonly MarketingOptions _marketingOptions;
 
@@ -162,30 +182,67 @@ public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<Start
         IMarketingCampaignRepository campaigns,
         IClientRepository clients,
         IUnitOfWork unitOfWork,
+        IMarketingCampaignMutationLock campaignMutationLock,
         IMarketingCampaignJobQueue queue,
         IOptions<MarketingOptions> marketingOptions)
     {
         _campaigns = campaigns ?? throw new ArgumentNullException(nameof(campaigns));
         _clients = clients ?? throw new ArgumentNullException(nameof(clients));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _campaignMutationLock = campaignMutationLock ?? throw new ArgumentNullException(nameof(campaignMutationLock));
         _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         _marketingOptions = marketingOptions?.Value ?? throw new ArgumentNullException(nameof(marketingOptions));
     }
 
-    public async Task<Result> Handle(StartMarketingCampaignCommand request, CancellationToken cancellationToken)
+    public async Task<Result<bool>> Handle(StartMarketingCampaignCommand request, CancellationToken cancellationToken)
+    {
+        await using var session = await _campaignMutationLock.BeginAsync(request.CampaignId, cancellationToken).ConfigureAwait(false);
+        var result = await HandleCoreAsync(request, cancellationToken).ConfigureAwait(false);
+        if (result.Outcome == StartCampaignOutcome.Failed)
+            return Result<bool>.Failure(result.Error ?? "Could not start campaign.");
+
+        if (result.Outcome == StartCampaignOutcome.AlreadyRunningOrDone)
+            return Result<bool>.Success(false);
+
+        await session.CommitAsync(cancellationToken).ConfigureAwait(false);
+        // Enqueue only after commit so Hangfire sees persisted recipients and Sending status.
+        _queue.EnqueueSendNextBatch(request.CampaignId);
+        return Result<bool>.Success(true);
+    }
+
+    private async Task<(StartCampaignOutcome Outcome, string? Error)> HandleCoreAsync(
+        StartMarketingCampaignCommand request,
+        CancellationToken cancellationToken)
     {
         var campaign = await _campaigns.GetByIdAsync(request.CampaignId, track: true, cancellationToken).ConfigureAwait(false);
         if (campaign is null)
-            return Result.Failure("Campaign not found.");
+            return (StartCampaignOutcome.Failed, "Campaign not found.");
+
         if (campaign.Status != MarketingCampaignStatus.Draft)
-            return Result.Failure("Only draft campaigns can be started.");
+        {
+            if (campaign.Status == MarketingCampaignStatus.Completed)
+                return (StartCampaignOutcome.AlreadyRunningOrDone, null);
+
+            if (campaign.Status == MarketingCampaignStatus.Sending)
+            {
+                var total = await _campaigns.CountRecipientsAsync(campaign.Id, cancellationToken).ConfigureAwait(false);
+                if (total > 0)
+                    return (StartCampaignOutcome.AlreadyRunningOrDone, null);
+                return (StartCampaignOutcome.Failed, "This campaign cannot be started (no recipient rows). Create a new draft or contact support.");
+            }
+
+            if (campaign.Status == MarketingCampaignStatus.Failed)
+                return (StartCampaignOutcome.Failed, "This campaign already failed. Create a new draft to send again.");
+
+            return (StartCampaignOutcome.Failed, "Only draft campaigns can be started.");
+        }
 
         if (!campaign.IncludeInstitutionEmails && !campaign.IncludeContactPerson1Email && !campaign.IncludeContactPerson2Email)
-            return Result.Failure("Select at least one recipient email option.");
+            return (StartCampaignOutcome.Failed, "Select at least one recipient email option.");
 
         var typeIds = campaign.ClientTypes.Select(x => x.ClientTypeId).ToList();
         if (typeIds.Count == 0)
-            return Result.Failure("The campaign has no client types.");
+            return (StartCampaignOutcome.Failed, "The campaign has no client types.");
 
         await _campaigns.RemoveRecipientsForCampaignAsync(campaign.Id, cancellationToken).ConfigureAwait(false);
 
@@ -216,16 +273,14 @@ public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<Start
         }
 
         if (recipients.Count == 0)
-            return Result.Failure("No valid recipient email addresses were found for the selected types and options.");
+            return (StartCampaignOutcome.Failed, "No valid recipient email addresses were found for the selected types and options.");
 
         campaign.Status = MarketingCampaignStatus.Sending;
         campaign.StartedAtUtc = DateTime.UtcNow;
         campaign.LastError = null;
         _campaigns.AddRecipients(recipients);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        _queue.EnqueueSendNextBatch(campaign.Id);
-        return Result.Success();
+        return (StartCampaignOutcome.StartedNew, null);
     }
 }
 

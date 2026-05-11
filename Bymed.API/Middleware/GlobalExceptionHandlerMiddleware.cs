@@ -1,5 +1,7 @@
+using System.IO;
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.API.Middleware;
 
@@ -65,6 +67,7 @@ public sealed class GlobalExceptionHandlerMiddleware
         {
             Error = userMessage,
             TraceId = traceId,
+            ExceptionType = exception.GetType().FullName,
             Detail = _environment.IsDevelopment() ? exception.ToString() : null
         };
 
@@ -83,9 +86,28 @@ public sealed class GlobalExceptionHandlerMiddleware
             InvalidOperationException opEx => (HttpStatusCode.BadRequest, opEx.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized."),
             KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
+            InvalidDataException idEx => (HttpStatusCode.BadRequest, idEx.Message),
+            DbUpdateConcurrencyException => (
+                HttpStatusCode.Conflict,
+                "This campaign was changed while your request was in progress (for example another tab started sending or saved changes). Refresh the page and try again."),
+            DbUpdateException dbEx => (
+                HttpStatusCode.BadRequest,
+                BuildDbUpdateUserMessage(dbEx)),
+            IOException ioEx => (
+                HttpStatusCode.ServiceUnavailable,
+                "File storage or network I/O failed. Please try again or contact support if it persists."),
             _ => (HttpStatusCode.InternalServerError,
                 "An unexpected error occurred. Please try again later.")
         };
+    }
+
+    private static string BuildDbUpdateUserMessage(DbUpdateException dbEx)
+    {
+        var inner = dbEx.InnerException?.Message;
+        if (!string.IsNullOrWhiteSpace(inner) && inner.Contains("23505", StringComparison.Ordinal))
+            return "This record conflicts with existing data (duplicate).";
+
+        return "Could not save changes to the database.";
     }
 }
 
@@ -93,5 +115,9 @@ internal sealed class ErrorResponse
 {
     public string Error { get; init; } = string.Empty;
     public string TraceId { get; init; } = string.Empty;
+
+    /// <summary>CLR exception type (for support; not a security boundary).</summary>
+    public string? ExceptionType { get; init; }
+
     public string? Detail { get; init; }
 }

@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrencyDefinitionRepository, CurrencyDefinitionRepository>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
         services.AddScoped<IMarketingCampaignRepository, MarketingCampaignRepository>();
+        services.AddScoped<IMarketingCampaignMutationLock, MarketingCampaignMutationLock>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         if (!services.Any(d => d.ServiceType == typeof(IDistributedCache)))

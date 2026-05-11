@@ -92,11 +92,12 @@ public sealed class MarketingCampaignsController : ControllerBase
         var filePayloads = new List<MarketingAttachmentFile>();
         foreach (var file in files)
         {
-            if (file.Length == 0)
+            if (file is null || file.Length == 0)
                 continue;
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
-            filePayloads.Add(new MarketingAttachmentFile(file.FileName, file.ContentType ?? "application/octet-stream", ms.ToArray()));
+            var contentType = ResolveMarketingAttachmentContentType(file);
+            filePayloads.Add(new MarketingAttachmentFile(file.FileName, contentType, ms.ToArray()));
         }
 
         if (filePayloads.Count == 0)
@@ -146,7 +147,7 @@ public sealed class MarketingCampaignsController : ControllerBase
         if (!result.IsSuccess)
             return BadRequest(new { error = result.Error });
 
-        return Ok(new { started = true });
+        return Ok(new { started = result.Value });
     }
 
     [HttpGet("{id:guid}/status")]
@@ -171,6 +172,45 @@ public sealed class MarketingCampaignsController : ControllerBase
         var raw = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
         return Guid.TryParse(raw, out var id) ? id : null;
     }
+
+    /// <summary>
+    /// Browsers often send PDFs as application/octet-stream; JPEGs as image/jpg or image/pjpeg.
+    /// Normalizes to the canonical MIME types accepted for marketing attachments.
+    /// </summary>
+    private static string ResolveMarketingAttachmentContentType(IFormFile file)
+    {
+        var declared = file.ContentType?.Trim();
+        var ext = Path.GetExtension(file.FileName ?? string.Empty).ToLowerInvariant();
+
+        if (!string.IsNullOrEmpty(declared))
+        {
+            if (declared.Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase)
+                || declared.Equals("binary/octet-stream", StringComparison.OrdinalIgnoreCase))
+            {
+                return MapMarketingExtensionToContentType(ext) ?? declared;
+            }
+
+            if (declared.Equals("image/jpg", StringComparison.OrdinalIgnoreCase)
+                || declared.Equals("image/pjpeg", StringComparison.OrdinalIgnoreCase))
+            {
+                return "image/jpeg";
+            }
+
+            return declared;
+        }
+
+        return MapMarketingExtensionToContentType(ext) ?? "application/octet-stream";
+    }
+
+    private static string? MapMarketingExtensionToContentType(string extension) =>
+        extension switch
+        {
+            ".pdf" => "application/pdf",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => null
+        };
 }
 
 public sealed class CreateMarketingCampaignApiRequest

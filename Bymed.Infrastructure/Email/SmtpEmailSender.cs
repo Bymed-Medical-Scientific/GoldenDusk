@@ -22,7 +22,8 @@ public interface ISmtpEmailSender
         string subject,
         string htmlBody,
         IReadOnlyList<SmtpEmailAttachment> attachments,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        Guid? marketingCampaignId = null);
 }
 
 public sealed class SmtpEmailSender : ISmtpEmailSender
@@ -87,7 +88,8 @@ public sealed class SmtpEmailSender : ISmtpEmailSender
         string subject,
         string htmlBody,
         IReadOnlyList<SmtpEmailAttachment> attachments,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Guid? marketingCampaignId = null)
     {
         if (string.IsNullOrWhiteSpace(toEmail))
             throw new ArgumentException("Recipient is required.", nameof(toEmail));
@@ -124,14 +126,26 @@ public sealed class SmtpEmailSender : ISmtpEmailSender
             Credentials = new NetworkCredential(smtpUser, smtpPass)
         };
 
-        _logger.LogInformation(
-            "Sending marketing email from {FromAddress} to {To} with subject {Subject} and {AttachmentCount} attachment(s) (SMTP user: {SmtpUser}).",
-            fromAddress,
-            toEmail,
-            subject,
-            message.Attachments.Count,
-            smtpUser);
         cancellationToken.ThrowIfCancellationRequested();
         await smtp.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
+
+        if (marketingCampaignId is { } campaignId)
+        {
+            _logger.LogInformation(
+                "Marketing campaign {MarketingCampaignId}: SMTP accepted outbound message to {RecipientEmail} (subject: {EmailSubject}, attachments: {AttachmentCount}, smtp user: {SmtpUser}).",
+                campaignId,
+                toEmail,
+                subject,
+                message.Attachments.Count,
+                smtpUser);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Marketing email: SMTP accepted outbound message to {RecipientEmail} (subject: {EmailSubject}, attachments: {AttachmentCount}).",
+                toEmail,
+                subject,
+                message.Attachments.Count);
+        }
     }
 }

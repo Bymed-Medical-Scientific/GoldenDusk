@@ -196,6 +196,14 @@
   color: var(--text-color-secondary);
   line-height: 1.5;
 }
+
+.attachment-queue-hint {
+  margin: 0 0 1rem;
+}
+
+.delivery-footnote {
+  margin-top: 0.65rem;
+}
 .counts,
 .status-line {
   margin: 1rem 0 0.75rem;

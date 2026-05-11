@@ -74,6 +74,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
     options.MultipartBodyLengthLimit = MaxRequestBodySizeBytes;
 
+    // Default 16 KB is tight for long filenames / RFC5987 Content-Disposition on some clients (multipart upload failures).
+    options.MultipartHeadersLengthLimit = 1_048_576;
+
 });
 
 

@@ -129,6 +129,10 @@
           severity="secondary"
           text="Create a draft above first. Then you can drag files here or use Choose files and Upload to draft."
           styleClass="marketing-attachment-hint" />
+      } @else {
+        <p class="empty-hint attachment-queue-hint">
+          <strong>Pending</strong> only means the file is queued in your browser. Click <strong>Upload to draft</strong> to save it on the server; after a successful upload the list clears and a confirmation appears above.
+        </p>
       }
 
       <p-fileupload
@@ -233,6 +237,21 @@
           @if (s.lastError) {
             <p class="error-inline">{{ s.lastError }}</p>
           }
+          @if (s.status === 'Completed' && s.failedCount > 0 && s.sentCount > 0) {
+            <p-message
+              severity="warn"
+              [text]="
+                s.failedCount +
+                ' recipient(s) failed SMTP. ' +
+                s.sentCount +
+                ' were accepted by your mail server; check spam/junk and recipient mail logs.'
+              "
+              styleClass="marketing-page__banner" />
+          }
+          <p class="empty-hint delivery-footnote">
+            <strong>Sent</strong> means your SMTP server accepted the message for that address. Spam rules, an incorrect
+            address in client records, or the recipient’s server can still prevent inbox delivery.
+          </p>
         }
       }
     </article>

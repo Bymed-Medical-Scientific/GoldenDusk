@@ -13,6 +13,7 @@ import {
   tap
 } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { ApiError } from '@core/api/api-error';
 import {
   ClientTypeDto,
   MarketingCampaignPreviewDto,
@@ -156,8 +157,12 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
     this.adminApi
       .addMarketingCampaignAttachments(id, files)
       .pipe(
-        catchError(() => {
-          this.errorMessage.set('Upload failed. Check file types, sizes, and total attachment limits.');
+        catchError((err: unknown) => {
+          this.errorMessage.set(
+            err instanceof ApiError
+              ? err.message
+              : 'Upload failed. Check file types, sizes, and total attachment limits.'
+          );
           return EMPTY;
         }),
         finalize(() => this.isBusy.set(false))
