@@ -15,6 +15,7 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
+import { AuthTokenStorageService } from '@core/auth/auth-token-storage.service';
 import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 
 interface NavItem {
@@ -22,6 +23,11 @@ interface NavItem {
   readonly icon: string;
   readonly route: string;
   readonly exact?: boolean;
+}
+
+interface NavSection {
+  readonly label: string;
+  readonly items: readonly NavItem[];
 }
 
 @Component({
@@ -37,6 +43,7 @@ interface NavItem {
 export class AdminShellComponent {
   private readonly document = inject(DOCUMENT);
   private readonly lowStockAlerts = inject(LowStockAlertsService);
+  private readonly tokenStorage = inject(AuthTokenStorageService);
 
   protected readonly isNavigating = signal(false);
   protected readonly isHandset = signal(false);
@@ -60,22 +67,53 @@ export class AdminShellComponent {
     return items.slice(0, 3);
   });
   protected readonly lowStockOverflow = computed(() => Math.max(this.lowStockCount() - 3, 0));
-  protected readonly navItems: readonly NavItem[] = [
-    { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard', exact: true },
-    { label: 'Content', icon: 'pi pi-file-edit', route: '/content' },
-    { label: 'Categories', icon: 'pi pi-th-large', route: '/categories' },
-    { label: 'Products', icon: 'pi pi-box', route: '/products' },
-    { label: 'Client Types', icon: 'pi pi-tags', route: '/client-types' },
-    { label: 'Clients', icon: 'pi pi-building', route: '/clients' },
-    { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
-    { label: 'Orders', icon: 'pi pi-shopping-cart', route: '/orders', exact: true },
-    { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' },
-    { label: 'Contact Messages', icon: 'pi pi-envelope', route: '/contact-messages' },
-    { label: 'Contact Recipients', icon: 'pi pi-users', route: '/contact-recipients' },
-    { label: 'Quote Requests', icon: 'pi pi-inbox', route: '/quote-requests' },
-    { label: 'Quotations', icon: 'pi pi-file', route: '/quotations' },
-    { label: 'Admin Approvals', icon: 'pi pi-user-plus', route: '/admin-approvals' }
+  protected readonly navSections: readonly NavSection[] = [
+    {
+      label: 'Overview',
+      items: [
+        { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard', exact: true },
+        { label: 'Sales Analytics', icon: 'pi pi-chart-bar', route: '/orders/analytics' }
+      ]
+    },
+    {
+      label: 'Commerce',
+      items: [
+        { label: 'Orders', icon: 'pi pi-shopping-cart', route: '/orders', exact: true },
+        { label: 'Products', icon: 'pi pi-box', route: '/products' },
+        { label: 'Categories', icon: 'pi pi-th-large', route: '/categories' },
+        { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
+        { label: 'Client Types', icon: 'pi pi-tags', route: '/client-types' },
+        { label: 'Clients', icon: 'pi pi-building', route: '/clients' },
+        { label: 'Quotations', icon: 'pi pi-file', route: '/quotations' }
+      ]
+    },
+    {
+      label: 'Communication',
+      items: [
+        { label: 'Content', icon: 'pi pi-file-edit', route: '/content' },
+        { label: 'Contact Messages', icon: 'pi pi-envelope', route: '/contact-messages' },
+        { label: 'Contact Recipients', icon: 'pi pi-users', route: '/contact-recipients' },
+        { label: 'Quote Requests', icon: 'pi pi-inbox', route: '/quote-requests' }
+      ]
+    },
+    {
+      label: 'Administration',
+      items: [{ label: 'Admin Approvals', icon: 'pi pi-user-plus', route: '/admin-approvals' }]
+    }
   ];
+  protected readonly userName = computed(() => this.tokenStorage.getUser()?.name?.trim() || 'ByMed Admin');
+  protected readonly userInitials = computed(() => {
+    const parts = this.userName()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (parts.length === 0) {
+      return 'BA';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  });
 
   constructor(
     private readonly router: Router,
