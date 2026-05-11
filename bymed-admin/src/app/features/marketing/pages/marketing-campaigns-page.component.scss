@@ -1,57 +1,217 @@
-.page-header {
+.marketing-page {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0 0.25rem 2rem;
+}
+.marketing-page__intro {
+  margin-bottom: 1.5rem;
+}
+.marketing-page__intro h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+.marketing-page__lede {
+  margin: 0;
+  max-width: 42rem;
+  line-height: 1.55;
+  color: var(--text-color-secondary);
+  font-size: 0.95rem;
+}
+.marketing-page__banner {
+  display: block;
+  width: 100%;
   margin-bottom: 1rem;
 }
-
-.panel {
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--p-content-border-color, #e5e7eb);
-  border-radius: 8px;
-}
-
-.panel h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
-}
-
-.form-grid {
+.step-rail {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
   display: grid;
-  gap: 0.75rem;
-  max-width: 40rem;
-}
-
-.form-grid label.full {
-  grid-column: 1 / -1;
-}
-
-.checks {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
 }
-
-.actions {
+.step-rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 8px;
+  color: var(--text-color-secondary);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+.step-rail__item--active {
+  color: var(--text-color);
+  font-weight: 600;
+}
+.step-rail__item--done .step-rail__n {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+.step-rail__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-ground);
+}
+.marketing-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.marketing-card {
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+.marketing-card--attachments {
+  border-color: #93c5fd;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%), 0 0 0 1px rgb(37 99 235 / 8%);
+}
+.marketing-card__head {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  margin-top: 0.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--surface-border);
 }
-
-.campaign-id {
+.marketing-card__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+.marketing-card__sub {
+  margin: 0;
+  max-width: 40rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  line-height: 1.5;
+  color: var(--text-color-secondary);
 }
-
+.draft-chip {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+  font-family: ui-monospace, monospace;
+}
+.field {
+  margin-bottom: 1.1rem;
+}
+.field__label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.4rem;
+}
+.field__hint {
+  font-weight: 400;
+  color: var(--text-color-secondary);
+}
+.field__control {
+  width: 100%;
+  box-sizing: border-box;
+}
+.recipient-fieldset {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-ground);
+}
+.recipient-fieldset__legend {
+  padding: 0 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+.recipient-fieldset__help {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-color-secondary);
+  line-height: 1.45;
+}
+.recipient-fieldset__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.recipient-fieldset__row:last-child {
+  margin-bottom: 0;
+}
+.recipient-fieldset__row label {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  cursor: pointer;
+}
+.marketing-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+.marketing-attachment-hint {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+:host ::ng-deep .marketing-fileupload.p-fileupload {
+  width: 100%;
+}
+:host ::ng-deep .marketing-fileupload .p-fileupload-content {
+  min-height: 6.5rem;
+  border-radius: 0 0 8px 8px;
+}
+:host ::ng-deep .marketing-fileupload .p-fileupload-header {
+  border-radius: 8px 8px 0 0;
+}
+.empty-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-color-secondary);
+  line-height: 1.5;
+}
 .counts,
 .status-line {
-  margin: 0.75rem 0;
+  margin: 1rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
 }
-
-.error {
-  color: #dc2626;
+.error-inline {
+  margin: 0.5rem 0 0;
+  color: var(--red-500, #dc2626);
+  font-size: 0.875rem;
 }
-
 .w-full {
   width: 100%;
+}
+@media (max-width: 640px) {
+  .step-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

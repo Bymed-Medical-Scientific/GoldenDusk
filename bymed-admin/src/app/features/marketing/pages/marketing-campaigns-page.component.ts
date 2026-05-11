@@ -1,4 +1,5 @@
-import { Component, OnDestroy, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   catchError,
@@ -19,19 +20,29 @@ import {
 } from '@shared/models';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { FileUpload } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
+
+/** Matches defaults in Bymed.Application.Marketing.MarketingOptions (server still enforces). */
+const MAX_ATTACHMENT_BYTES_PER_FILE = 10 * 1024 * 1024;
+const MAX_ATTACHMENTS_PER_CAMPAIGN = 5;
+const MAX_TOTAL_ATTACHMENT_MB = 25;
 
 @Component({
   selector: 'app-marketing-campaigns-page',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     ButtonModule,
     CheckboxModule,
+    FileUpload,
     InputTextModule,
+    Message,
     MultiSelectModule,
     TableModule,
     TextareaModule
@@ -42,10 +53,18 @@ import { TextareaModule } from 'primeng/textarea';
 export class MarketingCampaignsPageComponent implements OnDestroy {
   private readonly adminApi = inject(AdminApiService);
 
+  @ViewChild('attachmentUpload') private attachmentUpload?: FileUpload;
+
   protected readonly isBusy = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly uploadNotice = signal<string | null>(null);
   protected readonly clientTypes = signal<ClientTypeDto[]>([]);
   protected readonly campaignId = signal<string | null>(null);
+
+  protected readonly maxBytesPerFile = MAX_ATTACHMENT_BYTES_PER_FILE;
+  protected readonly maxAttachmentsPerCampaign = MAX_ATTACHMENTS_PER_CAMPAIGN;
+  protected readonly maxMbPerFile = MAX_ATTACHMENT_BYTES_PER_FILE / (1024 * 1024);
+  protected readonly maxMbTotal = MAX_TOTAL_ATTACHMENT_MB;
 
   protected subject = '';
   protected htmlBody = '';
@@ -54,7 +73,6 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
   protected includeContactPerson1Email = false;
   protected includeContactPerson2Email = false;
 
-  protected attachmentFiles: File[] = [];
   protected readonly preview = signal<MarketingCampaignPreviewDto | null>(null);
   protected readonly status = signal<MarketingCampaignStatusDto | null>(null);
 
@@ -76,8 +94,17 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
     this.statusPoll?.unsubscribe();
   }
 
+  protected clearError(): void {
+    this.errorMessage.set(null);
+  }
+
+  protected clearUploadNotice(): void {
+    this.uploadNotice.set(null);
+  }
+
   protected createDraft(): void {
     this.errorMessage.set(null);
+    this.uploadNotice.set(null);
     if (!this.subject.trim()) {
       this.errorMessage.set('Subject is required.');
       return;
@@ -115,35 +142,29 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
       });
   }
 
-  protected onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.attachmentFiles = input.files ? Array.from(input.files) : [];
-  }
-
-  protected uploadAttachments(): void {
+  protected onAttachmentUpload(event: { files: File[] }): void {
     const id = this.campaignId();
-    if (!id) {
-      this.errorMessage.set('Create a draft first.');
-      return;
-    }
-    if (this.attachmentFiles.length === 0) {
-      this.errorMessage.set('Choose one or more files.');
+    const files = event.files ?? [];
+    if (!id || files.length === 0) {
+      this.attachmentUpload?.clear();
       return;
     }
 
     this.errorMessage.set(null);
+    this.uploadNotice.set(null);
     this.isBusy.set(true);
     this.adminApi
-      .addMarketingCampaignAttachments(id, this.attachmentFiles)
+      .addMarketingCampaignAttachments(id, files)
       .pipe(
         catchError(() => {
-          this.errorMessage.set('Upload failed.');
+          this.errorMessage.set('Upload failed. Check file types, sizes, and total attachment limits.');
           return EMPTY;
         }),
         finalize(() => this.isBusy.set(false))
       )
       .subscribe(() => {
-        this.attachmentFiles = [];
+        this.attachmentUpload?.clear();
+        this.uploadNotice.set('Attachments uploaded. They will be included when you send the campaign.');
       });
   }
 
