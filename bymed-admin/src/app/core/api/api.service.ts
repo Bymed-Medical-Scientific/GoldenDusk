@@ -12,8 +12,12 @@ export class ApiService {
     @Inject(API_BASE_URL) private readonly apiBaseUrl: string
   ) {}
 
-  public get<TResponse>(path: string, query?: Record<string, string | number | boolean | null | undefined>): Observable<TResponse> {
-    return this.httpClient.get<TResponse>(this.buildUrl(path), { params: this.toHttpParams(query) });
+  public get<TResponse>(
+    path: string,
+    query?: Record<string, string | number | boolean | null | undefined>,
+    arrayQuery?: Record<string, readonly string[] | undefined>
+  ): Observable<TResponse> {
+    return this.httpClient.get<TResponse>(this.buildUrl(path), { params: this.toHttpParams(query, arrayQuery) });
   }
 
   public getBlob(path: string, query?: Record<string, string | number | boolean | null | undefined>): Observable<Blob> {
@@ -83,17 +87,32 @@ export class ApiService {
     return `${normalizedBaseUrl}/${normalizedPath}`;
   }
 
-  private toHttpParams(query?: Record<string, string | number | boolean | null | undefined>): HttpParams {
-    if (!query) {
-      return new HttpParams();
+  private toHttpParams(
+    query?: Record<string, string | number | boolean | null | undefined>,
+    arrayQuery?: Record<string, readonly string[] | undefined>
+  ): HttpParams {
+    let params = new HttpParams();
+
+    if (query) {
+      params = Object.entries(query).reduce((acc, [key, value]) => {
+        if (value === undefined || value === null) {
+          return acc;
+        }
+        return acc.set(key, String(value));
+      }, params);
     }
 
-    return Object.entries(query).reduce((params, [key, value]) => {
-      if (value === undefined || value === null) {
-        return params;
+    if (arrayQuery) {
+      for (const [key, values] of Object.entries(arrayQuery)) {
+        if (!values?.length) {
+          continue;
+        }
+        for (const v of values) {
+          params = params.append(key, v);
+        }
       }
+    }
 
-      return params.set(key, String(value));
-    }, new HttpParams());
+    return params;
   }
 }

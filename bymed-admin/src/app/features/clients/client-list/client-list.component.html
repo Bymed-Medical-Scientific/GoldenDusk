@@ -8,6 +8,24 @@
     <p class="error">{{ errorMessage() }}</p>
   }
 
+  <div class="filters">
+    <label class="filter-types">
+      <span class="filter-label">Filter by type</span>
+      <p-multiselect
+        [options]="clientTypes()"
+        [(ngModel)]="selectedClientTypeIds"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="All types"
+        display="chip"
+        [showClear]="true"
+        [filter]="true"
+        appendTo="body"
+        class="type-multiselect"
+        (onChange)="onClientTypesFilterChange()" />
+    </label>
+  </div>
+
   <p-table [value]="rows()" [loading]="isLoading()">
     <ng-template pTemplate="header">
       <tr>

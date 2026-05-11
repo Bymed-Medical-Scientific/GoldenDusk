@@ -31,9 +31,10 @@ public sealed class ClientsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ClientDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll([FromQuery] Guid[]? clientTypeIds, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetClientsQuery(), cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<Guid>? filter = clientTypeIds is { Length: > 0 } ? clientTypeIds : null;
+        var result = await _mediator.Send(new GetClientsQuery(filter), cancellationToken).ConfigureAwait(false);
         return Ok(result);
     }
 

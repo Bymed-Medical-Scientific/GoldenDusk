@@ -14,11 +14,19 @@ public sealed class ClientRepository : IClientRepository
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<IReadOnlyList<Client>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Client>> GetAllAsync(
+        IReadOnlyCollection<Guid>? clientTypeIds = null,
+        CancellationToken cancellationToken = default)
     {
-        return await _context.Clients
+        var query = _context.Clients
             .AsNoTracking()
             .Include(x => x.ClientType)
+            .AsQueryable();
+
+        if (clientTypeIds is { Count: > 0 })
+            query = query.Where(x => clientTypeIds.Contains(x.ClientTypeId));
+
+        return await query
             .OrderBy(x => x.InstitutionName)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

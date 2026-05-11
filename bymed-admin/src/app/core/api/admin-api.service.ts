@@ -100,8 +100,12 @@ export class AdminApiService {
     return this.apiService.delete<void>(`clienttypes/${clientTypeId}`);
   }
 
-  public getClients(): Observable<ClientDto[]> {
-    return this.apiService.get<ClientDto[]>('clients');
+  public getClients(clientTypeIds?: readonly string[]): Observable<ClientDto[]> {
+    return this.apiService.get<ClientDto[]>(
+      'clients',
+      undefined,
+      clientTypeIds?.length ? { clientTypeIds } : undefined
+    );
   }
 
   public getClientById(clientId: string): Observable<ClientDto> {

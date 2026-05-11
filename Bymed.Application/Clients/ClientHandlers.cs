@@ -44,7 +44,9 @@ public sealed class GetClientsQueryHandler : IRequestHandler<GetClientsQuery, IR
 
     public async Task<IReadOnlyList<ClientDto>> Handle(GetClientsQuery request, CancellationToken cancellationToken)
     {
-        var rows = await _clientRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await _clientRepository
+            .GetAllAsync(request.ClientTypeIds, cancellationToken)
+            .ConfigureAwait(false);
         return rows.Select(x => x.ToDto()).ToList();
     }
 }
