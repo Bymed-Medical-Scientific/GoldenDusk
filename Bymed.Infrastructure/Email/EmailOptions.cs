@@ -57,4 +57,19 @@ public sealed class EmailOptions
 
     /// <summary>Optional company website shown in email footers.</summary>
     public string CompanyWebsiteUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional From address for bulk marketing campaigns. Falls back to <see cref="FromAddress"/> when empty.</summary>
+    public string MarketingFromAddress { get; set; } = string.Empty;
+
+    /// <summary>Optional display name for marketing From. Falls back to <see cref="FromName"/> when empty.</summary>
+    public string MarketingFromName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional SMTP login for marketing sends only. When both this and <see cref="MarketingSmtpPassword"/> are set,
+    /// marketing mail authenticates with this pair; otherwise <see cref="Username"/> / <see cref="Password"/> are used.
+    /// </summary>
+    public string MarketingSmtpUsername { get; set; } = string.Empty;
+
+    /// <summary>Password for <see cref="MarketingSmtpUsername"/>.</summary>
+    public string MarketingSmtpPassword { get; set; } = string.Empty;
 }

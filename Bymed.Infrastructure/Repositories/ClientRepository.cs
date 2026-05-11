@@ -1,3 +1,4 @@
+using Bymed.Application.Clients;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
 using Bymed.Infrastructure.Persistence;
@@ -28,6 +29,47 @@ public sealed class ClientRepository : IClientRepository
 
         return await query
             .OrderBy(x => x.InstitutionName)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<int> CountClientsByClientTypeIdsAsync(
+        IReadOnlyCollection<Guid> clientTypeIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (clientTypeIds is not { Count: > 0 })
+            return 0;
+
+        return await _context.Clients
+            .AsNoTracking()
+            .Where(x => clientTypeIds.Contains(x.ClientTypeId))
+            .CountAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<ClientMarketingProjection>> GetClientMarketingProjectionsPageAsync(
+        IReadOnlyCollection<Guid> clientTypeIds,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        if (clientTypeIds is not { Count: > 0 })
+            return Array.Empty<ClientMarketingProjection>();
+
+        return await _context.Clients
+            .AsNoTracking()
+            .Where(x => clientTypeIds.Contains(x.ClientTypeId))
+            .OrderBy(x => x.Id)
+            .Skip(skip)
+            .Take(take)
+            .Select(x => new ClientMarketingProjection(
+                x.Id,
+                x.InstitutionName,
+                x.Email1,
+                x.Email2,
+                x.Email3,
+                x.ContactPerson1Email,
+                x.ContactPerson2Email))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }

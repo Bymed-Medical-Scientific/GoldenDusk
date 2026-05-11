@@ -50,7 +50,12 @@ import {
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
   UpdateProductRequestDto,
-  UserSummaryDto
+  UserSummaryDto,
+  CreateMarketingCampaignRequestDto,
+  MarketingCampaignDetailDto,
+  MarketingCampaignListItemDto,
+  MarketingCampaignPreviewDto,
+  MarketingCampaignStatusDto
 } from '@shared/models';
 
 @Injectable({
@@ -590,5 +595,44 @@ export class AdminApiService {
       `content/${enc}/versions/${versionId}/revert`,
       {}
     );
+  }
+
+  public listMarketingCampaigns(take = 30): Observable<MarketingCampaignListItemDto[]> {
+    return this.apiService.get<MarketingCampaignListItemDto[]>('marketing-campaigns', { take });
+  }
+
+  public createMarketingCampaign(
+    request: CreateMarketingCampaignRequestDto
+  ): Observable<MarketingCampaignDetailDto> {
+    return this.apiService.post<CreateMarketingCampaignRequestDto, MarketingCampaignDetailDto>(
+      'marketing-campaigns',
+      request
+    );
+  }
+
+  public addMarketingCampaignAttachments(campaignId: string, files: File[]): Observable<{ added: number }> {
+    const formData = new FormData();
+    for (const f of files) {
+      formData.append('files', f, f.name);
+    }
+    return this.apiService.postFormData<{ added: number }>(
+      `marketing-campaigns/${campaignId}/attachments`,
+      formData
+    );
+  }
+
+  public getMarketingCampaignPreview(campaignId: string): Observable<MarketingCampaignPreviewDto> {
+    return this.apiService.get<MarketingCampaignPreviewDto>(`marketing-campaigns/${campaignId}/preview`);
+  }
+
+  public startMarketingCampaign(campaignId: string): Observable<{ started: boolean }> {
+    return this.apiService.post<Record<string, never>, { started: boolean }>(
+      `marketing-campaigns/${campaignId}/start`,
+      {}
+    );
+  }
+
+  public getMarketingCampaignStatus(campaignId: string): Observable<MarketingCampaignStatusDto> {
+    return this.apiService.get<MarketingCampaignStatusDto>(`marketing-campaigns/${campaignId}/status`);
   }
 }

@@ -37,6 +37,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<CurrencyDefinition> CurrencyDefinitions => Set<CurrencyDefinition>();
     public DbSet<Quotation> Quotations => Set<Quotation>();
     public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
+    public DbSet<MarketingCampaign> MarketingCampaigns => Set<MarketingCampaign>();
+    public DbSet<MarketingCampaignClientType> MarketingCampaignClientTypes => Set<MarketingCampaignClientType>();
+    public DbSet<MarketingCampaignAttachment> MarketingCampaignAttachments => Set<MarketingCampaignAttachment>();
+    public DbSet<MarketingCampaignRecipient> MarketingCampaignRecipients => Set<MarketingCampaignRecipient>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +72,7 @@ public class ApplicationDbContext : DbContext
         ApplyClientConfiguration(modelBuilder);
         ApplyCurrencyDefinitionConfiguration(modelBuilder);
         ApplyQuotationConfiguration(modelBuilder);
+        ApplyMarketingCampaignConfiguration(modelBuilder);
     }
 
     private static void ApplyCategoryConfiguration(ModelBuilder modelBuilder)
@@ -555,6 +560,69 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LineSubtotalExcludingVat).HasPrecision(18, 2);
             entity.Property(e => e.LineVatAmount).HasPrecision(18, 2);
             entity.Property(e => e.LineTotalIncludingVat).HasPrecision(18, 2);
+        });
+    }
+
+    private static void ApplyMarketingCampaignConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MarketingCampaign>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAtUtc);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(MarketingCampaign.SubjectMaxLength);
+            entity.Property(e => e.HtmlBody).HasMaxLength(MarketingCampaign.HtmlBodyMaxLength);
+            entity.Property(e => e.LastError).HasMaxLength(4000);
+            entity.Property(e => e.Status).HasConversion<int>();
+        });
+
+        modelBuilder.Entity<MarketingCampaignClientType>(entity =>
+        {
+            entity.HasKey(e => new { e.MarketingCampaignId, e.ClientTypeId });
+            entity.HasIndex(e => e.ClientTypeId);
+            entity.HasOne(e => e.MarketingCampaign)
+                .WithMany(c => c.ClientTypes)
+                .HasForeignKey(e => e.MarketingCampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.ClientType)
+                .WithMany()
+                .HasForeignKey(e => e.ClientTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MarketingCampaignAttachment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.MarketingCampaignId);
+            entity.Property(e => e.FileName).IsRequired().HasMaxLength(MarketingCampaignAttachment.FileNameMaxLength);
+            entity.Property(e => e.ContentType).IsRequired().HasMaxLength(MarketingCampaignAttachment.ContentTypeMaxLength);
+            entity.Property(e => e.StorageRelativePath).IsRequired().HasMaxLength(MarketingCampaignAttachment.StorageRelativePathMaxLength);
+            entity.HasOne(e => e.MarketingCampaign)
+                .WithMany(c => c.Attachments)
+                .HasForeignKey(e => e.MarketingCampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MarketingCampaignRecipient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.MarketingCampaignId);
+            entity.HasIndex(e => new { e.MarketingCampaignId, e.Status });
+            entity.HasIndex(e => new { e.MarketingCampaignId, e.NormalizedEmail }).IsUnique();
+            entity.Property(e => e.InstitutionName).IsRequired().HasMaxLength(MarketingCampaignRecipient.InstitutionNameMaxLength);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(MarketingCampaignRecipient.EmailMaxLength);
+            entity.Property(e => e.NormalizedEmail).IsRequired().HasMaxLength(MarketingCampaignRecipient.NormalizedEmailMaxLength);
+            entity.Property(e => e.ErrorMessage).HasMaxLength(MarketingCampaignRecipient.ErrorMessageMaxLength);
+            entity.Property(e => e.Status).HasConversion<int>();
+            entity.Property(e => e.EmailSource).HasConversion<int>();
+            entity.HasOne(e => e.MarketingCampaign)
+                .WithMany(c => c.Recipients)
+                .HasForeignKey(e => e.MarketingCampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Client)
+                .WithMany()
+                .HasForeignKey(e => e.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

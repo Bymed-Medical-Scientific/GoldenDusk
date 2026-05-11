@@ -1,3 +1,4 @@
+using Bymed.Application.Clients;
 using Bymed.Domain.Entities;
 
 namespace Bymed.Application.Repositories;
@@ -11,6 +12,17 @@ public interface IClientRepository
     Task<IReadOnlyList<Client>> GetAllAsync(
         IReadOnlyCollection<Guid>? clientTypeIds = null,
         CancellationToken cancellationToken = default);
+
+    Task<int> CountClientsByClientTypeIdsAsync(
+        IReadOnlyCollection<Guid> clientTypeIds,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ClientMarketingProjection>> GetClientMarketingProjectionsPageAsync(
+        IReadOnlyCollection<Guid> clientTypeIds,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default);
+
     Task<Client?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> ExistsInstitutionNameAsync(
         string institutionName,

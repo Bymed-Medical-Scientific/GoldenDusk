@@ -2,6 +2,7 @@ using Bymed.Application.Auth;
 using Bymed.Application.Caching;
 using Bymed.Application.Currency;
 using Bymed.Application.Files;
+using Bymed.Application.Marketing;
 using Bymed.Application.Notifications;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
@@ -38,6 +39,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
+        services.Configure<MarketingOptions>(configuration.GetSection(MarketingOptions.SectionName));
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.AddOptions<EmailOptions>()
@@ -76,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<ICurrencyDefinitionRepository, CurrencyDefinitionRepository>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
+        services.AddScoped<IMarketingCampaignRepository, MarketingCampaignRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         if (!services.Any(d => d.ServiceType == typeof(IDistributedCache)))
@@ -91,6 +94,8 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, NoOpEmailSender>();
         services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
         services.AddScoped<IEmailBackgroundJobRunner, EmailBackgroundJobRunner>();
+        services.AddScoped<IMarketingCampaignJobQueue, MarketingCampaignJobQueue>();
+        services.AddScoped<MarketingCampaignJobRunner>();
         services.TryAddScoped<IEmailService, NoOpEmailService>();
         services.AddScoped<IAuthService, AuthService>();
         return services;

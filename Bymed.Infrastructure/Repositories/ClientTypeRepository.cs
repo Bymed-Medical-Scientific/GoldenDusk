@@ -14,6 +14,18 @@ public sealed class ClientTypeRepository : IClientTypeRepository
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
+    public async Task<int> CountByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids is not { Count: > 0 })
+            return 0;
+
+        return await _context.ClientTypes
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.Id))
+            .CountAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<ClientType>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.ClientTypes

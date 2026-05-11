@@ -4,6 +4,8 @@ namespace Bymed.Application.Repositories;
 
 public interface IClientTypeRepository
 {
+    Task<int> CountByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<ClientType>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<ClientType?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> ExistsByNameAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default);

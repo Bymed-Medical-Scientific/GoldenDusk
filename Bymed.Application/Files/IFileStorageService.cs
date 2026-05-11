@@ -17,5 +17,14 @@ public interface IFileStorageService
     Task<Result> DeleteFileAsync(
         string fileUrl,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Stores a PDF or image for a marketing campaign under the configured file root.</summary>
+    Task<Result<StoredMarketingAsset>> SaveMarketingCampaignAttachmentAsync(
+        Guid campaignId,
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        long maxFileSizeBytes,
+        CancellationToken cancellationToken = default);
 }
 

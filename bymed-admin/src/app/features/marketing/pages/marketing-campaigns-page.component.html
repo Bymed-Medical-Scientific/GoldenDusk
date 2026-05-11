@@ -1,0 +1,136 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Marketing campaigns</h1>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <div class="panel">
+    <h2>1. Compose</h2>
+    <div class="form-grid">
+      <label>
+        Subject
+        <input pInputText [(ngModel)]="subject" name="subject" />
+      </label>
+      <label class="full">
+        Message (optional HTML)
+        <textarea pTextarea [(ngModel)]="htmlBody" name="htmlBody" rows="6"></textarea>
+      </label>
+      <label class="full">
+        Client types
+        <p-multiselect
+          [(ngModel)]="selectedClientTypeIds"
+          name="clientTypes"
+          [options]="clientTypes()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select types"
+          display="chip"
+          [filter]="true"
+          appendTo="body"
+          class="w-full" />
+      </label>
+      <div class="checks">
+        <p-checkbox [(ngModel)]="includeInstitutionEmails" name="incInst" [binary]="true" inputId="incInst" />
+        <label for="incInst">Institution emails (Email 1–3)</label>
+      </div>
+      <div class="checks">
+        <p-checkbox [(ngModel)]="includeContactPerson1Email" name="incCp1" [binary]="true" inputId="incCp1" />
+        <label for="incCp1">Contact person 1 email</label>
+      </div>
+      <div class="checks">
+        <p-checkbox [(ngModel)]="includeContactPerson2Email" name="incCp2" [binary]="true" inputId="incCp2" />
+        <label for="incCp2">Contact person 2 email</label>
+      </div>
+      <div class="actions">
+        <button
+          pButton
+          type="button"
+          label="Create draft"
+          [loading]="isBusy()"
+          [disabled]="isBusy()"
+          (click)="createDraft()"></button>
+        @if (campaignId()) {
+          <span class="campaign-id">Campaign: {{ campaignId() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (campaignId()) {
+    <div class="panel">
+      <h2>2. Attachments (images or PDF)</h2>
+      <input type="file" multiple accept=".pdf,image/*" (change)="onFilesSelected($event)" />
+      <div class="actions">
+        <button
+          pButton
+          type="button"
+          label="Upload files"
+          [loading]="isBusy()"
+          [disabled]="isBusy()"
+          (click)="uploadAttachments()"></button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Preview</h2>
+      <div class="actions">
+        <button
+          pButton
+          type="button"
+          label="Load preview"
+          [loading]="isBusy()"
+          [disabled]="isBusy()"
+          (click)="loadPreview()"></button>
+      </div>
+      @if (preview(); as p) {
+        <p class="counts">
+          Matching clients: <strong>{{ p.matchingClientCount }}</strong> — Recipients:
+          <strong>{{ p.recipientCount }}</strong>
+        </p>
+        <p-table [value]="[...p.sampleRecipients]" [paginator]="false">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Institution</th>
+              <th>Email</th>
+              <th>Source</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.institutionName }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.source }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <div class="panel">
+      <h2>4. Send</h2>
+      <div class="actions">
+        <button
+          pButton
+          type="button"
+          label="Start sending"
+          severity="danger"
+          [loading]="isBusy()"
+          [disabled]="isBusy()"
+          (click)="startCampaign()"></button>
+        <button pButton type="button" label="Refresh status" [outlined]="true" (click)="refreshStatus()"></button>
+      </div>
+      @if (status(); as s) {
+        <p class="status-line">
+          Status: <strong>{{ s.status }}</strong> — Sent: {{ s.sentCount }} / {{ s.totalRecipients }} — Pending:
+          {{ s.pendingCount }} — Failed: {{ s.failedCount }}
+        </p>
+        @if (s.lastError) {
+          <p class="error">{{ s.lastError }}</p>
+        }
+      }
+    </div>
+  }
+</section>

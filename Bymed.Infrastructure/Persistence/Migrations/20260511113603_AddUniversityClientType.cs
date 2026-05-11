@@ -13,10 +13,16 @@ namespace Bymed.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.InsertData(
-                table: "ClientTypes",
-                columns: new[] { "Id", "Name", "Slug", "CreationTime", "CreatorId", "IsDeleted" },
-                values: new object[] { UniversityId, "University", "university", DateTime.UtcNow, null, false });
+            // Idempotent: DBs that already have "University" (manual seed, restore, or earlier attempt) must not fail startup.
+            migrationBuilder.Sql(
+                $"""
+                INSERT INTO "ClientTypes" ("Id", "Name", "Slug", "CreationTime", "CreatorId", "IsDeleted", "DeletionTime", "DeleterId", "LastModificationTime", "LastModifierUserId")
+                SELECT '{UniversityId}', 'University', 'university', NOW() AT TIME ZONE 'utc', NULL, false, NULL, NULL, NULL, NULL
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM "ClientTypes" AS c
+                    WHERE c."Slug" = 'university' OR LOWER(TRIM(c."Name")) = LOWER('University')
+                );
+                """);
         }
 
         /// <inheritdoc />

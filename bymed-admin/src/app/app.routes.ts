@@ -161,6 +161,13 @@ export const routes: Routes = [
           import('@features/clients/client-list/client-list.component').then((m) => m.ClientListComponent)
       },
       {
+        path: 'marketing/campaigns',
+        loadComponent: () =>
+          import('@features/marketing/pages/marketing-campaigns-page.component').then(
+            (m) => m.MarketingCampaignsPageComponent
+          )
+      },
+      {
         path: 'clients/new',
         loadComponent: () =>
           import('@features/clients/client-form/client-form.component').then((m) => m.ClientFormComponent)
