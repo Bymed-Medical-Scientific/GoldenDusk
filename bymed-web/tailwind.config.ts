@@ -100,10 +100,15 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-8px)" },
         },
+        "brand-marquee": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.5s ease-out forwards",
         float: "float 5s ease-in-out infinite",
+        "brand-marquee": "brand-marquee 45s linear infinite",
       },
     },
   },

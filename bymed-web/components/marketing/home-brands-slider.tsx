@@ -1,33 +1,11 @@
 "use client";
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
-import { useMemo } from "react";
 import { MotionFadeUp, MotionSection } from "./motion-section";
 
 /** Partner / supplier brands with local logo assets and HTTPS links. */
 export const HOME_BRAND_SLIDER_ITEMS = [
-  {
-    name: "3B Scientific",
-    href: "https://www.3bscientific.com/",
-    logoSrc: "/assets/brands/3BLogo-CJedIKtz-300x51.webp",
-  },
-  {
-    name: "Protec",
-    href: "https://www.protec.com/",
-    logoSrc: "/assets/brands/protecLogo-CENtqv4W-300x240.webp",
-  },
-  {
-    name: "MRC",
-    href: "https://www.mrclab.com/",
-    logoSrc: "/assets/brands/MRC-D7Wnwzwr.webp",
-  },
   {
     name: "Adam Equipment",
     href: "https://www.adamequipment.com/",
@@ -39,25 +17,41 @@ export const HOME_BRAND_SLIDER_ITEMS = [
     logoSrc: "/assets/brands/tk_logo415_02-300x181.webp",
   },
   {
-    name: "Narang",
-    href: "https://www.netbrand.co.za/",
-    logoSrc: "/assets/brands/net-logo-DrM9r0wY-300x129.webp",
-  },
-  {
     name: "Edibon",
     href: "https://www.edibon.com/en/",
     logoSrc: "/assets/brands/edibon.png",
   },
   {
-    name: "Stahlmann Pro",
-    href: "https://stahlmann.co.za/",
-    logoSrc: "/assets/brands/StahlmannPro-DbcylnKC.webp",
+    name: "3B Scientific",
+    href: "https://www.3bscientific.com/",
+    logoSrc: "/assets/brands/3BLogo-CJedIKtz-300x51.webp",
   },
   {
     name: "CSE Medical",
-    href: "https://csemedical.co.za/",
+    href: "https://www.medicalcse.com/mcse/web/indexenglish.html",
     logoSrc: "/assets/brands/logo-medical-CSE-Final-300x162.webp",
   },
+  {
+    name: "MRC",
+    href: "https://www.mrclab.com/",
+    logoSrc: "/assets/brands/MRC-D7Wnwzwr.webp",
+  },
+  {
+    name: "Narang",
+    href: "https://www.narang.com/",
+    logoSrc: "/assets/brands/net-logo-DrM9r0wY-300x129.webp",
+  },
+  {
+    name: "Stahlmann Pro",
+    href: "https://stahlmannpro.com/medical/",
+    logoSrc: "/assets/brands/StahlmannPro-DbcylnKC.webp",
+  },
+  {
+    name: "Protec",
+    href: "https://protec-med.com/en/",
+    logoSrc: "/assets/brands/protecLogo-CENtqv4W-300x240.webp",
+  },
+ 
 ] as const;
 
 function BrandSlide({
@@ -75,37 +69,31 @@ function BrandSlide({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "flex h-24 min-h-24 w-full items-center justify-center rounded-xl bg-background px-4 py-3 ring-1 ring-border/60 transition-[opacity,box-shadow] hover:bg-muted/50 hover:ring-border",
+        "flex h-24 w-[200px] shrink-0 items-center justify-center rounded-xl bg-background px-4 py-3 ring-1 ring-border/60 transition-[opacity,box-shadow] hover:bg-muted/50 hover:ring-border sm:w-[220px]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       )}
       aria-label={`${name} website (opens in new tab)`}
     >
-      <div className="relative h-14 w-full max-w-[220px]">
+      <div className="relative h-14 w-full max-w-[180px]">
         <Image
           src={logoSrc}
           alt={`${name} logo`}
           fill
           className="object-contain"
-          sizes="220px"
+          sizes="180px"
         />
       </div>
     </a>
   );
 }
 
-const AUTOPLAY_MS = 4000;
+/** Duplicated for a seamless infinite marquee loop. */
+const MARQUEE_ITEMS = [
+  ...HOME_BRAND_SLIDER_ITEMS,
+  ...HOME_BRAND_SLIDER_ITEMS,
+];
 
 export function HomeBrandsSlider() {
-  const plugin = useMemo(
-    () =>
-      Autoplay({
-        delay: AUTOPLAY_MS,
-        stopOnInteraction: true,
-        stopOnMouseEnter: true,
-      }),
-    [],
-  );
-
   return (
     <MotionSection
       className="bg-muted py-12 text-foreground sm:py-14"
@@ -128,32 +116,33 @@ export function HomeBrandsSlider() {
         </MotionFadeUp>
 
         <MotionFadeUp className="relative mt-10">
-          <Carousel
-            className="w-full"
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            plugins={[plugin]}
+          <div
+            className="group overflow-hidden motion-reduce:overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] motion-reduce:[mask-image:none]"
             aria-label="Brand logos"
           >
-            <CarouselContent className="-ml-3 sm:-ml-4">
-              {HOME_BRAND_SLIDER_ITEMS.map((brand) => (
-                <CarouselItem
-                  key={brand.name}
-                  className="basis-[70%] pl-3 min-[400px]:basis-[45%] sm:basis-[35%] sm:pl-4 md:basis-[28%] lg:basis-[22%] xl:basis-[18%]"
+            <div
+              className={cn(
+                "flex w-max gap-3 sm:gap-4",
+                "animate-brand-marquee motion-reduce:animate-none",
+                "group-hover:[animation-play-state:paused] hover:[animation-play-state:paused]",
+              )}
+              role="list"
+            >
+              {MARQUEE_ITEMS.map((brand, index) => (
+                <div
+                  key={`${brand.name}-${index}`}
+                  role="listitem"
+                  className="shrink-0"
                 >
-                  <MotionFadeUp>
-                    <BrandSlide
-                      name={brand.name}
-                      href={brand.href}
-                      logoSrc={brand.logoSrc}
-                    />
-                  </MotionFadeUp>
-                </CarouselItem>
+                  <BrandSlide
+                    name={brand.name}
+                    href={brand.href}
+                    logoSrc={brand.logoSrc}
+                  />
+                </div>
               ))}
-            </CarouselContent>
-          </Carousel>
+            </div>
+          </div>
         </MotionFadeUp>
       </div>
     </MotionSection>
