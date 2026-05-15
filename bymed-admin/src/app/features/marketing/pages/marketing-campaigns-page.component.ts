@@ -204,8 +204,10 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
     this.adminApi
       .startMarketingCampaign(id)
       .pipe(
-        catchError(() => {
-          this.errorMessage.set('Could not start campaign.');
+        catchError((err: unknown) => {
+          this.errorMessage.set(
+            err instanceof ApiError ? err.message : 'Could not start campaign.'
+          );
           return EMPTY;
         }),
         finalize(() => this.isBusy.set(false))

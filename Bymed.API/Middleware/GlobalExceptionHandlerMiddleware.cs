@@ -59,16 +59,39 @@ public sealed class GlobalExceptionHandlerMiddleware
     {
         var traceId = context.TraceIdentifier;
 
+        if (exception is DbUpdateConcurrencyException concurrencyEx)
+        {
+            foreach (var entry in concurrencyEx.Entries)
+            {
+                _logger.LogWarning(
+                    "Concurrency conflict on entity {EntityType} (state: {State}). TraceId: {TraceId}, Path: {Path}",
+                    entry.Metadata.ClrType.Name,
+                    entry.State,
+                    traceId,
+                    context.Request.Path);
+            }
+        }
+
         _logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}, Path: {Path}",
             traceId, context.Request.Path);
 
-        var (statusCode, userMessage) = MapException(exception);
+        var (statusCode, userMessage) = MapException(exception, context.Request.Path.Value ?? string.Empty);
+        string[]? concurrencyEntityTypes = null;
+        if (exception is DbUpdateConcurrencyException cex)
+        {
+            concurrencyEntityTypes = cex.Entries
+                .Select(e => e.Metadata.ClrType.FullName ?? e.Metadata.ClrType.Name)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+        }
+
         var response = new ErrorResponse
         {
             Error = userMessage,
             TraceId = traceId,
             ExceptionType = exception.GetType().FullName,
-            Detail = _environment.IsDevelopment() ? exception.ToString() : null
+            Detail = _environment.IsDevelopment() ? exception.ToString() : null,
+            ConcurrencyEntityTypes = concurrencyEntityTypes
         };
 
         context.Response.ContentType = "application/json";
@@ -78,7 +101,7 @@ public sealed class GlobalExceptionHandlerMiddleware
             JsonSerializer.Serialize(response, JsonOptions)).ConfigureAwait(false);
     }
 
-    private static (HttpStatusCode statusCode, string userMessage) MapException(Exception exception)
+    private static (HttpStatusCode statusCode, string userMessage) MapException(Exception exception, string requestPath)
     {
         return exception switch
         {
@@ -89,7 +112,9 @@ public sealed class GlobalExceptionHandlerMiddleware
             InvalidDataException idEx => (HttpStatusCode.BadRequest, idEx.Message),
             DbUpdateConcurrencyException => (
                 HttpStatusCode.Conflict,
-                "This campaign was changed while your request was in progress (for example another tab started sending or saved changes). Refresh the page and try again."),
+                requestPath.Contains("marketing-campaigns", StringComparison.OrdinalIgnoreCase)
+                    ? "This campaign was changed while your request was in progress (for example another tab started sending or saved changes). Refresh the page and try again."
+                    : "This record was updated by another request. Refresh the page and try again."),
             DbUpdateException dbEx => (
                 HttpStatusCode.BadRequest,
                 BuildDbUpdateUserMessage(dbEx)),
@@ -120,4 +145,7 @@ internal sealed class ErrorResponse
     public string? ExceptionType { get; init; }
 
     public string? Detail { get; init; }
+
+    /// <summary>When <see cref="ExceptionType"/> is a concurrency conflict, EF entity CLR type names (diagnostics).</summary>
+    public string[]? ConcurrencyEntityTypes { get; init; }
 }
