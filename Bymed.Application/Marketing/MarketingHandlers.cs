@@ -114,7 +114,7 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
 
     private async Task<Result> HandleCoreAsync(AddMarketingCampaignAttachmentsCommand request, CancellationToken cancellationToken)
     {
-        var campaign = await _campaigns.GetByIdAsync(request.CampaignId, track: true, cancellationToken).ConfigureAwait(false);
+        var campaign = await _campaigns.GetByIdForMutationAsync(request.CampaignId, cancellationToken).ConfigureAwait(false);
         if (campaign is null)
             return Result.Failure("Campaign not found.");
         if (campaign.Status != MarketingCampaignStatus.Draft)
@@ -123,13 +123,18 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
         if (request.Files.Count == 0)
             return Result.Failure("No files were uploaded.");
 
-        if (campaign.Attachments.Count + request.Files.Count > _options.MaxAttachmentsPerCampaign)
+        var (existingCount, existingBytes) = await _campaigns
+            .GetAttachmentStatsAsync(request.CampaignId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (existingCount + request.Files.Count > _options.MaxAttachmentsPerCampaign)
             return Result.Failure($"A campaign cannot have more than {_options.MaxAttachmentsPerCampaign} attachments.");
 
-        var totalBytes = campaign.Attachments.Sum(a => a.SizeBytes) + request.Files.Sum(f => (long)f.Content.Length);
+        var totalBytes = existingBytes + request.Files.Sum(f => (long)f.Content.Length);
         if (totalBytes > _options.MaxTotalAttachmentBytesPerCampaign)
             return Result.Failure("Total attachment size for this campaign would exceed the configured limit.");
 
+        var newAttachments = new List<MarketingCampaignAttachment>(request.Files.Count);
         foreach (var file in request.Files)
         {
             await using var ms = new MemoryStream(file.Content, writable: false);
@@ -146,7 +151,7 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
             if (!stored.IsSuccess || stored.Value is null)
                 return Result.Failure(stored.Error ?? "Failed to store attachment.");
 
-            campaign.Attachments.Add(new MarketingCampaignAttachment
+            newAttachments.Add(new MarketingCampaignAttachment
             {
                 Id = Guid.NewGuid(),
                 MarketingCampaignId = campaign.Id,
@@ -157,6 +162,7 @@ public sealed class AddMarketingCampaignAttachmentsCommandHandler
             });
         }
 
+        _campaigns.AddAttachments(newAttachments);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Result.Success();
     }
@@ -214,7 +220,7 @@ public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<Start
         StartMarketingCampaignCommand request,
         CancellationToken cancellationToken)
     {
-        var campaign = await _campaigns.GetByIdAsync(request.CampaignId, track: true, cancellationToken).ConfigureAwait(false);
+        var campaign = await _campaigns.GetByIdForMutationAsync(request.CampaignId, cancellationToken).ConfigureAwait(false);
         if (campaign is null)
             return (StartCampaignOutcome.Failed, "Campaign not found.");
 

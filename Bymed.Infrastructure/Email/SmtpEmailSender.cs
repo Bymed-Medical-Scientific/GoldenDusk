@@ -111,7 +111,8 @@ public sealed class SmtpEmailSender : ISmtpEmailSender
         {
             if (att.Content is null || att.Content.Length == 0)
                 continue;
-            await using var stream = new MemoryStream(att.Content, writable: false);
+            // Keep streams open until SendMailAsync completes; MailMessage.Dispose disposes attachments.
+            var stream = new MemoryStream(att.Content, writable: false);
             message.Attachments.Add(new Attachment(stream, att.FileName, att.ContentType));
         }
 

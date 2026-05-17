@@ -27,6 +27,30 @@ public sealed class MarketingCampaignRepository : IMarketingCampaignRepository
         return await query.FirstOrDefaultAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<MarketingCampaign?> GetByIdForMutationAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.MarketingCampaigns
+            .Include(c => c.ClientTypes)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<(int Count, long TotalBytes)> GetAttachmentStatsAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.MarketingCampaignAttachments
+            .AsNoTracking()
+            .Where(a => a.MarketingCampaignId == campaignId);
+
+        var count = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+        if (count == 0)
+            return (0, 0L);
+
+        var totalBytes = await query.SumAsync(a => a.SizeBytes, cancellationToken).ConfigureAwait(false);
+        return (count, totalBytes);
+    }
+
     public async Task<IReadOnlyList<MarketingCampaign>> ListRecentAsync(int take, CancellationToken cancellationToken = default)
     {
         return await _context.MarketingCampaigns
@@ -41,6 +65,12 @@ public sealed class MarketingCampaignRepository : IMarketingCampaignRepository
     {
         ArgumentNullException.ThrowIfNull(campaign);
         _context.MarketingCampaigns.Add(campaign);
+    }
+
+    public void AddAttachments(IEnumerable<MarketingCampaignAttachment> attachments)
+    {
+        ArgumentNullException.ThrowIfNull(attachments);
+        _context.MarketingCampaignAttachments.AddRange(attachments);
     }
 
     public void AddRecipients(IEnumerable<MarketingCampaignRecipient> recipients)
