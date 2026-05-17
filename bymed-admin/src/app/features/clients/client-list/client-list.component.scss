@@ -5,6 +5,26 @@
   margin-bottom: 1rem;
 }
 
+.filters {
+  margin-bottom: 1rem;
+}
+
+.filter-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 28rem;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+::ng-deep .type-multiselect {
+  width: 100%;
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;

@@ -1,0 +1,259 @@
+<section class="marketing-page">
+  <header class="marketing-page__intro">
+    <h1>Marketing campaigns</h1>
+    <p class="marketing-page__lede">
+      Compose a broadcast email, attach brochures or images, preview matching recipients, then start sending when you are ready.
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <p-message severity="error" [text]="err" styleClass="marketing-page__banner" [closable]="true" (onClose)="clearError()" />
+  }
+
+  @if (uploadNotice(); as notice) {
+    <p-message severity="success" [text]="notice" styleClass="marketing-page__banner" [closable]="true" (onClose)="clearUploadNotice()" />
+  }
+
+  <ol class="step-rail" aria-label="Campaign workflow">
+    <li class="step-rail__item" [class.step-rail__item--active]="true" [class.step-rail__item--done]="!!campaignId()">
+      <span class="step-rail__n">1</span>
+      <span class="step-rail__label">Compose</span>
+    </li>
+    <li class="step-rail__item" [class.step-rail__item--active]="!!campaignId()" [class.step-rail__item--done]="!!campaignId()">
+      <span class="step-rail__n">2</span>
+      <span class="step-rail__label">Attachments</span>
+    </li>
+    <li class="step-rail__item" [class.step-rail__item--active]="!!preview()" [class.step-rail__item--done]="!!preview()">
+      <span class="step-rail__n">3</span>
+      <span class="step-rail__label">Preview</span>
+    </li>
+    <li class="step-rail__item" [class.step-rail__item--active]="!!status()" [class.step-rail__item--done]="status()?.status === 'Completed'">
+      <span class="step-rail__n">4</span>
+      <span class="step-rail__label">Send</span>
+    </li>
+  </ol>
+
+  <div class="marketing-layout">
+    <article class="marketing-card">
+      <div class="marketing-card__head">
+        <div>
+          <h2 class="marketing-card__title">Compose message</h2>
+          <p class="marketing-card__sub">Subject, optional HTML body, audience filters, and which institution emails to include.</p>
+        </div>
+        @if (campaignId(); as id) {
+          <span class="draft-chip" title="Draft campaign id">Draft · {{ id | slice:0:8 }}…</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="mc-subject">Subject</label>
+        <input
+          pInputText
+          id="mc-subject"
+          class="field__control"
+          [(ngModel)]="subject"
+          name="subject"
+          placeholder="e.g. Spring equipment promotion" />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="mc-body">Message <span class="field__hint">(optional HTML)</span></label>
+        <textarea
+          pTextarea
+          id="mc-body"
+          class="field__control"
+          [(ngModel)]="htmlBody"
+          name="htmlBody"
+          rows="8"
+          placeholder="Paste HTML or plain text. Leave blank for subject-only emails."></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="mc-client-types">Client types</label>
+        <p-multiselect
+          inputId="mc-client-types"
+          class="field__control w-full"
+          [(ngModel)]="selectedClientTypeIds"
+          name="clientTypes"
+          [options]="clientTypes()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select one or more client types"
+          display="chip"
+          [filter]="true"
+          appendTo="body" />
+      </div>
+
+      <fieldset class="recipient-fieldset">
+        <legend class="recipient-fieldset__legend">Recipient addresses</legend>
+        <p class="recipient-fieldset__help">Choose which saved emails on each matching client record should receive this campaign.</p>
+        <div class="recipient-fieldset__row">
+          <p-checkbox [(ngModel)]="includeInstitutionEmails" name="incInst" [binary]="true" inputId="incInst" />
+          <label for="incInst">Institution emails (Email 1–3)</label>
+        </div>
+        <div class="recipient-fieldset__row">
+          <p-checkbox [(ngModel)]="includeContactPerson1Email" name="incCp1" [binary]="true" inputId="incCp1" />
+          <label for="incCp1">Contact person 1 email</label>
+        </div>
+        <div class="recipient-fieldset__row">
+          <p-checkbox [(ngModel)]="includeContactPerson2Email" name="incCp2" [binary]="true" inputId="incCp2" />
+          <label for="incCp2">Contact person 2 email</label>
+        </div>
+      </fieldset>
+
+      <div class="marketing-card__actions">
+        <button
+          pButton
+          type="button"
+          label="Create draft"
+          icon="pi pi-save"
+          [loading]="isBusy()"
+          [disabled]="isBusy()"
+          (click)="createDraft()"></button>
+      </div>
+    </article>
+
+    <article class="marketing-card marketing-card--attachments">
+      <div class="marketing-card__head">
+        <div>
+          <h2 class="marketing-card__title">Attachments</h2>
+          <p class="marketing-card__sub">
+            PDFs and images (JPEG, PNG, WebP). Up to {{ maxAttachmentsPerCampaign }} files per campaign, {{ maxMbPerFile }} MB each,
+            {{ maxMbTotal }} MB total — enforced when you upload.
+          </p>
+        </div>
+      </div>
+
+      @if (!campaignId()) {
+        <p-message
+          severity="secondary"
+          text="Create a draft above first. Then you can drag files here or use Choose files and Upload to draft."
+          styleClass="marketing-attachment-hint" />
+      } @else {
+        <p class="empty-hint attachment-queue-hint">
+          <strong>Pending</strong> only means the file is queued in your browser. Click <strong>Upload to draft</strong> to save it on the server; after a successful upload the list clears and a confirmation appears above.
+        </p>
+      }
+
+      <p-fileupload
+        #attachmentUpload
+        mode="advanced"
+        name="files"
+        [customUpload]="true"
+        [multiple]="true"
+        [auto]="false"
+        [maxFileSize]="maxBytesPerFile"
+        accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
+        [disabled]="!campaignId()"
+        chooseLabel="Choose files"
+        uploadLabel="Upload to draft"
+        cancelLabel="Clear queue"
+        [showCancelButton]="true"
+        (uploadHandler)="onAttachmentUpload($event)"
+        styleClass="marketing-fileupload" />
+    </article>
+
+    <article class="marketing-card">
+      <div class="marketing-card__head">
+        <div>
+          <h2 class="marketing-card__title">Preview recipients</h2>
+          <p class="marketing-card__sub">See how many clients match and a sample of the resolved email addresses.</p>
+        </div>
+      </div>
+
+      @if (!campaignId()) {
+        <p class="empty-hint">Save a draft to load a recipient preview.</p>
+      } @else {
+        <div class="marketing-card__actions">
+          <button
+            pButton
+            type="button"
+            label="Load preview"
+            icon="pi pi-users"
+            [outlined]="true"
+            [loading]="isBusy()"
+            [disabled]="isBusy()"
+            (click)="loadPreview()"></button>
+        </div>
+        @if (preview(); as p) {
+          <p class="counts">
+            Matching clients: <strong>{{ p.matchingClientCount }}</strong> — Recipients:
+            <strong>{{ p.recipientCount }}</strong>
+          </p>
+          <p-table [value]="[...p.sampleRecipients]" [paginator]="false" styleClass="marketing-preview-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Institution</th>
+                <th>Email</th>
+                <th>Source</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>{{ row.institutionName }}</td>
+                <td>{{ row.email }}</td>
+                <td>{{ row.source }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      }
+    </article>
+
+    <article class="marketing-card">
+      <div class="marketing-card__head">
+        <div>
+          <h2 class="marketing-card__title">Send campaign</h2>
+          <p class="marketing-card__sub">Starts batched sending in the background. You can refresh status while it runs.</p>
+        </div>
+      </div>
+
+      @if (!campaignId()) {
+        <p class="empty-hint">Save a draft to enable sending.</p>
+      } @else {
+        <div class="marketing-card__actions">
+          <button
+            pButton
+            type="button"
+            label="Start sending"
+            icon="pi pi-send"
+            severity="danger"
+            [loading]="isBusy()"
+            [disabled]="isBusy()"
+            (click)="startCampaign()"></button>
+          <button
+            pButton
+            type="button"
+            label="Refresh status"
+            icon="pi pi-refresh"
+            [outlined]="true"
+            (click)="refreshStatus()"></button>
+        </div>
+        @if (status(); as s) {
+          <p class="status-line">
+            Status: <strong>{{ s.status }}</strong> — Sent: {{ s.sentCount }} / {{ s.totalRecipients }} — Pending:
+            {{ s.pendingCount }} — Failed: {{ s.failedCount }}
+          </p>
+          @if (s.lastError) {
+            <p class="error-inline">{{ s.lastError }}</p>
+          }
+          @if (s.status === 'Completed' && s.failedCount > 0 && s.sentCount > 0) {
+            <p-message
+              severity="warn"
+              [text]="
+                s.failedCount +
+                ' recipient(s) failed SMTP. ' +
+                s.sentCount +
+                ' were accepted by your mail server; check spam/junk and recipient mail logs.'
+              "
+              styleClass="marketing-page__banner" />
+          }
+          <p class="empty-hint delivery-footnote">
+            <strong>Sent</strong> means your SMTP server accepted the message for that address. Spam rules, an incorrect
+            address in client records, or the recipient’s server can still prevent inbox delivery.
+          </p>
+        }
+      }
+    </article>
+  </div>
+</section>

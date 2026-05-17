@@ -124,6 +124,77 @@ public sealed class LocalFileStorageService : IFileStorageService
         }
     }
 
+    private static readonly string[] MarketingAllowedContentTypes =
+    [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "application/pdf"
+    ];
+
+    public async Task<Result<StoredMarketingAsset>> SaveMarketingCampaignAttachmentAsync(
+        Guid campaignId,
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        long maxFileSizeBytes,
+        CancellationToken cancellationToken = default)
+    {
+        if (fileStream is null)
+            return Result<StoredMarketingAsset>.Failure("File stream is required.");
+        if (string.IsNullOrWhiteSpace(fileName))
+            return Result<StoredMarketingAsset>.Failure("File name is required.");
+        if (string.IsNullOrWhiteSpace(contentType))
+            return Result<StoredMarketingAsset>.Failure("Content type is required.");
+        if (!MarketingAllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
+            return Result<StoredMarketingAsset>.Failure("Unsupported file type for marketing attachments.");
+
+        if (!fileStream.CanRead)
+            return Result<StoredMarketingAsset>.Failure("Cannot read file stream.");
+
+        try
+        {
+            await using var memory = new MemoryStream();
+            await fileStream.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+            if (memory.Length == 0)
+                return Result<StoredMarketingAsset>.Failure("File is empty.");
+            if (memory.Length > maxFileSizeBytes)
+                return Result<StoredMarketingAsset>.Failure("File is too large.");
+
+            var extension = GetMarketingSafeExtension(contentType, fileName);
+            var fileId = Guid.NewGuid().ToString("N");
+            var storedFileName = $"{fileId}{extension}";
+
+            var root = EnsureRootDirectory();
+            var relativeDir = Path.Combine("marketing", campaignId.ToString("N"));
+            var absoluteDir = Path.Combine(root, relativeDir);
+            Directory.CreateDirectory(absoluteDir);
+
+            var absolutePath = Path.Combine(absoluteDir, storedFileName);
+            await using (var outFile = File.Create(absolutePath))
+            {
+                memory.Position = 0;
+                await memory.CopyToAsync(outFile, cancellationToken).ConfigureAwait(false);
+            }
+
+            var relativePath = $"{relativeDir.Replace('\\', '/')}/{storedFileName}";
+            return Result<StoredMarketingAsset>.Success(
+                new StoredMarketingAsset(relativePath, Path.GetFileName(fileName), contentType, memory.Length));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Failed to save marketing attachment.");
+            return Result<StoredMarketingAsset>.Failure("Failed to save marketing attachment.");
+        }
+    }
+
+    private static string GetMarketingSafeExtension(string contentType, string fileName)
+    {
+        if (contentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+            return ".pdf";
+        return GetSafeExtension(contentType, fileName);
+    }
+
     public Task<Result> DeleteFileAsync(
         string fileUrl,
         CancellationToken cancellationToken = default)

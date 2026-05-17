@@ -56,7 +56,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 
-const long MaxRequestBodySizeBytes = 10L * 1024 * 1024; // 10MB
+const long MaxRequestBodySizeBytes = 28L * 1024 * 1024; // marketing campaign attachments (see Marketing:MaxTotalAttachmentBytesPerCampaign)
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 
@@ -73,6 +73,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 {
 
     options.MultipartBodyLengthLimit = MaxRequestBodySizeBytes;
+
+    // Default 16 KB is tight for long filenames / RFC5987 Content-Disposition on some clients (multipart upload failures).
+    options.MultipartHeadersLengthLimit = 1_048_576;
 
 });
 

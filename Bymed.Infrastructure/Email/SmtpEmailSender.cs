@@ -14,6 +14,16 @@ public interface ISmtpEmailSender
         string htmlBody,
         IReadOnlyCollection<string>? ccEmails = null,
         CancellationToken cancellationToken = default);
+
+    Task SendMarketingEmailAsync(
+        string toEmail,
+        string fromAddress,
+        string fromDisplayName,
+        string subject,
+        string htmlBody,
+        IReadOnlyList<SmtpEmailAttachment> attachments,
+        CancellationToken cancellationToken = default,
+        Guid? marketingCampaignId = null);
 }
 
 public sealed class SmtpEmailSender : ISmtpEmailSender
@@ -69,5 +79,74 @@ public sealed class SmtpEmailSender : ISmtpEmailSender
             subject);
         cancellationToken.ThrowIfCancellationRequested();
         await smtp.SendMailAsync(message).ConfigureAwait(false);
+    }
+
+    public async Task SendMarketingEmailAsync(
+        string toEmail,
+        string fromAddress,
+        string fromDisplayName,
+        string subject,
+        string htmlBody,
+        IReadOnlyList<SmtpEmailAttachment> attachments,
+        CancellationToken cancellationToken = default,
+        Guid? marketingCampaignId = null)
+    {
+        if (string.IsNullOrWhiteSpace(toEmail))
+            throw new ArgumentException("Recipient is required.", nameof(toEmail));
+        if (string.IsNullOrWhiteSpace(fromAddress))
+            throw new ArgumentException("From address is required.", nameof(fromAddress));
+        if (string.IsNullOrWhiteSpace(fromDisplayName))
+            fromDisplayName = fromAddress;
+
+        using var message = new MailMessage
+        {
+            From = new MailAddress(fromAddress.Trim(), fromDisplayName.Trim()),
+            Subject = subject,
+            Body = htmlBody,
+            IsBodyHtml = true
+        };
+        message.To.Add(new MailAddress(toEmail.Trim()));
+
+        foreach (var att in attachments ?? Array.Empty<SmtpEmailAttachment>())
+        {
+            if (att.Content is null || att.Content.Length == 0)
+                continue;
+            // Keep streams open until SendMailAsync completes; MailMessage.Dispose disposes attachments.
+            var stream = new MemoryStream(att.Content, writable: false);
+            message.Attachments.Add(new Attachment(stream, att.FileName, att.ContentType));
+        }
+
+        var useDedicatedMarketingSmtp = !string.IsNullOrWhiteSpace(_options.MarketingSmtpUsername) &&
+            !string.IsNullOrWhiteSpace(_options.MarketingSmtpPassword);
+        var smtpUser = useDedicatedMarketingSmtp ? _options.MarketingSmtpUsername : _options.Username;
+        var smtpPass = useDedicatedMarketingSmtp ? _options.MarketingSmtpPassword : _options.Password;
+
+        using var smtp = new SmtpClient(_options.Host, _options.Port)
+        {
+            EnableSsl = _options.UseSsl,
+            Credentials = new NetworkCredential(smtpUser, smtpPass)
+        };
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await smtp.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
+
+        if (marketingCampaignId is { } campaignId)
+        {
+            _logger.LogInformation(
+                "Marketing campaign {MarketingCampaignId}: SMTP accepted outbound message to {RecipientEmail} (subject: {EmailSubject}, attachments: {AttachmentCount}, smtp user: {SmtpUser}).",
+                campaignId,
+                toEmail,
+                subject,
+                message.Attachments.Count,
+                smtpUser);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Marketing email: SMTP accepted outbound message to {RecipientEmail} (subject: {EmailSubject}, attachments: {AttachmentCount}).",
+                toEmail,
+                subject,
+                message.Attachments.Count);
+        }
     }
 }

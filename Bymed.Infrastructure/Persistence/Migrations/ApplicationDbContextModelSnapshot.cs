@@ -524,6 +524,161 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.ToTable("InventoryLogs");
                 });
 
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HtmlBody")
+                        .HasMaxLength(100000)
+                        .HasColumnType("character varying(100000)");
+
+                    b.Property<bool>("IncludeContactPerson1Email")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IncludeContactPerson2Email")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IncludeInstitutionEmails")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTime?>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("MarketingCampaigns");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<Guid>("MarketingCampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageRelativePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketingCampaignId");
+
+                    b.ToTable("MarketingCampaignAttachments");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignClientType", b =>
+                {
+                    b.Property<Guid>("MarketingCampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClientTypeId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("MarketingCampaignId", "ClientTypeId");
+
+                    b.HasIndex("ClientTypeId");
+
+                    b.ToTable("MarketingCampaignClientTypes");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignRecipient", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<int>("EmailSource")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<Guid>("MarketingCampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("MarketingCampaignId");
+
+                    b.HasIndex("MarketingCampaignId", "NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("MarketingCampaignId", "Status");
+
+                    b.ToTable("MarketingCampaignRecipients");
+                });
+
             modelBuilder.Entity("Bymed.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1427,6 +1582,55 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignAttachment", b =>
+                {
+                    b.HasOne("Bymed.Domain.Entities.MarketingCampaign", "MarketingCampaign")
+                        .WithMany("Attachments")
+                        .HasForeignKey("MarketingCampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MarketingCampaign");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignClientType", b =>
+                {
+                    b.HasOne("Bymed.Domain.Entities.ClientType", "ClientType")
+                        .WithMany()
+                        .HasForeignKey("ClientTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Bymed.Domain.Entities.MarketingCampaign", "MarketingCampaign")
+                        .WithMany("ClientTypes")
+                        .HasForeignKey("MarketingCampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientType");
+
+                    b.Navigation("MarketingCampaign");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignRecipient", b =>
+                {
+                    b.HasOne("Bymed.Domain.Entities.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Bymed.Domain.Entities.MarketingCampaign", "MarketingCampaign")
+                        .WithMany("Recipients")
+                        .HasForeignKey("MarketingCampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("MarketingCampaign");
+                });
+
             modelBuilder.Entity("Bymed.Domain.Entities.Order", b =>
                 {
                     b.HasOne("Bymed.Domain.Entities.User", "User")
@@ -1589,6 +1793,15 @@ namespace Bymed.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Bymed.Domain.Entities.Cart", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaign", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("ClientTypes");
+
+                    b.Navigation("Recipients");
                 });
 
             modelBuilder.Entity("Bymed.Domain.Entities.Order", b =>

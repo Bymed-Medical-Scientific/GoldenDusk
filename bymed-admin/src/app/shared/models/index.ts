@@ -4,6 +4,7 @@ export * from './common.dto';
 export * from './client.dto';
 export * from './contact.dto';
 export * from './inventory.dto';
+export * from './marketing.dto';
 export * from './order.dto';
 export * from './page-content.dto';
 export * from './pending-admin-registration.dto';

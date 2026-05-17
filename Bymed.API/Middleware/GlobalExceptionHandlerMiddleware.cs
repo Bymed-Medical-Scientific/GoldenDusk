@@ -1,5 +1,7 @@
+using System.IO;
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bymed.API.Middleware;
 
@@ -57,15 +59,39 @@ public sealed class GlobalExceptionHandlerMiddleware
     {
         var traceId = context.TraceIdentifier;
 
+        if (exception is DbUpdateConcurrencyException concurrencyEx)
+        {
+            foreach (var entry in concurrencyEx.Entries)
+            {
+                _logger.LogWarning(
+                    "Concurrency conflict on entity {EntityType} (state: {State}). TraceId: {TraceId}, Path: {Path}",
+                    entry.Metadata.ClrType.Name,
+                    entry.State,
+                    traceId,
+                    context.Request.Path);
+            }
+        }
+
         _logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}, Path: {Path}",
             traceId, context.Request.Path);
 
-        var (statusCode, userMessage) = MapException(exception);
+        var (statusCode, userMessage) = MapException(exception, context.Request.Path.Value ?? string.Empty);
+        string[]? concurrencyEntityTypes = null;
+        if (exception is DbUpdateConcurrencyException cex)
+        {
+            concurrencyEntityTypes = cex.Entries
+                .Select(e => e.Metadata.ClrType.FullName ?? e.Metadata.ClrType.Name)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+        }
+
         var response = new ErrorResponse
         {
             Error = userMessage,
             TraceId = traceId,
-            Detail = _environment.IsDevelopment() ? exception.ToString() : null
+            ExceptionType = exception.GetType().FullName,
+            Detail = _environment.IsDevelopment() ? exception.ToString() : null,
+            ConcurrencyEntityTypes = concurrencyEntityTypes
         };
 
         context.Response.ContentType = "application/json";
@@ -75,7 +101,7 @@ public sealed class GlobalExceptionHandlerMiddleware
             JsonSerializer.Serialize(response, JsonOptions)).ConfigureAwait(false);
     }
 
-    private static (HttpStatusCode statusCode, string userMessage) MapException(Exception exception)
+    private static (HttpStatusCode statusCode, string userMessage) MapException(Exception exception, string requestPath)
     {
         return exception switch
         {
@@ -83,9 +109,30 @@ public sealed class GlobalExceptionHandlerMiddleware
             InvalidOperationException opEx => (HttpStatusCode.BadRequest, opEx.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized."),
             KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
+            InvalidDataException idEx => (HttpStatusCode.BadRequest, idEx.Message),
+            DbUpdateConcurrencyException => (
+                HttpStatusCode.Conflict,
+                requestPath.Contains("marketing-campaigns", StringComparison.OrdinalIgnoreCase)
+                    ? "This campaign was changed while your request was in progress (for example another tab started sending or saved changes). Refresh the page and try again."
+                    : "This record was updated by another request. Refresh the page and try again."),
+            DbUpdateException dbEx => (
+                HttpStatusCode.BadRequest,
+                BuildDbUpdateUserMessage(dbEx)),
+            IOException ioEx => (
+                HttpStatusCode.ServiceUnavailable,
+                "File storage or network I/O failed. Please try again or contact support if it persists."),
             _ => (HttpStatusCode.InternalServerError,
                 "An unexpected error occurred. Please try again later.")
         };
+    }
+
+    private static string BuildDbUpdateUserMessage(DbUpdateException dbEx)
+    {
+        var inner = dbEx.InnerException?.Message;
+        if (!string.IsNullOrWhiteSpace(inner) && inner.Contains("23505", StringComparison.Ordinal))
+            return "This record conflicts with existing data (duplicate).";
+
+        return "Could not save changes to the database.";
     }
 }
 
@@ -93,5 +140,12 @@ internal sealed class ErrorResponse
 {
     public string Error { get; init; } = string.Empty;
     public string TraceId { get; init; } = string.Empty;
+
+    /// <summary>CLR exception type (for support; not a security boundary).</summary>
+    public string? ExceptionType { get; init; }
+
     public string? Detail { get; init; }
+
+    /// <summary>When <see cref="ExceptionType"/> is a concurrency conflict, EF entity CLR type names (diagnostics).</summary>
+    public string[]? ConcurrencyEntityTypes { get; init; }
 }

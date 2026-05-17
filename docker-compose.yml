@@ -73,6 +73,16 @@ services:
       Email__AdminEmailVerificationBaseUrl: ${ADMIN_EMAIL_VERIFICATION_BASE_URL:-${Email__AdminEmailVerificationBaseUrl:-http://localhost:4200/verify-email}}
       Email__AdminApprovalNotifyRecipients: ${EMAIL_ADMIN_APPROVAL_RECIPIENTS:-${Email__AdminApprovalNotifyRecipients:-}}
       Email__AdminPanelBaseUrl:       ${ADMIN_PANEL_BASE_URL:-${Email__AdminPanelBaseUrl:-http://localhost:4200}}
+      Email__MarketingFromAddress:    ${EMAIL_MARKETING_FROM:-${Email__MarketingFromAddress:-marketing@bymed.co.zw}}
+      Email__MarketingFromName:       ${EMAIL_MARKETING_FROM_NAME:-${Email__MarketingFromName:-Bymed Marketing}}
+      Email__MarketingSmtpUsername:   ${EMAIL_MARKETING_SMTP_USER:-${Email__MarketingSmtpUsername:-}}
+      Email__MarketingSmtpPassword:   ${EMAIL_MARKETING_SMTP_PASSWORD:-${Email__MarketingSmtpPassword:-}}
+
+      Marketing__SendBatchSize:                        ${MARKETING_SEND_BATCH_SIZE:-25}
+      Marketing__MaxAttachmentsPerCampaign:            ${MARKETING_MAX_ATTACHMENTS:-5}
+      Marketing__MaxAttachmentBytesPerFile:            ${MARKETING_MAX_ATTACHMENT_BYTES:-10485760}
+      Marketing__MaxTotalAttachmentBytesPerCampaign:   ${MARKETING_MAX_TOTAL_ATTACHMENT_BYTES:-26214400}
+      Marketing__ClientExpansionPageSize:              ${MARKETING_CLIENT_PAGE_SIZE:-500}
 
       # CORS — must match the public-facing origins browsers use (localhost and 127.0.0.1).
       Cors__AllowedOrigins__0: ${WEB_ORIGIN:-http://localhost:3000}

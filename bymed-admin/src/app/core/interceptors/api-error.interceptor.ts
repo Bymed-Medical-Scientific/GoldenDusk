@@ -87,5 +87,20 @@ function parseBadRequestBody(error: HttpErrorResponse): {
     messageFromBody = validationErrors.map((e) => e.errorMessage).join(' ');
   }
 
+  if (messageFromBody) {
+    const et = record['exceptionType'];
+    const tid = record['traceId'];
+    const extras: string[] = [];
+    if (typeof et === 'string' && et.length > 0) {
+      extras.push(`Type: ${et}`);
+    }
+    if (typeof tid === 'string' && tid.length > 0 && !messageFromBody.includes(tid)) {
+      extras.push(`TraceId: ${tid}`);
+    }
+    if (extras.length > 0) {
+      messageFromBody = `${messageFromBody} (${extras.join(', ')})`;
+    }
+  }
+
   return { messageFromBody, validationErrors };
 }
