@@ -45,8 +45,7 @@ public sealed class CreateMarketingCampaignCommandHandler
             Subject = request.Subject.Trim(),
             HtmlBody = string.IsNullOrWhiteSpace(request.HtmlBody) ? null : request.HtmlBody.Trim(),
             IncludeInstitutionEmails = request.IncludeInstitutionEmails,
-            IncludeContactPerson1Email = request.IncludeContactPerson1Email,
-            IncludeContactPerson2Email = request.IncludeContactPerson2Email,
+            IncludeContactPersonEmails = request.IncludeContactPersonEmails,
             CreatedAtUtc = DateTime.UtcNow,
             CreatedByUserId = request.CreatedByUserId
         };
@@ -74,8 +73,7 @@ public sealed class CreateMarketingCampaignCommandHandler
             c.HtmlBody,
             c.ClientTypes.Select(x => x.ClientTypeId).ToList(),
             c.IncludeInstitutionEmails,
-            c.IncludeContactPerson1Email,
-            c.IncludeContactPerson2Email,
+            c.IncludeContactPersonEmails,
             c.CreatedAtUtc,
             c.Attachments.Select(a => new MarketingCampaignAttachmentDto(a.Id, a.FileName, a.ContentType, a.SizeBytes)).ToList());
 }
@@ -243,7 +241,7 @@ public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<Start
             return (StartCampaignOutcome.Failed, "Only draft campaigns can be started.");
         }
 
-        if (!campaign.IncludeInstitutionEmails && !campaign.IncludeContactPerson1Email && !campaign.IncludeContactPerson2Email)
+        if (!campaign.IncludeInstitutionEmails && !campaign.IncludeContactPersonEmails)
             return (StartCampaignOutcome.Failed, "Select at least one recipient email option.");
 
         var typeIds = campaign.ClientTypes.Select(x => x.ClientTypeId).ToList();
@@ -269,8 +267,7 @@ public sealed class StartMarketingCampaignCommandHandler : IRequestHandler<Start
                     row,
                     campaign.Id,
                     campaign.IncludeInstitutionEmails,
-                    campaign.IncludeContactPerson1Email,
-                    campaign.IncludeContactPerson2Email,
+                    campaign.IncludeContactPersonEmails,
                     seen,
                     recipients);
             }
@@ -337,8 +334,7 @@ public sealed class GetMarketingCampaignPreviewQueryHandler
                     row,
                     campaign.Id,
                     campaign.IncludeInstitutionEmails,
-                    campaign.IncludeContactPerson1Email,
-                    campaign.IncludeContactPerson2Email,
+                    campaign.IncludeContactPersonEmails,
                     seen,
                     recipients);
             }

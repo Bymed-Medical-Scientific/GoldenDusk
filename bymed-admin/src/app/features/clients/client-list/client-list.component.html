@@ -40,8 +40,8 @@
       <tr>
         <td>{{ row.institutionName }}</td>
         <td>{{ row.clientTypeName }}</td>
-        <td>{{ row.email1 || row.email2 || row.email3 || '-' }}</td>
-        <td>{{ row.phoneNumber1 || row.phoneNumber2 || row.phoneNumber3 || '-' }}</td>
+        <td>{{ row.email || '-' }}</td>
+        <td>{{ row.phone || row.telephone || '-' }}</td>
         <td class="actions">
           <a pButton [routerLink]="['/clients', row.id, 'edit']" label="Edit" size="small"></a>
           <button

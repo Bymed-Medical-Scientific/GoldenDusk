@@ -5,12 +5,7 @@ export type MarketingCampaignStatus =
   | 'Completed'
   | 'Failed';
 
-export type MarketingRecipientEmailSource =
-  | 'InstitutionEmail1'
-  | 'InstitutionEmail2'
-  | 'InstitutionEmail3'
-  | 'ContactPerson1Email'
-  | 'ContactPerson2Email';
+export type MarketingRecipientEmailSource = 'InstitutionEmail' | 'ContactPersonEmail';
 
 export interface MarketingCampaignAttachmentDto {
   readonly id: string;
@@ -26,8 +21,7 @@ export interface MarketingCampaignDetailDto {
   readonly htmlBody: string | null;
   readonly clientTypeIds: readonly string[];
   readonly includeInstitutionEmails: boolean;
-  readonly includeContactPerson1Email: boolean;
-  readonly includeContactPerson2Email: boolean;
+  readonly includeContactPersonEmails: boolean;
   readonly createdAtUtc: string;
   readonly attachments: readonly MarketingCampaignAttachmentDto[];
 }
@@ -70,6 +64,5 @@ export interface CreateMarketingCampaignRequestDto {
   readonly htmlBody?: string | null;
   readonly clientTypeIds: readonly string[];
   readonly includeInstitutionEmails: boolean;
-  readonly includeContactPerson1Email: boolean;
-  readonly includeContactPerson2Email: boolean;
+  readonly includeContactPersonEmails: boolean;
 }

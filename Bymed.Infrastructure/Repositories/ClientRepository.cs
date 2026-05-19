@@ -22,6 +22,7 @@ public sealed class ClientRepository : IClientRepository
         var query = _context.Clients
             .AsNoTracking()
             .Include(x => x.ClientType)
+            .Include(x => x.ContactPersons)
             .AsQueryable();
 
         if (clientTypeIds is { Count: > 0 })
@@ -56,28 +57,34 @@ public sealed class ClientRepository : IClientRepository
         if (clientTypeIds is not { Count: > 0 })
             return Array.Empty<ClientMarketingProjection>();
 
-        return await _context.Clients
+        var rows = await _context.Clients
             .AsNoTracking()
+            .Include(x => x.ContactPersons)
             .Where(x => clientTypeIds.Contains(x.ClientTypeId))
             .OrderBy(x => x.Id)
             .Skip(skip)
             .Take(take)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return rows
             .Select(x => new ClientMarketingProjection(
                 x.Id,
                 x.InstitutionName,
-                x.Email1,
-                x.Email2,
-                x.Email3,
-                x.ContactPerson1Email,
-                x.ContactPerson2Email))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+                x.Email,
+                x.ContactPersons
+                    .Select(cp => cp.Email)
+                    .Where(email => !string.IsNullOrWhiteSpace(email))
+                    .Select(email => email!)
+                    .ToList()))
+            .ToList();
     }
 
     public async Task<Client?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Clients
             .Include(x => x.ClientType)
+            .Include(x => x.ContactPersons)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
             .ConfigureAwait(false);
     }

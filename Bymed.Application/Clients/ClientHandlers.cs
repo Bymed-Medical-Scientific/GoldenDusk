@@ -8,29 +8,33 @@ namespace Bymed.Application.Clients;
 
 internal static class ClientMapping
 {
+    public static ClientContactPersonDto ToDto(this ClientContactPerson entity) => new()
+    {
+        Id = entity.Id,
+        Name = entity.Name,
+        Email = entity.Email,
+        Phone = entity.Phone,
+        Faculty = entity.Faculty
+    };
+
     public static ClientDto ToDto(this Client entity, string? clientTypeName = null) => new()
     {
         Id = entity.Id,
         InstitutionName = entity.InstitutionName,
         Address = entity.Address,
-        Email1 = entity.Email1,
-        Email2 = entity.Email2,
-        Email3 = entity.Email3,
-        PhoneNumber1 = entity.PhoneNumber1,
-        PhoneNumber2 = entity.PhoneNumber2,
-        PhoneNumber3 = entity.PhoneNumber3,
-        TelephoneNumber1 = entity.TelephoneNumber1,
-        TelephoneNumber2 = entity.TelephoneNumber2,
-        TelephoneNumber3 = entity.TelephoneNumber3,
-        ContactPerson1Name = entity.ContactPerson1Name,
-        ContactPerson1Email = entity.ContactPerson1Email,
-        ContactPerson1Telephone = entity.ContactPerson1Telephone,
-        ContactPerson2Name = entity.ContactPerson2Name,
-        ContactPerson2Email = entity.ContactPerson2Email,
-        ContactPerson2Telephone = entity.ContactPerson2Telephone,
+        Email = entity.Email,
+        Phone = entity.Phone,
+        Telephone = entity.Telephone,
         ClientTypeId = entity.ClientTypeId,
-        ClientTypeName = clientTypeName ?? entity.ClientType?.Name ?? string.Empty
+        ClientTypeName = clientTypeName ?? entity.ClientType?.Name ?? string.Empty,
+        ContactPersons = entity.ContactPersons.Select(x => x.ToDto()).ToList()
     };
+
+    public static IReadOnlyList<ClientContactPersonInput> ToInputs(
+        IReadOnlyList<ClientContactPersonRequest>? contactPersons) =>
+        contactPersons?
+            .Select(x => new ClientContactPersonInput(x.Name, x.Email, x.Phone, x.Faculty))
+            .ToList() ?? [];
 }
 
 public sealed class GetClientsQueryHandler : IRequestHandler<GetClientsQuery, IReadOnlyList<ClientDto>>
@@ -95,32 +99,20 @@ public sealed class CreateClientCommandHandler : IRequestHandler<CreateClientCom
         if (clientType is null)
             return Result<ClientDto>.Failure("Client type not found.");
 
-        var entity = CreateEntity(req);
+        var entity = new Client(
+            req.InstitutionName,
+            req.Address,
+            req.ClientTypeId,
+            req.Email,
+            req.Phone,
+            req.Telephone);
+
+        entity.ReplaceContactPersons(ClientMapping.ToInputs(req.ContactPersons));
+
         _clientRepository.Add(entity);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Result<ClientDto>.Success(entity.ToDto(clientType.Name));
     }
-
-    private static Client CreateEntity(CreateClientRequest req) =>
-        new(
-            req.InstitutionName,
-            req.Address,
-            req.ClientTypeId,
-            req.Email1,
-            req.Email2,
-            req.Email3,
-            req.PhoneNumber1,
-            req.PhoneNumber2,
-            req.PhoneNumber3,
-            req.TelephoneNumber1,
-            req.TelephoneNumber2,
-            req.TelephoneNumber3,
-            req.ContactPerson1Name,
-            req.ContactPerson1Email,
-            req.ContactPerson1Telephone,
-            req.ContactPerson2Name,
-            req.ContactPerson2Email,
-            req.ContactPerson2Telephone);
 }
 
 public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCommand, Result<ClientDto>>
@@ -158,21 +150,11 @@ public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCom
             req.InstitutionName,
             req.Address,
             req.ClientTypeId,
-            req.Email1,
-            req.Email2,
-            req.Email3,
-            req.PhoneNumber1,
-            req.PhoneNumber2,
-            req.PhoneNumber3,
-            req.TelephoneNumber1,
-            req.TelephoneNumber2,
-            req.TelephoneNumber3,
-            req.ContactPerson1Name,
-            req.ContactPerson1Email,
-            req.ContactPerson1Telephone,
-            req.ContactPerson2Name,
-            req.ContactPerson2Email,
-            req.ContactPerson2Telephone);
+            req.Email,
+            req.Phone,
+            req.Telephone);
+
+        entity.ReplaceContactPersons(ClientMapping.ToInputs(req.ContactPersons));
 
         _clientRepository.Update(entity);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

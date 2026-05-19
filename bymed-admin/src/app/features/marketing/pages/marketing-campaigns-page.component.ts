@@ -71,8 +71,7 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
   protected htmlBody = '';
   protected selectedClientTypeIds: string[] = [];
   protected includeInstitutionEmails = true;
-  protected includeContactPerson1Email = false;
-  protected includeContactPerson2Email = false;
+  protected includeContactPersonEmails = false;
 
   protected readonly preview = signal<MarketingCampaignPreviewDto | null>(null);
   protected readonly status = signal<MarketingCampaignStatusDto | null>(null);
@@ -114,7 +113,7 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
       this.errorMessage.set('Select at least one client type.');
       return;
     }
-    if (!this.includeInstitutionEmails && !this.includeContactPerson1Email && !this.includeContactPerson2Email) {
+    if (!this.includeInstitutionEmails && !this.includeContactPersonEmails) {
       this.errorMessage.set('Select at least one recipient group.');
       return;
     }
@@ -126,8 +125,7 @@ export class MarketingCampaignsPageComponent implements OnDestroy {
         htmlBody: this.htmlBody.trim() || null,
         clientTypeIds: this.selectedClientTypeIds,
         includeInstitutionEmails: this.includeInstitutionEmails,
-        includeContactPerson1Email: this.includeContactPerson1Email,
-        includeContactPerson2Email: this.includeContactPerson2Email
+        includeContactPersonEmails: this.includeContactPersonEmails
       })
       .pipe(
         catchError(() => {

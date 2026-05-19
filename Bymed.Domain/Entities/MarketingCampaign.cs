@@ -10,8 +10,7 @@ public sealed class MarketingCampaign
     public string Subject { get; set; } = string.Empty;
     public string? HtmlBody { get; set; }
     public bool IncludeInstitutionEmails { get; set; }
-    public bool IncludeContactPerson1Email { get; set; }
-    public bool IncludeContactPerson2Email { get; set; }
+    public bool IncludeContactPersonEmails { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public Guid? CreatedByUserId { get; set; }
     public DateTime? StartedAtUtc { get; set; }

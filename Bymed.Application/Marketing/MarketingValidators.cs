@@ -20,7 +20,7 @@ public sealed class CreateMarketingCampaignCommandValidator : AbstractValidator<
             .WithMessage("Client type ids must be unique.");
 
         RuleFor(x => x)
-            .Must(x => x.IncludeInstitutionEmails || x.IncludeContactPerson1Email || x.IncludeContactPerson2Email)
+            .Must(x => x.IncludeInstitutionEmails || x.IncludeContactPersonEmails)
             .WithMessage("Select at least one recipient group (institution and/or contact emails).");
     }
 }
