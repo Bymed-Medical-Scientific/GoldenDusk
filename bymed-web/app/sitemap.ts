@@ -1,4 +1,6 @@
+import { listCategories } from "@/lib/api/categories";
 import { listProducts } from "@/lib/api/products";
+import { categoryProductsPath } from "@/lib/catalog/catalog-params";
 import { getSiteBaseUrl } from "@/lib/site-url";
 import type { MetadataRoute } from "next";
 
@@ -80,5 +82,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const productRoutes = await getProductUrls(baseUrl);
-  return [...staticRoutes, ...productRoutes];
+
+  let categoryRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const categories = await listCategories();
+    categoryRoutes = categories.map((category) => ({
+      url: withBase(baseUrl, categoryProductsPath(category.slug)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    }));
+  } catch {
+    categoryRoutes = [];
+  }
+
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }
