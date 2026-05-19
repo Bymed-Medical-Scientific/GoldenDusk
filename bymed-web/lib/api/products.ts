@@ -16,6 +16,8 @@ export type ListProductsParams = {
   categoryId?: string;
   search?: string;
   inStock?: boolean;
+  /** When true, only products marked available in admin (excludes soft-deleted). */
+  isAvailable?: boolean;
   brand?: string;
   clientType?: string;
   minPrice?: number;
@@ -32,6 +34,7 @@ export async function listProducts(
   if (params.search != null && params.search !== "")
     q.set("search", params.search);
   if (params.inStock != null) q.set("inStock", String(params.inStock));
+  q.set("isAvailable", String(params.isAvailable ?? true));
   if (params.brand != null && params.brand !== "") q.set("brand", params.brand);
   if (params.clientType != null && params.clientType !== "")
     q.set("clientType", params.clientType);

@@ -37,7 +37,7 @@ public sealed class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, 
             .GetPagedAsync(
                 pagination,
                 request.CategoryId,
-                request.InStock,
+                request.IsAvailable,
                 request.Brand,
                 request.ClientType,
                 request.MinPrice,
