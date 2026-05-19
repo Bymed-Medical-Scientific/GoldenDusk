@@ -54,12 +54,24 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? search = null,
         [FromQuery] bool? inStock = null,
+        [FromQuery] bool? isAvailable = null,
         [FromQuery] string? brand = null,
         [FromQuery] string? clientType = null,
         [FromQuery] decimal? minPrice = null,
         [FromQuery] decimal? maxPrice = null)
     {
-        var query = new GetProductsQuery(pageNumber, pageSize, categoryId, search, inStock, brand, clientType, minPrice, maxPrice);
+        var effectiveIsAvailable = ResolveCatalogAvailabilityFilter(isAvailable, inStock);
+        var query = new GetProductsQuery(
+            pageNumber,
+            pageSize,
+            categoryId,
+            search,
+            inStock,
+            brand,
+            clientType,
+            minPrice,
+            maxPrice,
+            effectiveIsAvailable);
         var result = await _mediator.Send(query, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
         if (!await CanViewPricesAsync().ConfigureAwait(false))
         {
@@ -83,6 +95,8 @@ public sealed class ProductsController : ControllerBase
         if (!result.IsSuccess)
             return NotFound(new { error = result.Error });
         var product = result.Value!;
+        if (!product.IsAvailable && !User.IsInRole("Admin"))
+            return NotFound(new { error = "Product not found." });
         if (!await CanViewPricesAsync().ConfigureAwait(false))
             product = HidePrice(product);
         return Ok(product);
@@ -328,6 +342,21 @@ public sealed class ProductsController : ControllerBase
     }
 
     private ProductDto HidePrice(ProductDto dto) => dto with { Price = 0m };
+
+    /// <summary>
+    /// Storefront and anonymous catalog callers only see available products.
+    /// Admins may filter via <paramref name="isAvailable"/>; legacy admin UI still sends availability via <paramref name="inStock"/>.
+    /// </summary>
+    private bool? ResolveCatalogAvailabilityFilter(bool? isAvailable, bool? inStock)
+    {
+        if (!User.IsInRole("Admin"))
+            return true;
+
+        if (isAvailable.HasValue)
+            return isAvailable;
+
+        return inStock;
+    }
 
     private async Task<bool> CanViewPricesAsync()
     {

@@ -14,48 +14,41 @@ export interface UpdateClientTypeRequestDto {
   readonly slug: string;
 }
 
+export interface ClientContactPersonDto {
+  readonly id: string;
+  readonly name: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly faculty?: string;
+}
+
+export interface ClientContactPersonRequestDto {
+  readonly name: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly faculty?: string;
+}
+
 export interface ClientDto {
   readonly id: string;
   readonly institutionName: string;
   readonly address: string;
-  readonly email1?: string;
-  readonly email2?: string;
-  readonly email3?: string;
-  readonly phoneNumber1?: string;
-  readonly phoneNumber2?: string;
-  readonly phoneNumber3?: string;
-  readonly telephoneNumber1?: string;
-  readonly telephoneNumber2?: string;
-  readonly telephoneNumber3?: string;
-  readonly contactPerson1Name?: string;
-  readonly contactPerson1Email?: string;
-  readonly contactPerson1Telephone?: string;
-  readonly contactPerson2Name?: string;
-  readonly contactPerson2Email?: string;
-  readonly contactPerson2Telephone?: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly telephone?: string;
   readonly clientTypeId: string;
   readonly clientTypeName: string;
+  readonly contactPersons: ClientContactPersonDto[];
 }
 
 export interface CreateClientRequestDto {
   readonly institutionName: string;
   readonly address: string;
   readonly clientTypeId: string;
-  readonly email1?: string;
-  readonly email2?: string;
-  readonly email3?: string;
-  readonly phoneNumber1?: string;
-  readonly phoneNumber2?: string;
-  readonly phoneNumber3?: string;
-  readonly telephoneNumber1?: string;
-  readonly telephoneNumber2?: string;
-  readonly telephoneNumber3?: string;
-  readonly contactPerson1Name?: string;
-  readonly contactPerson1Email?: string;
-  readonly contactPerson1Telephone?: string;
-  readonly contactPerson2Name?: string;
-  readonly contactPerson2Email?: string;
-  readonly contactPerson2Telephone?: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly telephone?: string;
+  readonly contactPersons?: ClientContactPersonRequestDto[];
 }
 
 export interface UpdateClientRequestDto extends CreateClientRequestDto {}

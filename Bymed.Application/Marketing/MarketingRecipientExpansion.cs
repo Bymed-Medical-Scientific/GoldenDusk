@@ -29,8 +29,7 @@ public static class MarketingRecipientExpansion
         ClientMarketingProjection client,
         Guid campaignId,
         bool includeInstitution,
-        bool includeCp1,
-        bool includeCp2,
+        bool includeContactPersons,
         HashSet<string> seenNormalized,
         List<MarketingCampaignRecipient> output)
     {
@@ -59,15 +58,12 @@ public static class MarketingRecipientExpansion
         }
 
         if (includeInstitution)
-        {
-            TryAdd(MarketingRecipientEmailSource.InstitutionEmail1, client.Email1);
-            TryAdd(MarketingRecipientEmailSource.InstitutionEmail2, client.Email2);
-            TryAdd(MarketingRecipientEmailSource.InstitutionEmail3, client.Email3);
-        }
+            TryAdd(MarketingRecipientEmailSource.InstitutionEmail, client.InstitutionEmail);
 
-        if (includeCp1)
-            TryAdd(MarketingRecipientEmailSource.ContactPerson1Email, client.ContactPerson1Email);
-        if (includeCp2)
-            TryAdd(MarketingRecipientEmailSource.ContactPerson2Email, client.ContactPerson2Email);
+        if (includeContactPersons)
+        {
+            foreach (var contactEmail in client.ContactPersonEmails)
+                TryAdd(MarketingRecipientEmailSource.ContactPersonEmail, contactEmail);
+        }
     }
 }

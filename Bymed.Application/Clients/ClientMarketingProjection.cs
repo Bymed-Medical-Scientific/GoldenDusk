@@ -6,8 +6,5 @@ namespace Bymed.Application.Clients;
 public sealed record ClientMarketingProjection(
     Guid Id,
     string InstitutionName,
-    string? Email1,
-    string? Email2,
-    string? Email3,
-    string? ContactPerson1Email,
-    string? ContactPerson2Email);
+    string? InstitutionEmail,
+    IReadOnlyList<string> ContactPersonEmails);

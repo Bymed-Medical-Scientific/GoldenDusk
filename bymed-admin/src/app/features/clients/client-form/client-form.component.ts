@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
@@ -37,22 +37,15 @@ export class ClientFormComponent implements OnInit {
     institutionName: ['', [Validators.required, Validators.maxLength(250)]],
     address: ['', [Validators.required, Validators.maxLength(600)]],
     clientTypeId: ['', Validators.required],
-    email1: [''],
-    email2: [''],
-    email3: [''],
-    phoneNumber1: [''],
-    phoneNumber2: [''],
-    phoneNumber3: [''],
-    telephoneNumber1: [''],
-    telephoneNumber2: [''],
-    telephoneNumber3: [''],
-    contactPerson1Name: [''],
-    contactPerson1Email: [''],
-    contactPerson1Telephone: [''],
-    contactPerson2Name: [''],
-    contactPerson2Email: [''],
-    contactPerson2Telephone: ['']
+    email: [''],
+    phone: [''],
+    telephone: [''],
+    contactPersons: this.fb.array([this.createContactPersonGroup()])
   });
+
+  protected get contactPersons(): FormArray {
+    return this.form.controls.contactPersons;
+  }
 
   public ngOnInit(): void {
     this.adminApi
@@ -67,6 +60,18 @@ export class ClientFormComponent implements OnInit {
         this.clientTypes.set(rows);
         this.loadClientIfEdit();
       });
+  }
+
+  protected addContactPerson(): void {
+    this.contactPersons.push(this.createContactPersonGroup());
+  }
+
+  protected removeContactPerson(index: number): void {
+    if (this.contactPersons.length <= 1) {
+      this.contactPersons.at(0).reset({ name: '', email: '', phone: '', faculty: '' });
+      return;
+    }
+    this.contactPersons.removeAt(index);
   }
 
   protected submit(): void {
@@ -92,6 +97,15 @@ export class ClientFormComponent implements OnInit {
       });
   }
 
+  private createContactPersonGroup() {
+    return this.fb.nonNullable.group({
+      name: ['', Validators.maxLength(150)],
+      email: [''],
+      phone: [''],
+      faculty: ['']
+    });
+  }
+
   private mapPayload(): CreateClientRequestDto {
     const raw = this.form.getRawValue();
     const sanitize = (value: string): string | undefined => {
@@ -99,25 +113,23 @@ export class ClientFormComponent implements OnInit {
       return trimmed.length > 0 ? trimmed : undefined;
     };
 
+    const contactPersons = raw.contactPersons
+      .map((row) => ({
+        name: row.name.trim(),
+        email: sanitize(row.email),
+        phone: sanitize(row.phone),
+        faculty: sanitize(row.faculty)
+      }))
+      .filter((row) => row.name.length > 0);
+
     return {
       institutionName: raw.institutionName.trim(),
       address: raw.address.trim(),
       clientTypeId: raw.clientTypeId,
-      email1: sanitize(raw.email1),
-      email2: sanitize(raw.email2),
-      email3: sanitize(raw.email3),
-      phoneNumber1: sanitize(raw.phoneNumber1),
-      phoneNumber2: sanitize(raw.phoneNumber2),
-      phoneNumber3: sanitize(raw.phoneNumber3),
-      telephoneNumber1: sanitize(raw.telephoneNumber1),
-      telephoneNumber2: sanitize(raw.telephoneNumber2),
-      telephoneNumber3: sanitize(raw.telephoneNumber3),
-      contactPerson1Name: sanitize(raw.contactPerson1Name),
-      contactPerson1Email: sanitize(raw.contactPerson1Email),
-      contactPerson1Telephone: sanitize(raw.contactPerson1Telephone),
-      contactPerson2Name: sanitize(raw.contactPerson2Name),
-      contactPerson2Email: sanitize(raw.contactPerson2Email),
-      contactPerson2Telephone: sanitize(raw.contactPerson2Telephone)
+      email: sanitize(raw.email),
+      phone: sanitize(raw.phone),
+      telephone: sanitize(raw.telephone),
+      contactPersons: contactPersons.length > 0 ? contactPersons : undefined
     };
   }
 
@@ -137,25 +149,26 @@ export class ClientFormComponent implements OnInit {
         finalize(() => this.isInitializing.set(false))
       )
       .subscribe((row) => {
+        this.contactPersons.clear();
+        const persons = row.contactPersons.length > 0 ? row.contactPersons : [{ id: '', name: '', email: '', phone: '', faculty: '' }];
+        for (const person of persons) {
+          this.contactPersons.push(
+            this.fb.nonNullable.group({
+              name: [person.name, Validators.maxLength(150)],
+              email: [person.email ?? ''],
+              phone: [person.phone ?? ''],
+              faculty: [person.faculty ?? '']
+            })
+          );
+        }
+
         this.form.patchValue({
           institutionName: row.institutionName,
           address: row.address,
           clientTypeId: row.clientTypeId,
-          email1: row.email1 ?? '',
-          email2: row.email2 ?? '',
-          email3: row.email3 ?? '',
-          phoneNumber1: row.phoneNumber1 ?? '',
-          phoneNumber2: row.phoneNumber2 ?? '',
-          phoneNumber3: row.phoneNumber3 ?? '',
-          telephoneNumber1: row.telephoneNumber1 ?? '',
-          telephoneNumber2: row.telephoneNumber2 ?? '',
-          telephoneNumber3: row.telephoneNumber3 ?? '',
-          contactPerson1Name: row.contactPerson1Name ?? '',
-          contactPerson1Email: row.contactPerson1Email ?? '',
-          contactPerson1Telephone: row.contactPerson1Telephone ?? '',
-          contactPerson2Name: row.contactPerson2Name ?? '',
-          contactPerson2Email: row.contactPerson2Email ?? '',
-          contactPerson2Telephone: row.contactPerson2Telephone ?? ''
+          email: row.email ?? '',
+          phone: row.phone ?? '',
+          telephone: row.telephone ?? ''
         });
       });
   }

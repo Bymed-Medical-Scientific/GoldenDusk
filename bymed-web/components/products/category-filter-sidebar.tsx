@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type CategoryFilterSidebarProps = {
-  activeCategoryId?: string;
+  catalogPath?: string;
   q?: string;
   minPrice?: number;
   maxPrice?: number;
 };
 
 export function CategoryFilterSidebar({
-  activeCategoryId,
+  catalogPath = "/products",
   q,
   minPrice,
   maxPrice,
@@ -25,11 +25,8 @@ export function CategoryFilterSidebar({
       <h2 className="text-base font-semibold tracking-tight text-foreground">
         Filters
       </h2>
-      <form action="/products" method="get" className="mt-3 space-y-2.5">
+      <form action={catalogPath} method="get" className="mt-3 space-y-2.5">
         {q ? <input type="hidden" name="q" value={q} /> : null}
-        {activeCategoryId ? (
-          <input type="hidden" name="category" value={activeCategoryId} />
-        ) : null}
         <CurrencySelector
           variant="drawer"
           className="w-full"

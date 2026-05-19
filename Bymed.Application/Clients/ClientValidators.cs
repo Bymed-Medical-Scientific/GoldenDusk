@@ -3,6 +3,28 @@ using FluentValidation;
 
 namespace Bymed.Application.Clients;
 
+public sealed class ClientContactPersonRequestValidator : AbstractValidator<ClientContactPersonRequest>
+{
+    public ClientContactPersonRequestValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Contact person name is required.")
+            .MaximumLength(ClientContactPerson.NameMaxLength);
+
+        RuleFor(x => x.Email)
+            .MaximumLength(ClientContactPerson.EmailMaxLength)
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+
+        RuleFor(x => x.Phone)
+            .MaximumLength(ClientContactPerson.PhoneMaxLength)
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+
+        RuleFor(x => x.Faculty)
+            .MaximumLength(ClientContactPerson.FacultyMaxLength)
+            .When(x => !string.IsNullOrWhiteSpace(x.Faculty));
+    }
+}
+
 public sealed class CreateClientRequestValidator : AbstractValidator<CreateClientRequest>
 {
     public CreateClientRequestValidator()
@@ -18,33 +40,12 @@ public sealed class CreateClientRequestValidator : AbstractValidator<CreateClien
         RuleFor(x => x.ClientTypeId)
             .NotEqual(Guid.Empty).WithMessage("Client type is required.");
 
-        RuleFor(x => x.Email1).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email1));
-        RuleFor(x => x.Email2).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email2));
-        RuleFor(x => x.Email3).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email3));
-        RuleFor(x => x.ContactPerson1Email).MaximumLength(Client.EmailMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Email));
-        RuleFor(x => x.ContactPerson2Email).MaximumLength(Client.EmailMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Email));
+        RuleFor(x => x.Email).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email));
+        RuleFor(x => x.Phone).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Phone));
+        RuleFor(x => x.Telephone).MaximumLength(Client.TelephoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Telephone));
 
-        RuleFor(x => x.PhoneNumber1).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber1));
-        RuleFor(x => x.PhoneNumber2).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber2));
-        RuleFor(x => x.PhoneNumber3).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber3));
-
-        RuleFor(x => x.TelephoneNumber1).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber1));
-        RuleFor(x => x.TelephoneNumber2).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber2));
-        RuleFor(x => x.TelephoneNumber3).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber3));
-        RuleFor(x => x.ContactPerson1Telephone).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Telephone));
-        RuleFor(x => x.ContactPerson2Telephone).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Telephone));
-
-        RuleFor(x => x.ContactPerson1Name).MaximumLength(Client.ContactPersonNameMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Name));
-        RuleFor(x => x.ContactPerson2Name).MaximumLength(Client.ContactPersonNameMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Name));
+        RuleForEach(x => x.ContactPersons).SetValidator(new ClientContactPersonRequestValidator())
+            .When(x => x.ContactPersons is { Count: > 0 });
     }
 }
 
@@ -63,32 +64,11 @@ public sealed class UpdateClientRequestValidator : AbstractValidator<UpdateClien
         RuleFor(x => x.ClientTypeId)
             .NotEqual(Guid.Empty).WithMessage("Client type is required.");
 
-        RuleFor(x => x.Email1).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email1));
-        RuleFor(x => x.Email2).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email2));
-        RuleFor(x => x.Email3).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email3));
-        RuleFor(x => x.ContactPerson1Email).MaximumLength(Client.EmailMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Email));
-        RuleFor(x => x.ContactPerson2Email).MaximumLength(Client.EmailMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Email));
+        RuleFor(x => x.Email).MaximumLength(Client.EmailMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Email));
+        RuleFor(x => x.Phone).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Phone));
+        RuleFor(x => x.Telephone).MaximumLength(Client.TelephoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.Telephone));
 
-        RuleFor(x => x.PhoneNumber1).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber1));
-        RuleFor(x => x.PhoneNumber2).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber2));
-        RuleFor(x => x.PhoneNumber3).MaximumLength(Client.PhoneMaxLength).When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber3));
-
-        RuleFor(x => x.TelephoneNumber1).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber1));
-        RuleFor(x => x.TelephoneNumber2).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber2));
-        RuleFor(x => x.TelephoneNumber3).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.TelephoneNumber3));
-        RuleFor(x => x.ContactPerson1Telephone).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Telephone));
-        RuleFor(x => x.ContactPerson2Telephone).MaximumLength(Client.TelephoneMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Telephone));
-
-        RuleFor(x => x.ContactPerson1Name).MaximumLength(Client.ContactPersonNameMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson1Name));
-        RuleFor(x => x.ContactPerson2Name).MaximumLength(Client.ContactPersonNameMaxLength)
-            .When(x => !string.IsNullOrWhiteSpace(x.ContactPerson2Name));
+        RuleForEach(x => x.ContactPersons).SetValidator(new ClientContactPersonRequestValidator())
+            .When(x => x.ContactPersons is { Count: > 0 });
     }
 }

@@ -9,8 +9,7 @@ public sealed record MarketingCampaignDetailDto(
     string? HtmlBody,
     IReadOnlyList<Guid> ClientTypeIds,
     bool IncludeInstitutionEmails,
-    bool IncludeContactPerson1Email,
-    bool IncludeContactPerson2Email,
+    bool IncludeContactPersonEmails,
     DateTime CreatedAtUtc,
     IReadOnlyList<MarketingCampaignAttachmentDto> Attachments);
 

@@ -9,6 +9,7 @@
 
   @if (!isInitializing()) {
     <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <h2 class="section-title">Institution</h2>
       <label>
         Institution Name
         <input pInputText formControlName="institutionName" />
@@ -26,26 +27,35 @@
           optionValue="id"
           placeholder="Select type"></p-select>
       </label>
+      <label><span>Email</span><input pInputText formControlName="email" type="email" /></label>
+      <label><span>Phone</span><input pInputText formControlName="phone" /></label>
+      <label><span>Telephone</span><input pInputText formControlName="telephone" /></label>
 
-      <label><span>Email 1</span><input pInputText formControlName="email1" /></label>
-      <label><span>Email 2</span><input pInputText formControlName="email2" /></label>
-      <label><span>Email 3</span><input pInputText formControlName="email3" /></label>
+      <div class="contact-section">
+        <div class="contact-section__header">
+          <h2 class="section-title">Contact persons</h2>
+          <button pButton type="button" label="Add contact" size="small" (click)="addContactPerson()"></button>
+        </div>
 
-      <label><span>Phone Number 1</span><input pInputText formControlName="phoneNumber1" /></label>
-      <label><span>Phone Number 2</span><input pInputText formControlName="phoneNumber2" /></label>
-      <label><span>Phone Number 3</span><input pInputText formControlName="phoneNumber3" /></label>
-
-      <label><span>Telephone Number 1</span><input pInputText formControlName="telephoneNumber1" /></label>
-      <label><span>Telephone Number 2</span><input pInputText formControlName="telephoneNumber2" /></label>
-      <label><span>Telephone Number 3</span><input pInputText formControlName="telephoneNumber3" /></label>
-
-      <label><span>Contact Person 1</span><input pInputText formControlName="contactPerson1Name" /></label>
-      <label><span>Contact Person 1 Email</span><input pInputText formControlName="contactPerson1Email" /></label>
-      <label><span>Contact Person 1 Telephone</span><input pInputText formControlName="contactPerson1Telephone" /></label>
-
-      <label><span>Contact Person 2</span><input pInputText formControlName="contactPerson2Name" /></label>
-      <label><span>Contact Person 2 Email</span><input pInputText formControlName="contactPerson2Email" /></label>
-      <label><span>Contact Person 2 Telephone</span><input pInputText formControlName="contactPerson2Telephone" /></label>
+        <div formArrayName="contactPersons" class="contact-list">
+          @for (group of contactPersons.controls; track $index) {
+            <fieldset class="contact-card" [formGroupName]="$index">
+              <legend>Contact {{ $index + 1 }}</legend>
+              <label><span>Name</span><input pInputText formControlName="name" /></label>
+              <label><span>Email</span><input pInputText formControlName="email" type="email" /></label>
+              <label><span>Phone</span><input pInputText formControlName="phone" /></label>
+              <label><span>Faculty</span><input pInputText formControlName="faculty" /></label>
+              <button
+                pButton
+                type="button"
+                label="Remove"
+                severity="secondary"
+                size="small"
+                (click)="removeContactPerson($index)"></button>
+            </fieldset>
+          }
+        </div>
+      </div>
 
       <div class="actions">
         <a pButton routerLink="/clients" severity="secondary" label="Cancel"></a>

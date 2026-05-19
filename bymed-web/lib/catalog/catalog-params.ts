@@ -80,7 +80,9 @@ export function buildProductsHref(opts: {
   q?: string;
   brand?: string;
   clientType?: string;
+  /** @deprecated Prefer categorySlug — UUID query URLs redirect to slug paths. */
   categoryId?: string;
+  categorySlug?: string;
   minPrice?: number;
   maxPrice?: number;
   page?: number;
@@ -89,10 +91,21 @@ export function buildProductsHref(opts: {
   if (opts.q) sp.set("q", opts.q);
   if (opts.brand) sp.set("brand", opts.brand);
   if (opts.clientType) sp.set("clientType", opts.clientType);
-  if (opts.categoryId) sp.set("category", opts.categoryId);
   if (opts.minPrice != null) sp.set("minPrice", String(opts.minPrice));
   if (opts.maxPrice != null) sp.set("maxPrice", String(opts.maxPrice));
   if (opts.page != null && opts.page > 1) sp.set("page", String(opts.page));
   const qs = sp.toString();
-  return qs ? `/products?${qs}` : "/products";
+
+  if (opts.categorySlug) {
+    const base = `/products/category/${encodeURIComponent(opts.categorySlug)}`;
+    return qs ? `${base}?${qs}` : base;
+  }
+
+  if (opts.categoryId) sp.set("category", opts.categoryId);
+  const legacyQs = sp.toString();
+  return legacyQs ? `/products?${legacyQs}` : "/products";
+}
+
+export function categoryProductsPath(slug: string): string {
+  return `/products/category/${encodeURIComponent(slug)}`;
 }

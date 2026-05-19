@@ -12,4 +12,5 @@ public sealed record GetProductsQuery(
     string? Brand = null,
     string? ClientType = null,
     decimal? MinPrice = null,
-    decimal? MaxPrice = null) : IRequest<PagedResult<ProductDto>>;
+    decimal? MaxPrice = null,
+    bool? IsAvailable = null) : IRequest<PagedResult<ProductDto>>;

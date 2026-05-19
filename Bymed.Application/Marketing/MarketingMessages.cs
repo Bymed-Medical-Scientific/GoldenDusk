@@ -8,8 +8,7 @@ public sealed record CreateMarketingCampaignCommand(
     string? HtmlBody,
     IReadOnlyList<Guid> ClientTypeIds,
     bool IncludeInstitutionEmails,
-    bool IncludeContactPerson1Email,
-    bool IncludeContactPerson2Email,
+    bool IncludeContactPersonEmails,
     Guid? CreatedByUserId) : IRequest<Result<MarketingCampaignDetailDto>>;
 
 public sealed record MarketingAttachmentFile(string FileName, string ContentType, byte[] Content);

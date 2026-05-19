@@ -34,6 +34,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<QuoteNotificationRecipient> QuoteNotificationRecipients => Set<QuoteNotificationRecipient>();
     public DbSet<ClientType> ClientTypes => Set<ClientType>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<ClientContactPerson> ClientContactPersons => Set<ClientContactPerson>();
     public DbSet<CurrencyDefinition> CurrencyDefinitions => Set<CurrencyDefinition>();
     public DbSet<Quotation> Quotations => Set<Quotation>();
     public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
@@ -475,26 +476,29 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.ClientTypeId);
             entity.Property(e => e.InstitutionName).IsRequired().HasMaxLength(Client.InstitutionNameMaxLength);
             entity.Property(e => e.Address).IsRequired().HasMaxLength(Client.AddressMaxLength);
-            entity.Property(e => e.Email1).HasMaxLength(Client.EmailMaxLength);
-            entity.Property(e => e.Email2).HasMaxLength(Client.EmailMaxLength);
-            entity.Property(e => e.Email3).HasMaxLength(Client.EmailMaxLength);
-            entity.Property(e => e.PhoneNumber1).HasMaxLength(Client.PhoneMaxLength);
-            entity.Property(e => e.PhoneNumber2).HasMaxLength(Client.PhoneMaxLength);
-            entity.Property(e => e.PhoneNumber3).HasMaxLength(Client.PhoneMaxLength);
-            entity.Property(e => e.TelephoneNumber1).HasMaxLength(Client.TelephoneMaxLength);
-            entity.Property(e => e.TelephoneNumber2).HasMaxLength(Client.TelephoneMaxLength);
-            entity.Property(e => e.TelephoneNumber3).HasMaxLength(Client.TelephoneMaxLength);
-            entity.Property(e => e.ContactPerson1Name).HasMaxLength(Client.ContactPersonNameMaxLength);
-            entity.Property(e => e.ContactPerson1Email).HasMaxLength(Client.EmailMaxLength);
-            entity.Property(e => e.ContactPerson1Telephone).HasMaxLength(Client.TelephoneMaxLength);
-            entity.Property(e => e.ContactPerson2Name).HasMaxLength(Client.ContactPersonNameMaxLength);
-            entity.Property(e => e.ContactPerson2Email).HasMaxLength(Client.EmailMaxLength);
-            entity.Property(e => e.ContactPerson2Telephone).HasMaxLength(Client.TelephoneMaxLength);
+            entity.Property(e => e.Email).HasMaxLength(Client.EmailMaxLength);
+            entity.Property(e => e.Phone).HasMaxLength(Client.PhoneMaxLength);
+            entity.Property(e => e.Telephone).HasMaxLength(Client.TelephoneMaxLength);
 
             entity.HasOne(e => e.ClientType)
                 .WithMany()
                 .HasForeignKey(e => e.ClientTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(e => e.ContactPersons)
+                .WithOne(e => e.Client)
+                .HasForeignKey(e => e.ClientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ClientContactPerson>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ClientId);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(ClientContactPerson.NameMaxLength);
+            entity.Property(e => e.Email).HasMaxLength(ClientContactPerson.EmailMaxLength);
+            entity.Property(e => e.Phone).HasMaxLength(ClientContactPerson.PhoneMaxLength);
+            entity.Property(e => e.Faculty).HasMaxLength(ClientContactPerson.FacultyMaxLength);
         });
     }
 

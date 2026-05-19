@@ -62,8 +62,7 @@ public sealed class MarketingCampaignsController : ControllerBase
             body.HtmlBody,
             body.ClientTypeIds,
             body.IncludeInstitutionEmails,
-            body.IncludeContactPerson1Email,
-            body.IncludeContactPerson2Email,
+            body.IncludeContactPersonEmails,
             userId);
 
         var validation = await _createValidator.ValidateAsync(command, cancellationToken).ConfigureAwait(false);
@@ -219,6 +218,5 @@ public sealed class CreateMarketingCampaignApiRequest
     public string? HtmlBody { get; set; }
     public List<Guid> ClientTypeIds { get; set; } = [];
     public bool IncludeInstitutionEmails { get; set; }
-    public bool IncludeContactPerson1Email { get; set; }
-    public bool IncludeContactPerson2Email { get; set; }
+    public bool IncludeContactPersonEmails { get; set; }
 }
