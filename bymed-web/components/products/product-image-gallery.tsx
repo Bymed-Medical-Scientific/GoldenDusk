@@ -16,7 +16,7 @@ export function ProductImageGallery({
   if (images.length === 0) {
     return (
       <div
-        className="flex aspect-square w-full items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground"
+        className="flex aspect-square w-full min-w-0 max-w-full items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground"
         role="img"
         aria-label="No product image"
       >
@@ -28,7 +28,7 @@ export function ProductImageGallery({
   const main = images[0];
 
   return (
-    <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-xl border border-border bg-white">
+    <div className="relative aspect-square w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-white">
       <Image
         src={main.url}
         alt={main.alt || productName}

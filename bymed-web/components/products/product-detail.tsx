@@ -61,7 +61,7 @@ export function ProductDetail({
     : [];
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
       <nav className="mb-6 min-w-0 max-w-full overflow-x-hidden text-muted-foreground sm:mb-8" aria-label="Breadcrumb">
         <ol className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
           <li>
@@ -79,13 +79,15 @@ export function ProductDetail({
         </ol>
       </nav>
 
-      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:items-start lg:gap-10">
-        <ProductImageGallery
-          images={galleryImages}
-          productName={product.name}
-        />
+      <div className="grid w-full min-w-0 grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
+        <div className="min-w-0 w-full">
+          <ProductImageGallery
+            images={galleryImages}
+            productName={product.name}
+          />
+        </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 w-full">
           <p className="text-sm font-medium text-muted-foreground">
             {product.categoryName}
           </p>
@@ -105,7 +107,7 @@ export function ProductDetail({
               <FormattedPrice amount={product.price} currency={product.currency} />
             </p>
           ) : (
-            <p className="mt-4 text-base font-medium text-muted-foreground sm:text-lg">
+            <p className="mt-4 break-words text-base font-medium text-muted-foreground sm:text-lg">
               Login with an approved account to view pricing.
             </p>
           )}
@@ -147,7 +149,7 @@ export function ProductDetail({
         </div>
       </div>
 
-      <section className="mt-10 max-w-full overflow-x-hidden border-t border-border pt-6 sm:mt-12 sm:pt-8" aria-labelledby="description-heading">
+      <section className="mt-10 w-full min-w-0 max-w-full border-t border-border pt-6 sm:mt-12 sm:pt-8" aria-labelledby="description-heading">
         <h2 id="description-heading" className="text-lg font-semibold text-foreground">
           Description
         </h2>

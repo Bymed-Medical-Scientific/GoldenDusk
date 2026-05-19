@@ -52,12 +52,12 @@ export default function RootLayout({
                 <a href="#main-content" className="skip-to-main">
                   Skip to main content
                 </a>
-                <div className="flex min-h-screen flex-col">
+                <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden">
                   <SiteHeader />
                   <main
                     id="main-content"
                     tabIndex={-1}
-                    className="relative z-0 flex flex-1 flex-col scroll-mt-[4.5rem] pt-[4.5rem] outline-none sm:scroll-mt-20 sm:pt-20"
+                    className="relative z-0 flex min-w-0 flex-1 flex-col overflow-x-hidden scroll-mt-[4.5rem] pt-[4.5rem] outline-none sm:scroll-mt-20 sm:pt-20"
                   >
                     {children}
                   </main>
