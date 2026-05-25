@@ -3,59 +3,74 @@ import { ProductJsonLd } from "@/components/products/product-json-ld";
 import type { ProductCardProduct } from "@/components/products/product-card";
 import { buildProductGalleryImages } from "@/lib/catalog/product-gallery-images";
 import { buildProductJsonLd } from "@/lib/catalog/product-json-ld";
+import { productDetailPath } from "@/lib/catalog/product-path";
+import { resolveProductRouteParam } from "@/lib/catalog/resolve-product";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
 import { plainTextFromHtml } from "@/lib/html/plain-text-from-html";
-import { getProductById, listProducts } from "@/lib/api/products";
-import { ApiError } from "@/lib/api/http";
+import { listProducts } from "@/lib/api/products";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { notFound, permanentRedirect } from "next/navigation";
 
 type ProductDetailPageProps = {
-  params: { id: string };
+  params: { slug: string };
 };
+
+function productMetaDescription(html: string): string {
+  const plainDescription = plainTextFromHtml(html);
+  return plainDescription.length > 160
+    ? `${plainDescription.slice(0, 157)}…`
+    : plainDescription;
+}
 
 export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
-  if (!UUID_RE.test(params.id)) {
+  const resolved = await resolveProductRouteParam(params.slug);
+  if (!resolved) {
     return { title: "Product | Bymed Medical & Scientific" };
   }
-  try {
-    const product = await getProductById(params.id);
-    const plainDescription = plainTextFromHtml(product.description);
-    const description =
-      plainDescription.length > 160
-        ? `${plainDescription.slice(0, 157)}…`
-        : plainDescription;
-    const gallery = buildProductGalleryImages(product);
-    const ogImage = gallery[0]?.url;
 
-    const canonical = absoluteUrl(`/products/${product.id}`);
+  const { product } = resolved;
+  const description = productMetaDescription(product.description);
+  const gallery = buildProductGalleryImages(product);
+  const ogImage = gallery[0]?.url;
+  const canonical = absoluteUrl(productDetailPath(product));
+  const title = `${product.name} | Bymed Medical & Scientific`;
+  const categoryKeyword = product.categoryName
+    ? `${product.categoryName} Zimbabwe`
+    : undefined;
 
-    return {
-      title: `${product.name} | Bymed Medical & Scientific`,
+  return {
+    title,
+    description,
+    keywords: [
+      product.name,
+      product.categoryName,
+      categoryKeyword,
+      "ByMed",
+      "medical equipment Zimbabwe",
+    ].filter((k): k is string => Boolean(k?.trim())),
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      title: product.name,
       description,
-      alternates: canonical ? { canonical } : undefined,
-      openGraph: {
-        title: product.name,
-        description,
-        type: "website",
-        url: canonical,
-        images: ogImage ? [{ url: ogImage }] : undefined,
-      },
-    };
-  } catch {
-    return { title: "Product | Bymed Medical & Scientific" };
-  }
+      type: "website",
+      url: canonical,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title: product.name,
+      description,
+    },
+  };
 }
 
 function toCardProduct(p: {
   id: string;
   name: string;
+  slug: string;
   primaryImageUrl?: string | null;
   price: number;
   currency: string;
@@ -65,6 +80,7 @@ function toCardProduct(p: {
 }): ProductCardProduct {
   return {
     id: p.id,
+    slug: p.slug,
     name: p.name,
     imageUrl: resolveProductImageUrl(p.primaryImageUrl),
     imageAlt: p.name,
@@ -77,16 +93,14 @@ function toCardProduct(p: {
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  if (!UUID_RE.test(params.id)) notFound();
+  const resolved = await resolveProductRouteParam(params.slug);
+  if (!resolved) notFound();
 
-  let product;
-  try {
-    product = await getProductById(params.id);
-  } catch (e) {
-    if (e instanceof ApiError && e.status === 404) notFound();
-    throw e;
+  if (resolved.redirectToSlugPath) {
+    permanentRedirect(resolved.redirectToSlugPath);
   }
 
+  const { product } = resolved;
   const galleryImages = buildProductGalleryImages(product);
   const inStock = product.isAvailable && product.inventoryCount > 0;
 
@@ -105,7 +119,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     relatedProducts = [];
   }
 
-  const productPageUrl = absoluteUrl(`/products/${product.id}`);
+  const productPageUrl = absoluteUrl(productDetailPath(product));
   const jsonLd = buildProductJsonLd({
     product,
     productPageUrl,

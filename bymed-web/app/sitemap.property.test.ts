@@ -72,27 +72,22 @@ describe("Property 31: sitemap completeness", () => {
           const entries = await sitemap();
           const urls = entries.map((entry) => entry.url);
 
-          const staticUrls = [
+          const requiredUrls = [
             "https://bymed.example/",
             "https://bymed.example/products",
             "https://bymed.example/services",
             "https://bymed.example/about",
             "https://bymed.example/contact",
+            ...productIds.map(
+              (id) => `https://bymed.example/products/product-${id}`,
+            ),
           ];
 
-          for (const staticUrl of staticUrls) {
-            expect(urls).toContain(staticUrl);
+          for (const url of requiredUrls) {
+            expect(urls).toContain(url);
           }
 
-          const productUrls = productIds.map(
-            (id) => `https://bymed.example/products/${id}`,
-          );
-
-          for (const productUrl of productUrls) {
-            expect(urls).toContain(productUrl);
-          }
-
-          expect(urls.length).toBe(staticUrls.length + productUrls.length);
+          expect(urls.length).toBeGreaterThanOrEqual(requiredUrls.length);
         },
       ),
       { numRuns: propertyRuns },

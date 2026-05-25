@@ -4,6 +4,7 @@ import {
   parseCatalogQuery,
 } from "@/lib/catalog/catalog-params";
 import { listCategories } from "@/lib/api/categories";
+import { catalogListingRobots } from "@/lib/seo/catalog-metadata";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -21,12 +22,16 @@ export async function generateMetadata({
     : "Products | Bymed Medical & Scientific";
   const description = q
     ? `Browse products matching “${q}” at Bymed Medical & Scientific.`
-    : "Browse medical and scientific equipment and supplies at Bymed Medical & Scientific.";
-  const canonical = absoluteUrl(buildProductsHref({ q, brand, clientType }));
+    : "Browse medical and scientific equipment and supplies in Zimbabwe — imaging, theatre, ICU, laboratory, and teaching equipment from ByMed.";
+  const canonical = absoluteUrl(
+    buildProductsHref({ q: undefined, brand: undefined, clientType: undefined }),
+  );
+  const robots = catalogListingRobots(searchParams);
   return {
     title,
     description,
     alternates: canonical ? { canonical } : undefined,
+    robots,
     openGraph: { title, description, type: "website", url: canonical },
   };
 }

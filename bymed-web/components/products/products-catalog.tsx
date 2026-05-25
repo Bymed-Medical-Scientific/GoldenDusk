@@ -89,6 +89,7 @@ export async function ProductsCatalog({
 
   const cardProducts = productResult.items.map((p) => ({
     id: p.id,
+    slug: p.slug,
     name: p.name,
     imageUrl: resolveProductImageUrl(p.primaryImageUrl),
     imageAlt: p.name,

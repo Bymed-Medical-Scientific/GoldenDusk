@@ -57,6 +57,7 @@ function preloadHeroSlide(src: string): void {
 
 function toFeaturedProduct(p: {
   id: string;
+  slug: string;
   name: string;
   categoryName: string;
   primaryImageUrl?: string | null;
@@ -72,6 +73,7 @@ function toFeaturedProduct(p: {
     p.name;
   return {
     id: p.id,
+    slug: p.slug,
     name: p.name,
     categoryName: p.categoryName,
     imageUrl,

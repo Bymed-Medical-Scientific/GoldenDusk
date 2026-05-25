@@ -106,7 +106,8 @@ export type ServicesMarketingContent = {
 };
 
 export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
-  metaTitle: "Home",
+  metaTitle:
+    "Medical & Scientific Equipment Zimbabwe | ByMed Medical & Scientific",
   metaDescription:
     "Shaping the future of healthcare, scientific research, and engineering education in Zimbabwe—point-of-care, theatre, imaging, ICU, teaching tools, and trusted brands.",
   ogTitle: "ByMed Medical & Scientific",

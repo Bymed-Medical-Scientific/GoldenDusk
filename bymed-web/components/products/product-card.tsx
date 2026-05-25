@@ -3,10 +3,12 @@
 import { FormattedPrice } from "@/components/price/formatted-price";
 import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import Image from "next/image";
+import { productDetailPath } from "@/lib/catalog/product-path";
 import Link from "next/link";
 
 export type ProductCardProduct = {
   id: string;
+  slug: string;
   name: string;
   imageUrl?: string;
   imageAlt: string;
@@ -22,7 +24,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const href = `/products/${product.id}`;
+  const href = productDetailPath(product);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">

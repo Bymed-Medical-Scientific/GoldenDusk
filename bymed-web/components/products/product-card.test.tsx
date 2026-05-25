@@ -46,6 +46,7 @@ function expectedCatalogPrice(amount: number, currency: string): string {
 describe("ProductCard", () => {
   const base: ProductCardProduct = {
     id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    slug: "benchtop-centrifuge",
     name: "Benchtop Centrifuge",
     imageUrl: "https://cdn.example.com/products/centrifuge.jpg",
     imageAlt: "Centrifuge on bench",
@@ -76,10 +77,10 @@ describe("ProductCard", () => {
 
     expect(
       screen.getByRole("link", { name: "Benchtop Centrifuge" }),
-    ).toHaveAttribute("href", `/products/${base.id}`);
+    ).toHaveAttribute("href", `/products/${base.slug}`);
     expect(
       screen.getByRole("link", { name: /Centrifuge on bench/i }),
-    ).toHaveAttribute("href", `/products/${base.id}`);
+    ).toHaveAttribute("href", `/products/${base.slug}`);
   });
 
   it("shows placeholder when there is no image URL", () => {
