@@ -3,7 +3,7 @@
  * Keep in sync with property tests: Property 39 — Footer Contact Information.
  */
 export const siteFooterContact = {
-  email: "support@bymed.co.zw",
+  email: "info@bymed.co.zw",
   phoneDisplay: "+263 71 576 6050",
   hoursLine: "Mon–Fri, 8:00–17:00 (CAT)",
 } as const;

@@ -58,7 +58,7 @@ export const SITE_GEO_REGION = "ZW";
 export const SITE_BUSINESS = {
   name: SITE_NAME,
   url: "https://bymed.co.zw/",
-  email: "support@bymed.co.zw",
+  email: "info@bymed.co.zw",
   telephone: "+263715766050",
   addressLocality: "Bulawayo",
   addressCountry: "ZW",
