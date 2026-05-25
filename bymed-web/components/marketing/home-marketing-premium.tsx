@@ -6,6 +6,7 @@ import { resolvedHeroSlides } from "@/lib/content/marketing-pages";
 import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { productDetailPath } from "@/lib/catalog/product-path";
 import Link from "next/link";
 import { HomeBrandsSlider } from "./home-brands-slider";
 import { HomeHeroCarousel } from "./home-hero-carousel";
@@ -14,6 +15,7 @@ import { MotionFadeUp, MotionSection } from "./motion-section";
 
 export type HomeFeaturedProduct = {
   id: string;
+  slug?: string;
   name: string;
   categoryName: string;
   imageUrl?: string;
@@ -69,7 +71,10 @@ const PLACEHOLDER_FEATURED: HomeFeaturedProduct[] = [
 
 function FeaturedProductCard({ product }: { product: HomeFeaturedProduct }) {
   const isPlaceholder = product.id.startsWith("placeholder");
-  const href = isPlaceholder ? "/products" : `/products/${product.id}`;
+  const href =
+    isPlaceholder || !product.slug
+      ? "/products"
+      : productDetailPath({ id: product.id, slug: product.slug });
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border/60 transition-shadow hover:shadow-md">

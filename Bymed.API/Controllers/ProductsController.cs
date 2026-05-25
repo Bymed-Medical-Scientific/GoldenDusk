@@ -84,6 +84,25 @@ public sealed class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("by-slug/{slug}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBySlug(string slug)
+    {
+        var result = await _mediator
+            .Send(new GetProductBySlugQuery(slug ?? string.Empty), _hostApplicationLifetime.ApplicationStopping)
+            .ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return NotFound(new { error = result.Error });
+        var product = result.Value!;
+        if (!product.IsAvailable && !User.IsInRole("Admin"))
+            return NotFound(new { error = "Product not found." });
+        if (!await CanViewPricesAsync().ConfigureAwait(false))
+            product = HidePrice(product);
+        return Ok(product);
+    }
+
     /// <summary>Get a product by id.</summary>
     [HttpGet("{id:guid}")]
     [AllowAnonymous]

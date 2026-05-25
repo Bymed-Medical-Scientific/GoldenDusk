@@ -120,6 +120,8 @@ services:
       args:
         # Baked into the client bundle — must be the URL browsers use to reach the API.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        # Canonical site origin (no trailing slash) for SEO metadata, sitemap, robots.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
     container_name: bymed_web
     ports:
       - "${WEB_PORT:-3000}:3000"
@@ -128,6 +130,7 @@ services:
       NEXT_TELEMETRY_DISABLED: "1"
       # Browser origin for auth cookies (http:// for local Docker; https:// in production).
       NEXT_PUBLIC_APP_URL: ${WEB_PUBLIC_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
       # Server-side (SSR) calls go directly over the Docker bridge network.
       BYMED_API_INTERNAL_URL: http://api:8080
     volumes:

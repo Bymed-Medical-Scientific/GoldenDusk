@@ -68,6 +68,21 @@ export async function getProductById(id: string): Promise<ProductDto> {
   return readJson<ProductDto>(res);
 }
 
+export async function getProductBySlug(slug: string): Promise<ProductDto> {
+  const encoded = encodeURIComponent(slug.trim());
+  const res = await apiFetch(
+    apiPath(`/Products/by-slug/${encoded}`),
+    { method: "GET" },
+    {
+      next: {
+        revalidate: PRODUCT_REVALIDATE_SECONDS,
+        tags: ["products", `product-slug:${slug.trim()}`],
+      },
+    },
+  );
+  return readJson<ProductDto>(res);
+}
+
 export async function createProduct(
   body: CreateProductRequest,
 ): Promise<ProductDto> {

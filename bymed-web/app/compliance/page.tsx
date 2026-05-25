@@ -3,7 +3,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Compliance",
-  description: "Quality, regulatory alignment, and compliance at ByMed.",
+  description:
+    "Quality, regulatory alignment, and compliance for medical and laboratory equipment supplied by ByMed Medical & Scientific in Zimbabwe.",
 };
 
 export default function CompliancePage() {

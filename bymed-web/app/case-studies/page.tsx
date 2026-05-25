@@ -4,7 +4,12 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Case studies",
   description:
-    "Examples of how ByMed supports hospitals, laboratories, and education facilities with equipment and services.",
+    "ByMed Medical & Scientific case studies — hospital, laboratory, and education equipment deployments across Zimbabwe.",
+  keywords: [
+    "medical equipment case studies Zimbabwe",
+    "hospital equipment installation Zimbabwe",
+    "ByMed projects",
+  ],
 };
 
 export default function CaseStudiesPage() {

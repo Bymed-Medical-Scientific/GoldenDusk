@@ -85,7 +85,7 @@ export function SiteFooter() {
             <ul className="mt-6 flex gap-3" aria-label="Social media">
               <li>
                 <a
-                  href="https://www.facebook.com/"
+                  href="https://www.facebook.com/share/18x4yLDTYV/"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border/60 transition hover:text-primary"
                   aria-label="Facebook"
                   rel="noopener noreferrer"
@@ -96,9 +96,9 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="https://twitter.com/"
+                  href="https://x.com/bymedmedical"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border/60 transition hover:text-primary"
-                  aria-label="Twitter"
+                  aria-label="X"
                   rel="noopener noreferrer"
                   target="_blank"
                 >
@@ -107,7 +107,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="https://www.linkedin.com/"
+                  href="https://www.linkedin.com/company/bymed-medical-scientific/"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border/60 transition hover:text-primary"
                   aria-label="LinkedIn"
                   rel="noopener noreferrer"
@@ -118,7 +118,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href="https://www.instagram.com/"
+                  href="https://www.instagram.com/bymed_medical_zw"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border/60 transition hover:text-primary"
                   aria-label="Instagram"
                   rel="noopener noreferrer"

@@ -485,7 +485,7 @@ export default function ContactPage() {
             </p>
             <div className="mt-3 flex items-center gap-2">
               <a
-                href="https://www.facebook.com/"
+                href="https://www.facebook.com/share/18x4yLDTYV/"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
@@ -494,7 +494,7 @@ export default function ContactPage() {
                 <IconFacebook className="size-4" />
               </a>
               <a
-                href="https://www.linkedin.com/"
+                href="https://www.linkedin.com/company/bymed-medical-scientific/"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
@@ -503,7 +503,7 @@ export default function ContactPage() {
                 <IconLinkedin className="size-4" />
               </a>
               <a
-                href="https://x.com/"
+                href="https://x.com/bymedmedical"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
@@ -512,7 +512,7 @@ export default function ContactPage() {
                 <IconX className="size-4" />
               </a>
               <a
-                href="https://www.instagram.com/"
+                href="https://www.instagram.com/bymed_medical_zw"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
