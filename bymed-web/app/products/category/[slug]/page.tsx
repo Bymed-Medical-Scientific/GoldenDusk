@@ -24,7 +24,7 @@ export async function generateMetadata({
     return { title: "Products | Bymed Medical & Scientific" };
   }
 
-  const { q, brand, clientType } = parseCatalogQuery(searchParams);
+  const { q } = parseCatalogQuery(searchParams);
   const title = q
     ? `${category.name} — “${q}” | Bymed Medical & Scientific`
     : `${category.name} | Bymed Medical & Scientific`;

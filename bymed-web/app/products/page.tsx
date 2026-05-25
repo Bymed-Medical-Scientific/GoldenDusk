@@ -16,7 +16,7 @@ type ProductsPageProps = {
 export async function generateMetadata({
   searchParams,
 }: ProductsPageProps): Promise<Metadata> {
-  const { q, brand, clientType } = parseCatalogQuery(searchParams);
+  const { q } = parseCatalogQuery(searchParams);
   const title = q
     ? `Products — “${q}” | Bymed Medical & Scientific`
     : "Products | Bymed Medical & Scientific";
