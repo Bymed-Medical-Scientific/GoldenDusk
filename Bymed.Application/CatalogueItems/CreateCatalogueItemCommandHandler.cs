@@ -11,16 +11,19 @@ public sealed class CreateCatalogueItemCommandHandler
     : IRequestHandler<CreateCatalogueItemCommand, Result<CatalogueItemDto>>
 {
     private readonly ICatalogueItemRepository _catalogueItemRepository;
+    private readonly ICatalogueItemSlugGenerator _slugGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICatalogueReadCache _catalogueReadCache;
 
     public CreateCatalogueItemCommandHandler(
         ICatalogueItemRepository catalogueItemRepository,
+        ICatalogueItemSlugGenerator slugGenerator,
         IUnitOfWork unitOfWork,
         ICatalogueReadCache catalogueReadCache)
     {
         _catalogueItemRepository = catalogueItemRepository
             ?? throw new ArgumentNullException(nameof(catalogueItemRepository));
+        _slugGenerator = slugGenerator ?? throw new ArgumentNullException(nameof(slugGenerator));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _catalogueReadCache = catalogueReadCache ?? throw new ArgumentNullException(nameof(catalogueReadCache));
     }
@@ -31,15 +34,13 @@ public sealed class CreateCatalogueItemCommandHandler
     {
         var req = request.Request;
 
-        var slugExists = await _catalogueItemRepository
-            .ExistsSlugAsync(req.Slug.Trim(), excludeCatalogueItemId: null, cancellationToken)
+        var slug = await _slugGenerator
+            .GenerateUniqueSlugAsync(req.Name, excludeCatalogueItemId: null, cancellationToken)
             .ConfigureAwait(false);
-        if (slugExists)
-            return Result<CatalogueItemDto>.Failure("A catalogue item with this slug already exists.");
 
         var item = new CatalogueItem(
             req.Name,
-            req.Slug,
+            slug,
             req.Description,
             req.CategoryId,
             req.Brand,

@@ -39,14 +39,15 @@
         }
       </div>
 
-      <div class="field-group">
-        <label for="slug">Slug</label>
-        <input id="slug" pInputText formControlName="slug" autocomplete="off" [maxlength]="200" class="full-width" />
-        <small class="field-hint">URL segment, e.g. infusion-pump</small>
-        @if (fieldError('slug')) {
-          <small class="field-error">{{ fieldError('slug') }}</small>
-        }
-      </div>
+      @if (isEditMode && loadedItem()) {
+        <div class="read-only-row">
+          <span class="read-only-label">Public URL</span>
+          <span class="read-only-value">/catalogue/{{ loadedItem()!.slug }}</span>
+          <span class="read-only-hint">Generated automatically when the item was created. Renaming does not change the URL.</span>
+        </div>
+      } @else {
+        <p class="field-hint name-slug-hint">A URL-friendly path is generated automatically from the name when you save.</p>
+      }
 
       <div class="field-group">
         <label for="categoryId">Category</label>

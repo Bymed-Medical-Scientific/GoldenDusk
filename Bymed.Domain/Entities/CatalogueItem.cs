@@ -41,13 +41,11 @@ public class CatalogueItem : FullAuditedEntity
 
     public void Update(
         string name,
-        string slug,
         string description,
         Guid categoryId,
         string? brand = null)
     {
         SetName(name);
-        SetSlug(slug);
         SetDescription(description);
         SetCategoryId(categoryId);
         Brand = SetBrand(brand);

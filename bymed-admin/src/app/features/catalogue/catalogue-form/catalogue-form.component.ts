@@ -30,10 +30,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 
 const NAME_MAX_LENGTH = 500;
-const SLUG_MAX_LENGTH = 200;
 const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function isHtmlContentEmpty(html: string): boolean {
   const text = html
@@ -52,7 +50,6 @@ function nonEmptyHtmlValidator(control: AbstractControl): ValidationErrors | nul
 function mapServerPropertyToFormKey(propertyName: string): string {
   const map: Record<string, string> = {
     Name: 'name',
-    Slug: 'slug',
     Description: 'description',
     CategoryId: 'categoryId',
     Brand: 'brand',
@@ -99,6 +96,7 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
   protected readonly categoryOptions = signal<Array<{ label: string; value: string }>>([]);
   protected readonly imagePreviewUrl = signal<string | null>(null);
   protected readonly uploadProgress = signal<number | null>(null);
+  protected readonly loadedItem = signal<CatalogueItemDto | null>(null);
 
   private pendingImageFile: File | null = null;
   private previewObjectUrl: string | null = null;
@@ -106,7 +104,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(NAME_MAX_LENGTH)]],
-    slug: ['', [Validators.required, Validators.maxLength(SLUG_MAX_LENGTH), Validators.pattern(SLUG_PATTERN)]],
     description: ['', [nonEmptyHtmlValidator, Validators.maxLength(DESCRIPTION_MAX_HTML_LENGTH)]],
     categoryId: ['', Validators.required],
     brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
@@ -139,6 +136,7 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
         finalize(() => this.isInitializing.set(false))
       )
       .subscribe((item) => {
+        this.loadedItem.set(item);
         this.patchFormFromItem(item);
         this.loadedPrimaryUrl = this.resolveMediaUrl(item.primaryImageUrl);
         this.imagePreviewUrl.set(this.loadedPrimaryUrl);
@@ -208,15 +206,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     if (controlName === 'name' && control.hasError('maxlength')) {
       return `Name must not exceed ${NAME_MAX_LENGTH} characters.`;
     }
-    if (controlName === 'slug' && control.hasError('required')) {
-      return 'Slug is required.';
-    }
-    if (controlName === 'slug' && control.hasError('maxlength')) {
-      return `Slug must not exceed ${SLUG_MAX_LENGTH} characters.`;
-    }
-    if (controlName === 'slug' && control.hasError('pattern')) {
-      return 'Use a URL-safe slug: lowercase letters, digits, and hyphens only.';
-    }
     if (controlName === 'description' && (control.hasError('required') || control.errors?.['required'])) {
       return 'Description is required.';
     }
@@ -262,7 +251,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
   private patchFormFromItem(item: CatalogueItemDto): void {
     this.form.patchValue({
       name: item.name,
-      slug: item.slug,
       description: item.description ?? '',
       categoryId: item.categoryId,
       brand: item.brand ?? '',
@@ -275,7 +263,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     const brand = raw.brand.trim();
     return {
       name: raw.name.trim(),
-      slug: raw.slug.trim(),
       description: raw.description,
       categoryId: raw.categoryId,
       brand: brand.length > 0 ? brand : null,

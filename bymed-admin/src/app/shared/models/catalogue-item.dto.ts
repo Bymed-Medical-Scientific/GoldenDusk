@@ -21,7 +21,6 @@ export interface CatalogueItemDto {
 
 export interface CreateCatalogueItemRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly brand?: string | null;
@@ -30,7 +29,6 @@ export interface CreateCatalogueItemRequestDto {
 
 export interface UpdateCatalogueItemRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly brand?: string | null;

@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
         services.AddScoped<IPricingCalculator, PricingCalculator>();
         services.AddScoped<ICatalogueLineItemResolver, CatalogueLineItemResolver>();
+        services.AddScoped<ICatalogueItemSlugGenerator, CatalogueItemSlugGenerator>();
         return services;
     }
 }

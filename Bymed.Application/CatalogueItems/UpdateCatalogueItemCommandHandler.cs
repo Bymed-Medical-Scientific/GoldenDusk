@@ -36,13 +36,7 @@ public sealed class UpdateCatalogueItemCommandHandler
             return Result<CatalogueItemDto>.Failure("Catalogue item not found.");
 
         var req = request.Request;
-        var slugExists = await _catalogueItemRepository
-            .ExistsSlugAsync(req.Slug.Trim(), excludeCatalogueItemId: request.Id, cancellationToken)
-            .ConfigureAwait(false);
-        if (slugExists)
-            return Result<CatalogueItemDto>.Failure("A catalogue item with this slug already exists.");
-
-        item.Update(req.Name, req.Slug, req.Description, req.CategoryId, req.Brand);
+        item.Update(req.Name, req.Description, req.CategoryId, req.Brand);
         item.SetPublished(req.IsPublished);
 
         _catalogueItemRepository.Update(item);

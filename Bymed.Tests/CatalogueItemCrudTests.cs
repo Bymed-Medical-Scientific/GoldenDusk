@@ -25,7 +25,6 @@ public class CatalogueItemCrudTests
         var request = new CreateCatalogueItemRequest
         {
             Name = "Lab Microscope",
-            Slug = "lab-microscope",
             Description = "Precision microscope",
             CategoryId = Guid.NewGuid(),
             Brand = "OptiLab",
@@ -34,6 +33,7 @@ public class CatalogueItemCrudTests
 
         var handler = new CreateCatalogueItemCommandHandler(
             repo,
+            new CatalogueItemSlugGenerator(repo),
             unitOfWork,
             TestCatalogueReadCacheHelper.Create());
         var result = await handler.Handle(new CreateCatalogueItemCommand(request), CancellationToken.None);
@@ -102,5 +102,4 @@ public class CatalogueItemCrudTests
         cartRepo.Received(1).Add(Arg.Is<Cart>(c =>
             c.Items.Any(i => i.ProductId == itemId && i.PriceAtAdd == 0m && i.Quantity == 2)));
     }
-
 }
