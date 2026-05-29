@@ -12,7 +12,10 @@ import {
   BulkOperationResultDto,
   BulkDeleteProductsRequestDto,
   BulkSetProductAvailabilityRequestDto,
+  BrandDto,
+  CreateBrandRequestDto,
   CreateCategoryRequestDto,
+  UpdateBrandRequestDto,
   CreateClientRequestDto,
   CreateClientTypeRequestDto,
   CreateProductRequestDto,
@@ -89,6 +92,41 @@ export class AdminApiService {
     return this.apiService.delete<void>(`categories/${categoryId}`);
   }
 
+  public getBrands(): Observable<BrandDto[]> {
+    return this.apiService.get<BrandDto[]>('brands');
+  }
+
+  public getBrandById(brandId: string): Observable<BrandDto> {
+    return this.apiService.get<BrandDto>(`brands/${brandId}`);
+  }
+
+  public createBrand(request: CreateBrandRequestDto): Observable<BrandDto> {
+    return this.apiService.post<CreateBrandRequestDto, BrandDto>('brands', request);
+  }
+
+  public updateBrand(brandId: string, request: UpdateBrandRequestDto): Observable<BrandDto> {
+    return this.apiService.put<UpdateBrandRequestDto, BrandDto>(`brands/${brandId}`, request);
+  }
+
+  public uploadBrandLogo(brandId: string, file: File): Observable<BrandDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormData<BrandDto>(`brands/${brandId}/logo`, formData);
+  }
+
+  public uploadBrandLogoWithProgress(
+    brandId: string,
+    file: File
+  ): Observable<HttpEvent<BrandDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormDataWithProgress<BrandDto>(`brands/${brandId}/logo`, formData);
+  }
+
+  public deleteBrand(brandId: string): Observable<void> {
+    return this.apiService.delete<void>(`brands/${brandId}`);
+  }
+
   public getClientTypes(): Observable<ClientTypeDto[]> {
     return this.apiService.get<ClientTypeDto[]>('clienttypes');
   }
@@ -139,7 +177,7 @@ export class AdminApiService {
     query?: {
       readonly categoryId?: string | null;
       readonly search?: string | null;
-      readonly brand?: string | null;
+      readonly brandId?: string | null;
       readonly isPublished?: boolean | null;
     }
   ): Observable<PagedResultDto<CatalogueItemDto>> {
@@ -148,7 +186,7 @@ export class AdminApiService {
       pageSize,
       categoryId: query?.categoryId,
       search: query?.search,
-      brand: query?.brand,
+      brandId: query?.brandId,
       isPublished: query?.isPublished
     });
   }

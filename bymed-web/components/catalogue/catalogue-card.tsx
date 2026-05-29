@@ -1,5 +1,6 @@
 "use client";
 
+import { CatalogueBrandLink } from "@/components/catalogue/catalogue-brand-link";
 import { BLUR_PLACEHOLDER_DATA_URL } from "@/lib/ui/blur-placeholder";
 import { catalogueDetailPath } from "@/lib/catalogue/catalogue-path";
 import Image from "next/image";
@@ -12,6 +13,9 @@ export type CatalogueCardItem = {
   imageUrl?: string;
   imageAlt: string;
   categoryName: string;
+  brandName?: string;
+  brandLogoUrl?: string;
+  brandWebsiteUrl?: string;
 };
 
 type CatalogueCardProps = {
@@ -61,7 +65,15 @@ export function CatalogueCard({ item }: CatalogueCardProps) {
             {item.name}
           </Link>
         </h2>
-        <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+        <div className="mt-auto flex flex-col gap-3 pt-2">
+          {item.brandWebsiteUrl?.trim() ? (
+            <CatalogueBrandLink
+              name={item.brandName ?? "Brand"}
+              logoUrl={item.brandLogoUrl}
+              websiteUrl={item.brandWebsiteUrl}
+            />
+          ) : null}
+          <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-muted-foreground">Request a quote</p>
           <Link
             href={href}
@@ -70,6 +82,7 @@ export function CatalogueCard({ item }: CatalogueCardProps) {
           >
             <span aria-hidden>→</span>
           </Link>
+          </div>
         </div>
       </div>
     </article>

@@ -49,20 +49,6 @@ public sealed class GetCatalogueItemBySlugQueryHandler
             })
             .ToList();
 
-        var dto = new CatalogueItemDto
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Slug = item.Slug,
-            Description = item.Description,
-            CategoryId = item.CategoryId,
-            CategoryName = item.Category.Name,
-            PrimaryImageUrl = imageDtos.FirstOrDefault()?.Url,
-            Images = imageDtos,
-            IsPublished = item.IsPublished,
-            Brand = item.Brand,
-        };
-
-        return Result<CatalogueItemDto>.Success(dto);
+        return Result<CatalogueItemDto>.Success(CatalogueItemMapper.ToDto(item, images: imageDtos));
     }
 }

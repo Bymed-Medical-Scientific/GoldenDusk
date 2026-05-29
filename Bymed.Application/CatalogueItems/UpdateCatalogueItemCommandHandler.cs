@@ -10,16 +10,19 @@ public sealed class UpdateCatalogueItemCommandHandler
     : IRequestHandler<UpdateCatalogueItemCommand, Result<CatalogueItemDto>>
 {
     private readonly ICatalogueItemRepository _catalogueItemRepository;
+    private readonly IBrandRepository _brandRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICatalogueReadCache _catalogueReadCache;
 
     public UpdateCatalogueItemCommandHandler(
         ICatalogueItemRepository catalogueItemRepository,
+        IBrandRepository brandRepository,
         IUnitOfWork unitOfWork,
         ICatalogueReadCache catalogueReadCache)
     {
         _catalogueItemRepository = catalogueItemRepository
             ?? throw new ArgumentNullException(nameof(catalogueItemRepository));
+        _brandRepository = brandRepository ?? throw new ArgumentNullException(nameof(brandRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _catalogueReadCache = catalogueReadCache ?? throw new ArgumentNullException(nameof(catalogueReadCache));
     }
@@ -36,25 +39,22 @@ public sealed class UpdateCatalogueItemCommandHandler
             return Result<CatalogueItemDto>.Failure("Catalogue item not found.");
 
         var req = request.Request;
-        item.Update(req.Name, req.Description, req.CategoryId, req.Brand);
+
+        var brandError = await CatalogueBrandValidator
+            .ValidateBrandIdAsync(_brandRepository, req.BrandId, cancellationToken)
+            .ConfigureAwait(false);
+        if (brandError is not null)
+            return Result<CatalogueItemDto>.Failure(brandError);
+
+        item.Update(req.Name, req.Description, req.CategoryId, req.BrandId);
         item.SetPublished(req.IsPublished);
 
         _catalogueItemRepository.Update(item);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await _catalogueReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
-        var dto = new CatalogueItemDto
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Slug = item.Slug,
-            Description = item.Description,
-            CategoryId = item.CategoryId,
-            CategoryName = item.Category.Name,
-            IsPublished = item.IsPublished,
-            Brand = item.Brand,
-        };
+        item = (await _catalogueItemRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false))!;
 
-        return Result<CatalogueItemDto>.Success(dto);
+        return Result<CatalogueItemDto>.Success(CatalogueItemMapper.ToDto(item));
     }
 }

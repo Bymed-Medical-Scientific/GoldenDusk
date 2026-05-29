@@ -114,6 +114,21 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'brands',
+        loadComponent: () =>
+          import('@features/brands/brand-list/brand-list.component').then((m) => m.BrandListComponent)
+      },
+      {
+        path: 'brands/new',
+        loadComponent: () =>
+          import('@features/brands/brand-form/brand-form.component').then((m) => m.BrandFormComponent)
+      },
+      {
+        path: 'brands/:id/edit',
+        loadComponent: () =>
+          import('@features/brands/brand-form/brand-form.component').then((m) => m.BrandFormComponent)
+      },
+      {
         path: 'catalogue',
         loadComponent: () =>
           import('@features/catalogue/catalogue-list/catalogue-list.component').then(

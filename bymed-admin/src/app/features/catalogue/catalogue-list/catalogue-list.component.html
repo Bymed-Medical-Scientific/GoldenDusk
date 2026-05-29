@@ -74,7 +74,7 @@
               }
             </td>
             <td>{{ row.categoryDisplay }}</td>
-            <td>{{ row.brand ?? '—' }}</td>
+            <td>{{ row.brandName ?? '—' }}</td>
             <td>
               <span class="chip" [class.chip-muted]="!row.isPublished">
                 {{ row.isPublished ? 'Published' : 'Unpublished' }}
@@ -119,7 +119,7 @@
               <p class="card-row"><span>Slug:</span> /{{ row.slug }}</p>
             }
             <p class="card-row"><span>Category:</span> {{ row.categoryDisplay }}</p>
-            <p class="card-row"><span>Brand:</span> {{ row.brand ?? '—' }}</p>
+            <p class="card-row"><span>Brand:</span> {{ row.brandName ?? '—' }}</p>
             <p class="card-row">
               <span>Status:</span> {{ row.isPublished ? 'Published' : 'Unpublished' }}
             </p>

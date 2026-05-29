@@ -107,11 +107,8 @@ public sealed class DistributedCatalogueReadCache : ICatalogueReadCache
         var search = query.Search?.Trim() ?? string.Empty;
         if (search.Length > 80)
             search = search[..80];
-        var brand = query.Brand?.Trim() ?? string.Empty;
-        if (brand.Length > 80)
-            brand = brand[..80];
+        var brandPart = query.BrandId?.ToString() ?? "none";
         var searchPart = string.IsNullOrEmpty(search) ? "none" : Uri.EscapeDataString(search);
-        var brandPart = string.IsNullOrEmpty(brand) ? "none" : Uri.EscapeDataString(brand);
         var publishedPart = query.IsPublished?.ToString() ?? "none";
         return $"bymed:catalogue:{v}:items:p{query.PageNumber}:s{query.PageSize}:c{query.CategoryId}:pub{publishedPart}:q{searchPart}:b{brandPart}";
     }

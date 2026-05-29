@@ -30,7 +30,7 @@ export async function generateMetadata({
     : `${category.name} | Catalogue | Bymed Medical & Scientific`;
   const description = `Browse ${category.name} in our equipment catalogue. Request a quotation from Bymed Medical & Scientific.`;
   const canonical = absoluteUrl(
-    buildCatalogueHref({ categorySlug: category.slug, q: undefined, brand: undefined }),
+    buildCatalogueHref({ categorySlug: category.slug, q: undefined }),
   );
   const robots = catalogListingRobots(searchParams);
 

@@ -66,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogueItemRepository, CatalogueItemRepository>();
         services.AddScoped<ICatalogueItemImageRepository, CatalogueItemImageRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IBrandRepository, BrandRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<IUserRepository, UserRepository>();

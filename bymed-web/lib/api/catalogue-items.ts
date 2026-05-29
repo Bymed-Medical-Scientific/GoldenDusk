@@ -10,7 +10,7 @@ export type ListCatalogueItemsParams = {
   pageSize?: number;
   categoryId?: string;
   search?: string;
-  brand?: string;
+  brandId?: string;
   isPublished?: boolean;
 };
 
@@ -22,7 +22,7 @@ export async function listCatalogueItems(
   if (params.pageSize != null) q.set("pageSize", String(params.pageSize));
   if (params.categoryId) q.set("categoryId", params.categoryId);
   if (params.search != null && params.search !== "") q.set("search", params.search);
-  if (params.brand != null && params.brand !== "") q.set("brand", params.brand);
+  if (params.brandId) q.set("brandId", params.brandId);
   q.set("isPublished", String(params.isPublished ?? true));
   const qs = q.toString();
   const res = await apiFetch(

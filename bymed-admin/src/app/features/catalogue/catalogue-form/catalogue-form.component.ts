@@ -30,7 +30,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 
 const NAME_MAX_LENGTH = 500;
-const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
 
 function isHtmlContentEmpty(html: string): boolean {
@@ -52,7 +51,7 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     Name: 'name',
     Description: 'description',
     CategoryId: 'categoryId',
-    Brand: 'brand',
+    BrandId: 'brandId',
     IsPublished: 'isPublished'
   };
   return map[propertyName] ?? propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
@@ -94,6 +93,7 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
   protected readonly pageMessage = signal<string | null>(null);
   protected readonly serverFieldErrors = signal<Record<string, string>>({});
   protected readonly categoryOptions = signal<Array<{ label: string; value: string }>>([]);
+  protected readonly brandOptions = signal<Array<{ label: string; value: string }>>([]);
   protected readonly imagePreviewUrl = signal<string | null>(null);
   protected readonly uploadProgress = signal<number | null>(null);
   protected readonly loadedItem = signal<CatalogueItemDto | null>(null);
@@ -106,7 +106,7 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     name: ['', [Validators.required, Validators.maxLength(NAME_MAX_LENGTH)]],
     description: ['', [nonEmptyHtmlValidator, Validators.maxLength(DESCRIPTION_MAX_HTML_LENGTH)]],
     categoryId: ['', Validators.required],
-    brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
+    brandId: [''],
     isPublished: [true]
   });
 
@@ -115,6 +115,10 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
       next: (list: CategoryDto[]) =>
         this.categoryOptions.set(list.map((c) => ({ label: c.name, value: c.id }))),
       error: () => this.categoryOptions.set([])
+    });
+    this.adminApi.getBrands().subscribe({
+      next: (list) => this.brandOptions.set(list.map((b) => ({ label: b.name, value: b.id }))),
+      error: () => this.brandOptions.set([])
     });
 
     if (!this.isEditMode || !this.itemId) {
@@ -215,10 +219,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     if (controlName === 'categoryId' && control.hasError('required')) {
       return 'Category is required.';
     }
-    if (controlName === 'brand' && control.hasError('maxlength')) {
-      return `Brand must not exceed ${BRAND_MAX_LENGTH} characters.`;
-    }
-
     return null;
   }
 
@@ -253,19 +253,19 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
       name: item.name,
       description: item.description ?? '',
       categoryId: item.categoryId,
-      brand: item.brand ?? '',
+      brandId: item.brandId ?? '',
       isPublished: item.isPublished
     });
   }
 
   private buildCreatePayload(): CreateCatalogueItemRequestDto {
     const raw = this.form.getRawValue();
-    const brand = raw.brand.trim();
+    const brandId = raw.brandId?.trim();
     return {
       name: raw.name.trim(),
       description: raw.description,
       categoryId: raw.categoryId,
-      brand: brand.length > 0 ? brand : null,
+      brandId: brandId && brandId.length > 0 ? brandId : null,
       isPublished: raw.isPublished
     };
   }

@@ -11,18 +11,21 @@ public sealed class CreateCatalogueItemCommandHandler
     : IRequestHandler<CreateCatalogueItemCommand, Result<CatalogueItemDto>>
 {
     private readonly ICatalogueItemRepository _catalogueItemRepository;
+    private readonly IBrandRepository _brandRepository;
     private readonly ICatalogueItemSlugGenerator _slugGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICatalogueReadCache _catalogueReadCache;
 
     public CreateCatalogueItemCommandHandler(
         ICatalogueItemRepository catalogueItemRepository,
+        IBrandRepository brandRepository,
         ICatalogueItemSlugGenerator slugGenerator,
         IUnitOfWork unitOfWork,
         ICatalogueReadCache catalogueReadCache)
     {
         _catalogueItemRepository = catalogueItemRepository
             ?? throw new ArgumentNullException(nameof(catalogueItemRepository));
+        _brandRepository = brandRepository ?? throw new ArgumentNullException(nameof(brandRepository));
         _slugGenerator = slugGenerator ?? throw new ArgumentNullException(nameof(slugGenerator));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _catalogueReadCache = catalogueReadCache ?? throw new ArgumentNullException(nameof(catalogueReadCache));
@@ -34,6 +37,12 @@ public sealed class CreateCatalogueItemCommandHandler
     {
         var req = request.Request;
 
+        var brandError = await CatalogueBrandValidator
+            .ValidateBrandIdAsync(_brandRepository, req.BrandId, cancellationToken)
+            .ConfigureAwait(false);
+        if (brandError is not null)
+            return Result<CatalogueItemDto>.Failure(brandError);
+
         var slug = await _slugGenerator
             .GenerateUniqueSlugAsync(req.Name, excludeCatalogueItemId: null, cancellationToken)
             .ConfigureAwait(false);
@@ -43,25 +52,15 @@ public sealed class CreateCatalogueItemCommandHandler
             slug,
             req.Description,
             req.CategoryId,
-            req.Brand,
+            req.BrandId,
             req.IsPublished);
 
         _catalogueItemRepository.Add(item);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await _catalogueReadCache.InvalidateAsync(cancellationToken).ConfigureAwait(false);
 
-        var dto = new CatalogueItemDto
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Slug = item.Slug,
-            Description = item.Description,
-            CategoryId = item.CategoryId,
-            CategoryName = string.Empty,
-            IsPublished = item.IsPublished,
-            Brand = item.Brand,
-        };
+        item = (await _catalogueItemRepository.GetByIdAsync(item.Id, cancellationToken).ConfigureAwait(false))!;
 
-        return Result<CatalogueItemDto>.Success(dto);
+        return Result<CatalogueItemDto>.Success(CatalogueItemMapper.ToDto(item));
     }
 }

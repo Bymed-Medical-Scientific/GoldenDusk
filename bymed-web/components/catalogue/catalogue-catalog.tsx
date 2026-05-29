@@ -30,7 +30,6 @@ export async function CatalogueCatalog({
 
   const hrefOpts = {
     q: query.q,
-    brand: query.brand,
     categorySlug,
   };
 
@@ -43,7 +42,6 @@ export async function CatalogueCatalog({
       pageSize: query.pageSize,
       search: query.q,
       categoryId: query.categoryId,
-      brand: query.brand,
     });
   } catch (e) {
     const message =
@@ -83,6 +81,9 @@ export async function CatalogueCatalog({
     imageUrl: resolveProductImageUrl(item.primaryImageUrl),
     imageAlt: item.name,
     categoryName: item.categoryName,
+    brandName: item.brandName ?? undefined,
+    brandLogoUrl: resolveProductImageUrl(item.brandLogoUrl) ?? undefined,
+    brandWebsiteUrl: item.brandWebsiteUrl ?? undefined,
   }));
 
   return (
@@ -108,7 +109,7 @@ export async function CatalogueCatalog({
         {result.items.length === 0 ? (
           <EmptyState
             message={
-              query.q || query.brand || query.categoryId
+              query.q || query.categoryId
                 ? "No items match your filters."
                 : "No catalogue items are available yet."
             }
@@ -120,7 +121,6 @@ export async function CatalogueCatalog({
               pageNumber={result.pageNumber}
               totalPages={result.totalPages}
               q={query.q}
-              brand={query.brand}
               categorySlug={categorySlug}
             />
           </>

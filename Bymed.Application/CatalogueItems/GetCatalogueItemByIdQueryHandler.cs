@@ -31,13 +31,6 @@ public sealed class GetCatalogueItemByIdQueryHandler
         if (item is null)
             return Result<CatalogueItemDto>.Failure("Catalogue item not found.");
 
-        return Result<CatalogueItemDto>.Success(await MapToDtoAsync(item, cancellationToken).ConfigureAwait(false));
-    }
-
-    private async Task<CatalogueItemDto> MapToDtoAsync(
-        Domain.Entities.CatalogueItem item,
-        CancellationToken cancellationToken)
-    {
         var images = await _catalogueItemImageRepository
             .GetByCatalogueItemIdAsync(item.Id, cancellationToken)
             .ConfigureAwait(false);
@@ -53,18 +46,6 @@ public sealed class GetCatalogueItemByIdQueryHandler
             })
             .ToList();
 
-        return new CatalogueItemDto
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Slug = item.Slug,
-            Description = item.Description,
-            CategoryId = item.CategoryId,
-            CategoryName = item.Category.Name,
-            PrimaryImageUrl = imageDtos.FirstOrDefault()?.Url,
-            Images = imageDtos,
-            IsPublished = item.IsPublished,
-            Brand = item.Brand,
-        };
+        return Result<CatalogueItemDto>.Success(CatalogueItemMapper.ToDto(item, images: imageDtos));
     }
 }

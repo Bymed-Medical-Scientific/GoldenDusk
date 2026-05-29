@@ -6,7 +6,6 @@ export const MAX_CATALOGUE_SEARCH_LENGTH = 200;
 
 export type CatalogueQuery = {
   q: string | undefined;
-  brand: string | undefined;
   categoryId: string | undefined;
   pageNumber: number;
   pageSize: number;
@@ -18,11 +17,6 @@ export function parseCatalogueQuery(
   const rawQ = typeof searchParams.q === "string" ? searchParams.q.trim() : "";
   const q =
     rawQ.length === 0 ? undefined : rawQ.slice(0, MAX_CATALOGUE_SEARCH_LENGTH);
-  const rawBrand =
-    typeof searchParams.brand === "string" ? searchParams.brand.trim() : "";
-  const brand =
-    rawBrand.length === 0 ? undefined : rawBrand.slice(0, MAX_CATALOGUE_SEARCH_LENGTH);
-
   const rawCat =
     typeof searchParams.category === "string"
       ? searchParams.category.trim()
@@ -38,7 +32,6 @@ export function parseCatalogueQuery(
 
   return {
     q,
-    brand,
     categoryId,
     pageNumber,
     pageSize: CATALOGUE_PAGE_SIZE,
@@ -47,14 +40,12 @@ export function parseCatalogueQuery(
 
 export function buildCatalogueHref(opts: {
   q?: string;
-  brand?: string;
   categoryId?: string;
   categorySlug?: string;
   page?: number;
 }): string {
   const sp = new URLSearchParams();
   if (opts.q) sp.set("q", opts.q);
-  if (opts.brand) sp.set("brand", opts.brand);
   if (opts.page != null && opts.page > 1) sp.set("page", String(opts.page));
   const qs = sp.toString();
 

@@ -23,7 +23,7 @@ export async function generateMetadata({
   const description = q
     ? `Browse catalogue items matching “${q}” at Bymed Medical & Scientific.`
     : "Browse our medical and scientific equipment catalogue. Request a quotation for pricing.";
-  const canonical = absoluteUrl(buildCatalogueHref({ q: undefined, brand: undefined }));
+  const canonical = absoluteUrl(buildCatalogueHref({ q: undefined }));
   const robots = catalogListingRobots(searchParams);
   return {
     title,
@@ -45,7 +45,6 @@ export default async function CataloguePage({ searchParams }: CataloguePageProps
         buildCatalogueHref({
           categorySlug: category.slug,
           q: query.q,
-          brand: query.brand,
           page: query.pageNumber > 1 ? query.pageNumber : undefined,
         }),
       );

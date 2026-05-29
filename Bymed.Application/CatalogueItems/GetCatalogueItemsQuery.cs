@@ -8,5 +8,5 @@ public sealed record GetCatalogueItemsQuery(
     int PageSize,
     Guid? CategoryId,
     string? Search,
-    string? Brand = null,
+    Guid? BrandId = null,
     bool? IsPublished = null) : IRequest<PagedResult<CatalogueItemDto>>;

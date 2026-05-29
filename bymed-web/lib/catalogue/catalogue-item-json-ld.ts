@@ -13,7 +13,9 @@ export function buildCatalogueItemJsonLd(
     name: item.name,
     description: item.description,
     image: imageUrl ? [imageUrl] : undefined,
-    brand: item.brand ? { "@type": "Brand", name: item.brand } : undefined,
+    brand: item.brandName
+      ? { "@type": "Brand", name: item.brandName }
+      : undefined,
     category: item.categoryName,
     url,
   };

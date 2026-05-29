@@ -19,6 +19,10 @@ public class CatalogueItemCrudTests
     {
         var repo = CreateRepository();
         repo.ExistsSlugAsync(Arg.Any<string>(), null, Arg.Any<CancellationToken>()).Returns(false);
+        CatalogueItem? created = null;
+        repo.When(r => r.Add(Arg.Any<CatalogueItem>())).Do(call => created = call.Arg<CatalogueItem>());
+        repo.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(call => created is not null && call.Arg<Guid>() == created.Id ? created : null);
         var unitOfWork = CreateUnitOfWork();
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
@@ -27,12 +31,14 @@ public class CatalogueItemCrudTests
             Name = "Lab Microscope",
             Description = "Precision microscope",
             CategoryId = Guid.NewGuid(),
-            Brand = "OptiLab",
+            BrandId = null,
             IsPublished = true,
         };
 
+        var brandRepo = Substitute.For<IBrandRepository>();
         var handler = new CreateCatalogueItemCommandHandler(
             repo,
+            brandRepo,
             new CatalogueItemSlugGenerator(repo),
             unitOfWork,
             TestCatalogueReadCacheHelper.Create());

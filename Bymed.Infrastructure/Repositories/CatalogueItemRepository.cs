@@ -19,6 +19,7 @@ public sealed class CatalogueItemRepository : ICatalogueItemRepository
     {
         return await _context.CatalogueItems
             .Include(c => c.Category)
+            .Include(c => c.Brand)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken)
             .ConfigureAwait(false);
     }
@@ -30,6 +31,7 @@ public sealed class CatalogueItemRepository : ICatalogueItemRepository
 
         return await _context.CatalogueItems
             .Include(c => c.Category)
+            .Include(c => c.Brand)
             .FirstOrDefaultAsync(c => c.Slug == slug.Trim() && !c.IsDeleted, cancellationToken)
             .ConfigureAwait(false);
     }
@@ -38,13 +40,14 @@ public sealed class CatalogueItemRepository : ICatalogueItemRepository
         PaginationParams pagination,
         Guid? categoryId = null,
         bool? isPublished = null,
-        string? brand = null,
+        Guid? brandId = null,
         string? search = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.CatalogueItems
             .AsNoTracking()
             .Include(c => c.Category)
+            .Include(c => c.Brand)
             .Where(c => !c.IsDeleted)
             .AsQueryable();
 
@@ -52,11 +55,8 @@ public sealed class CatalogueItemRepository : ICatalogueItemRepository
             query = query.Where(c => c.CategoryId == categoryId.Value);
         if (isPublished.HasValue)
             query = query.Where(c => c.IsPublished == isPublished.Value);
-        if (!string.IsNullOrWhiteSpace(brand))
-        {
-            var brandTerm = brand.Trim();
-            query = query.Where(c => c.Brand != null && EF.Functions.ILike(c.Brand, $"%{brandTerm}%"));
-        }
+        if (brandId.HasValue)
+            query = query.Where(c => c.BrandId == brandId.Value);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchTerm = search.Trim();

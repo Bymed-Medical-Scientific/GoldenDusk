@@ -11,7 +11,7 @@ public interface ICatalogueItemRepository
         PaginationParams pagination,
         Guid? categoryId = null,
         bool? isPublished = null,
-        string? brand = null,
+        Guid? brandId = null,
         string? search = null,
         CancellationToken cancellationToken = default);
     Task<bool> ExistsSlugAsync(string slug, Guid? excludeCatalogueItemId = null, CancellationToken cancellationToken = default);

@@ -83,6 +83,9 @@ export default async function CatalogueDetailPage({ params }: CatalogueDetailPag
         imageUrl: resolveProductImageUrl(c.primaryImageUrl),
         imageAlt: c.name,
         categoryName: c.categoryName,
+        brandName: c.brandName ?? undefined,
+        brandLogoUrl: resolveProductImageUrl(c.brandLogoUrl) ?? undefined,
+        brandWebsiteUrl: c.brandWebsiteUrl ?? undefined,
       }));
   } catch {
     relatedItems = [];

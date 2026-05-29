@@ -5,7 +5,6 @@ type CataloguePaginationProps = {
   pageNumber: number;
   totalPages: number;
   q?: string;
-  brand?: string;
   categorySlug?: string;
 };
 
@@ -13,18 +12,17 @@ export function CataloguePagination({
   pageNumber,
   totalPages,
   q,
-  brand,
   categorySlug,
 }: CataloguePaginationProps) {
   if (totalPages <= 1) return null;
 
   const prev =
     pageNumber > 1
-      ? buildCatalogueHref({ q, brand, categorySlug, page: pageNumber - 1 })
+      ? buildCatalogueHref({ q, categorySlug, page: pageNumber - 1 })
       : null;
   const next =
     pageNumber < totalPages
-      ? buildCatalogueHref({ q, brand, categorySlug, page: pageNumber + 1 })
+      ? buildCatalogueHref({ q, categorySlug, page: pageNumber + 1 })
       : null;
 
   const windowSize = 5;
@@ -56,7 +54,7 @@ export function CataloguePagination({
       <ul className="flex flex-wrap items-center gap-1">
         {pages.map((p) => {
           const active = p === pageNumber;
-          const href = buildCatalogueHref({ q, brand, categorySlug, page: p });
+          const href = buildCatalogueHref({ q, categorySlug, page: p });
           return (
             <li key={p}>
               {active ? (

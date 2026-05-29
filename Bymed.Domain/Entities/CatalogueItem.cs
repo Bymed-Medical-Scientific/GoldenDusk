@@ -9,15 +9,15 @@ public class CatalogueItem : FullAuditedEntity
 
     public const int NameMaxLength = 500;
     public const int SlugMaxLength = 200;
-    public const int BrandMaxLength = 120;
 
     public string Name { get; private set; } = string.Empty;
     public string Slug { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public Guid CategoryId { get; private set; }
     public Category Category { get; private set; } = null!;
+    public Guid? BrandId { get; private set; }
+    public Brand? Brand { get; private set; }
     public bool IsPublished { get; private set; } = true;
-    public string? Brand { get; private set; }
 
     private CatalogueItem()
     {
@@ -28,14 +28,14 @@ public class CatalogueItem : FullAuditedEntity
         string slug,
         string description,
         Guid categoryId,
-        string? brand = null,
+        Guid? brandId = null,
         bool isPublished = true)
     {
         SetName(name);
         SetSlug(slug);
         SetDescription(description);
         SetCategoryId(categoryId);
-        Brand = SetBrand(brand);
+        SetBrandId(brandId);
         IsPublished = isPublished;
     }
 
@@ -43,12 +43,12 @@ public class CatalogueItem : FullAuditedEntity
         string name,
         string description,
         Guid categoryId,
-        string? brand = null)
+        Guid? brandId = null)
     {
         SetName(name);
         SetDescription(description);
         SetCategoryId(categoryId);
-        Brand = SetBrand(brand);
+        SetBrandId(brandId);
     }
 
     public void SetPublished(bool isPublished) => IsPublished = isPublished;
@@ -94,12 +94,10 @@ public class CatalogueItem : FullAuditedEntity
         CategoryId = categoryId;
     }
 
-    private static string? SetBrand(string? brand)
+    private void SetBrandId(Guid? brandId)
     {
-        if (string.IsNullOrWhiteSpace(brand)) return null;
-        var trimmed = brand.Trim();
-        if (trimmed.Length > BrandMaxLength)
-            throw new ArgumentException($"Brand must not exceed {BrandMaxLength} characters.", nameof(brand));
-        return trimmed;
+        if (brandId is Guid id && id == Guid.Empty)
+            throw new ArgumentException("Brand id cannot be empty.", nameof(brandId));
+        BrandId = brandId;
     }
 }

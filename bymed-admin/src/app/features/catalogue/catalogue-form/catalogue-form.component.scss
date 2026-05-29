@@ -69,6 +69,16 @@
   font-size: 0.78rem;
 }
 
+.inline-link {
+  color: var(--brand-primary, #0000cc);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .name-slug-hint {
   margin: 0 0 1rem;
 }

@@ -1,5 +1,6 @@
 export * from './auth.dto';
 export * from './category.dto';
+export * from './brand.dto';
 export * from './common.dto';
 export * from './client.dto';
 export * from './contact.dto';

@@ -16,14 +16,17 @@ export interface CatalogueItemDto {
   readonly primaryImageUrl?: string;
   readonly images?: CatalogueItemImageDto[];
   readonly isPublished: boolean;
-  readonly brand?: string;
+  readonly brandId?: string | null;
+  readonly brandName?: string | null;
+  readonly brandLogoUrl?: string | null;
+  readonly brandWebsiteUrl?: string | null;
 }
 
 export interface CreateCatalogueItemRequestDto {
   readonly name: string;
   readonly description: string;
   readonly categoryId: string;
-  readonly brand?: string | null;
+  readonly brandId?: string | null;
   readonly isPublished: boolean;
 }
 
@@ -31,6 +34,6 @@ export interface UpdateCatalogueItemRequestDto {
   readonly name: string;
   readonly description: string;
   readonly categoryId: string;
-  readonly brand?: string | null;
+  readonly brandId?: string | null;
   readonly isPublished: boolean;
 }

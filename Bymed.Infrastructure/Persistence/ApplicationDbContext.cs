@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<CatalogueItem> CatalogueItems => Set<CatalogueItem>();
@@ -54,6 +55,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Ignore<Account>();
 
         ApplyCategoryConfiguration(modelBuilder);
+        ApplyBrandConfiguration(modelBuilder);
         ApplyProductConfiguration(modelBuilder);
         ApplyProductImageConfiguration(modelBuilder);
         ApplyCatalogueItemConfiguration(modelBuilder);
@@ -144,6 +146,18 @@ public class ApplicationDbContext : DbContext
         });
     }
 
+    private static void ApplyBrandConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Brand>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(Brand.NameMaxLength);
+            entity.Property(e => e.LogoUrl).HasMaxLength(Brand.LogoUrlMaxLength);
+            entity.Property(e => e.WebsiteUrl).HasMaxLength(Brand.WebsiteUrlMaxLength);
+        });
+    }
+
     private static void ApplyCatalogueItemConfiguration(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<CatalogueItem>(entity =>
@@ -151,18 +165,22 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Slug).IsUnique();
             entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.BrandId);
             entity.HasIndex(e => e.IsPublished);
             entity.HasIndex(e => e.Name);
-            entity.HasIndex(e => e.Brand);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(CatalogueItem.NameMaxLength);
             entity.Property(e => e.Slug).IsRequired().HasMaxLength(CatalogueItem.SlugMaxLength);
             entity.Property(e => e.Description);
-            entity.Property(e => e.Brand).HasMaxLength(CatalogueItem.BrandMaxLength);
 
             entity.HasOne(e => e.Category)
                 .WithMany()
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Brand)
+                .WithMany()
+                .HasForeignKey(e => e.BrandId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 

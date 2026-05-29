@@ -132,7 +132,7 @@ export class QuotationFormPageComponent implements OnInit {
         !search ||
         p.name.toLowerCase().includes(search) ||
         p.slug.toLowerCase().includes(search) ||
-        (p.brand ?? '').toLowerCase().includes(search);
+        (p.brandName ?? '').toLowerCase().includes(search);
       const matchesCategory = categoryId === 'all' || p.categoryId === categoryId;
       return matchesSearch && matchesCategory;
     });

@@ -1,5 +1,6 @@
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductDescription } from "@/components/products/product-description";
+import { CatalogueBrandLink } from "@/components/catalogue/catalogue-brand-link";
 import type { CatalogueCardItem } from "@/components/catalogue/catalogue-card";
 import { CatalogueGrid } from "@/components/catalogue/catalogue-grid";
 import type { GalleryImage } from "@/lib/catalogue/catalogue-gallery-images";
@@ -55,9 +56,17 @@ export function CatalogueDetail({
             {item.name}
           </h1>
 
-          {item.brand?.trim() ? (
+          {item.brandWebsiteUrl?.trim() ? (
+            <div className="mt-4">
+              <CatalogueBrandLink
+                name={item.brandName?.trim() || "Brand"}
+                logoUrl={item.brandLogoUrl}
+                websiteUrl={item.brandWebsiteUrl}
+              />
+            </div>
+          ) : item.brandName?.trim() ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              Brand: <span className="text-foreground">{item.brand.trim()}</span>
+              Brand: <span className="text-foreground">{item.brandName.trim()}</span>
             </p>
           ) : null}
 

@@ -42,7 +42,7 @@ public sealed class CatalogueItemsController : ControllerBase
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? search = null,
-        [FromQuery] string? brand = null,
+        [FromQuery] Guid? brandId = null,
         [FromQuery] bool? isPublished = null)
     {
         var effectivePublished = ResolvePublishedFilter(isPublished);
@@ -51,7 +51,7 @@ public sealed class CatalogueItemsController : ControllerBase
             pageSize,
             categoryId,
             search,
-            brand,
+            brandId,
             effectivePublished);
 
         var result = await _mediator

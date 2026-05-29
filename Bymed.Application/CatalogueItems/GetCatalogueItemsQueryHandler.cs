@@ -41,7 +41,7 @@ public sealed class GetCatalogueItemsQueryHandler
                 pagination,
                 request.CategoryId,
                 request.IsPublished,
-                request.Brand,
+                request.BrandId,
                 request.Search,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -52,18 +52,9 @@ public sealed class GetCatalogueItemsQueryHandler
             .ConfigureAwait(false);
 
         var dtoItems = paged.Items
-            .Select(c => new CatalogueItemDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Slug = c.Slug,
-                Description = c.Description,
-                CategoryId = c.CategoryId,
-                CategoryName = c.Category.Name,
-                PrimaryImageUrl = primaryImageUrls.TryGetValue(c.Id, out var url) ? url : null,
-                IsPublished = c.IsPublished,
-                Brand = c.Brand,
-            })
+            .Select(c => CatalogueItemMapper.ToDto(
+                c,
+                primaryImageUrls.TryGetValue(c.Id, out var url) ? url : null))
             .ToList();
 
         var result = new PagedResult<CatalogueItemDto>(

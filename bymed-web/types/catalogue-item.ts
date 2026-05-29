@@ -16,5 +16,8 @@ export type CatalogueItemDto = {
   primaryImageUrl?: string | null;
   images?: CatalogueItemImageDto[] | null;
   isPublished: boolean;
-  brand?: string | null;
+  brandId?: string | null;
+  brandName?: string | null;
+  brandLogoUrl?: string | null;
+  brandWebsiteUrl?: string | null;
 };

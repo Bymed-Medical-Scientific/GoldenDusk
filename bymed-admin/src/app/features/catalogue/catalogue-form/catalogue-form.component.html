@@ -83,12 +83,22 @@
       <h2 class="section-title">Details</h2>
 
       <div class="field-group">
-        <label for="brand">Brand</label>
-        <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
-        <small class="field-hint">Optional</small>
-        @if (fieldError('brand')) {
-          <small class="field-error">{{ fieldError('brand') }}</small>
-        }
+        <label for="brandId">Brand</label>
+        <p-select
+          inputId="brandId"
+          formControlName="brandId"
+          [options]="brandOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select a brand (optional)"
+          [showClear]="true"
+          appendTo="body"
+          styleClass="full-width"
+        />
+        <small class="field-hint">
+          Manage brands under
+          <a routerLink="/brands" class="inline-link">Brands</a>.
+        </small>
       </div>
 
       <div class="publish-row">

@@ -13,6 +13,5 @@ public sealed class CreateCatalogueItemRequestValidator : AbstractValidator<Crea
 
         RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Category is required.");
 
-        RuleFor(x => x.Brand).MaximumLength(CatalogueItem.BrandMaxLength);
     }
 }
