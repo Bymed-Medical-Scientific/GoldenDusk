@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/auth/auth-context";
 import { BymedLogo } from "@/components/brand/bymed-logo";
 import { useCart } from "@/components/cart/cart-context";
+import { useQuoteCart } from "@/components/cart/quote-cart-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -101,9 +102,32 @@ function IconCart({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  );
+}
+
+function IconQuote({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+      <path d="M10 9H8" />
     </svg>
   );
 }
@@ -252,6 +276,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
   const { totalItems } = useCart();
+  const { totalItems: quoteTotalItems } = useQuoteCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -456,8 +481,15 @@ export function SiteHeader() {
               href="/cart"
               className="mb-2 block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              Cart
+              Shopping cart
               {totalItems > 0 ? ` (${totalItems})` : ""}
+            </Link>
+            <Link
+              href="/quote-cart"
+              className="mb-2 block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              Quote cart
+              {quoteTotalItems > 0 ? ` (${quoteTotalItems})` : ""}
             </Link>
             {!user ? (
               <Link
@@ -583,8 +615,19 @@ export function SiteHeader() {
             ) : null}
           </div>
 
-          <HeaderIconHint label="Cart" className="hidden lg:inline-flex">
-            <Link href="/cart" className={iconBtnClass} aria-label="Cart">
+          <HeaderIconHint label="Quote cart" className="hidden lg:inline-flex">
+            <Link href="/quote-cart" className={iconBtnClass} aria-label="Quote cart">
+              <IconQuote />
+              {quoteTotalItems > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold leading-none text-brand-foreground">
+                  {quoteTotalItems > 99 ? "99+" : quoteTotalItems}
+                </span>
+              ) : null}
+            </Link>
+          </HeaderIconHint>
+
+          <HeaderIconHint label="Shopping cart" className="hidden lg:inline-flex">
+            <Link href="/cart" className={iconBtnClass} aria-label="Shopping cart">
               <IconCart />
               {totalItems > 0 ? (
                 <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold leading-none text-brand-foreground">

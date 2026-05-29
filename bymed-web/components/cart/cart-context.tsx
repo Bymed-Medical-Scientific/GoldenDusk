@@ -9,27 +9,14 @@ import {
 } from "@/lib/api/cart";
 import { getProductById } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/http";
+import type { CartProductSnapshot, CartViewItem } from "@/components/cart/cart-types";
 import type { CartDto } from "@/types/cart";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-/** Used by guest cart and checkout (clear after order). */
+/** Used by guest shopping cart and checkout (clear after order). */
 export const GUEST_CART_STORAGE_KEY = "bymed_guest_cart_v1";
 
-export type CartProductSnapshot = {
-  productId: string;
-  name: string;
-  imageUrl?: string | null;
-  currency: string;
-  isAvailable: boolean;
-};
-
-export type CartViewItem = {
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  product?: CartProductSnapshot;
-};
+export type { CartProductSnapshot, CartViewItem } from "@/components/cart/cart-types";
 
 type GuestCartItem = CartViewItem;
 

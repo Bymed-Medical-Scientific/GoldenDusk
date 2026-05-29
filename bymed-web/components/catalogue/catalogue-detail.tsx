@@ -1,4 +1,4 @@
-import { AddToCartButton } from "@/components/products/add-to-cart-button";
+import { AddToQuoteButton } from "@/components/products/add-to-quote-button";
 import { ProductDescription } from "@/components/products/product-description";
 import { CatalogueBrandLink } from "@/components/catalogue/catalogue-brand-link";
 import type { CatalogueCardItem } from "@/components/catalogue/catalogue-card";
@@ -75,11 +75,9 @@ export function CatalogueDetail({
           </p>
 
           <div className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
-            <AddToCartButton
+            <AddToQuoteButton
               productId={item.id}
               productName={item.name}
-              productPrice={0}
-              productCurrency="USD"
               productImageUrl={item.primaryImageUrl}
               disabled={!item.isPublished}
             />

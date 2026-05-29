@@ -1,28 +1,24 @@
 "use client";
 
-import { useCart } from "@/components/cart/cart-context";
+import { useQuoteCart } from "@/components/cart/quote-cart-context";
 import { ApiError } from "@/lib/api/http";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-type AddToCartButtonProps = {
+type AddToQuoteButtonProps = {
   productId: string;
   productName: string;
-  productPrice: number;
-  productCurrency: string;
   productImageUrl?: string | null;
   disabled: boolean;
 };
 
-export function AddToCartButton({
+export function AddToQuoteButton({
   productId,
   productName,
-  productPrice,
-  productCurrency,
   productImageUrl,
   disabled,
-}: AddToCartButtonProps) {
-  const { addItem } = useCart();
+}: AddToQuoteButtonProps) {
+  const { addItem } = useQuoteCart();
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +38,10 @@ export function AddToCartButton({
           productId,
           name: productName,
           imageUrl: productImageUrl ?? null,
-          currency: productCurrency,
+          currency: "USD",
           isAvailable: true,
         },
         qty,
-        productPrice,
       );
       setSuccess(true);
     } catch (e) {
@@ -58,18 +53,7 @@ export function AddToCartButton({
     } finally {
       setLoading(false);
     }
-  }, [
-    addItem,
-    cap,
-    disabled,
-    loading,
-    productCurrency,
-    productId,
-    productImageUrl,
-    productName,
-    productPrice,
-    quantity,
-  ]);
+  }, [addItem, cap, disabled, loading, productId, productImageUrl, productName, quantity]);
 
   if (disabled) {
     return (
@@ -84,13 +68,13 @@ export function AddToCartButton({
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
           <label
-            htmlFor={`qty-${productId}`}
+            htmlFor={`quote-qty-${productId}`}
             className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
           >
             Quantity
           </label>
           <input
-            id={`qty-${productId}`}
+            id={`quote-qty-${productId}`}
             type="number"
             inputMode="numeric"
             min={1}
@@ -108,16 +92,16 @@ export function AddToCartButton({
           type="button"
           onClick={() => void onAdd()}
           disabled={loading}
-          className="rounded-md bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-sm transition-colors hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md border border-brand bg-background px-5 py-2.5 text-sm font-semibold text-brand shadow-sm transition-colors hover:bg-brand/10 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Adding…" : "Add to cart"}
+          {loading ? "Adding…" : "Add to quote"}
         </button>
       </div>
       {success ? (
         <p className="text-sm text-foreground" role="status">
-          Added to your shopping cart.{" "}
-          <Link href="/cart" className="font-medium text-brand hover:underline">
-            View cart
+          Added to your quote cart.{" "}
+          <Link href="/quote-cart" className="font-medium text-brand hover:underline">
+            View quote cart
           </Link>
         </p>
       ) : null}

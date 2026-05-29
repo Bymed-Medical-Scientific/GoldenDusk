@@ -2,7 +2,6 @@
 
 import { CartItem } from "@/components/cart/cart-item";
 import { CartSummary } from "@/components/cart/cart-summary";
-import { useAuth } from "@/components/auth/auth-context";
 import { useCart } from "@/components/cart/cart-context";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -10,17 +9,15 @@ import { useMemo, useState } from "react";
 const FALLBACK_CURRENCY = "USD";
 
 export function CartPageContent() {
-  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const { items, totalItems, total, isLoading, error, updateQuantity, removeItem } = useCart();
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
-  const showPrices = isAuthenticated && (user?.canViewPrices ?? true);
 
   const currency = useMemo(
     () => items.find((item) => item.product?.currency)?.product?.currency ?? FALLBACK_CURRENCY,
     [items],
   );
 
-  if (isLoading || isAuthLoading) {
+  if (isLoading) {
     return <p className="text-muted-foreground">Loading your cart...</p>;
   }
 
@@ -60,7 +57,6 @@ export function CartPageContent() {
               quantity={item.quantity}
               lineTotal={item.quantity * item.unitPrice}
               isAvailable={!unavailable}
-              showPrices={showPrices}
               disabled={disabled}
               onDecrease={() => {
                 if (item.quantity <= 1 || disabled) return;
@@ -86,12 +82,7 @@ export function CartPageContent() {
         })}
       </div>
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <CartSummary
-          totalItems={totalItems}
-          total={total}
-          currency={currency}
-          showPrices={showPrices}
-        />
+        <CartSummary totalItems={totalItems} total={total} currency={currency} />
       </div>
     </div>
   );
