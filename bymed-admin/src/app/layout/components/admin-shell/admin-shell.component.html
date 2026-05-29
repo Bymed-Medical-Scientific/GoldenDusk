@@ -5,29 +5,47 @@
 
   <aside class="shell-sidenav" [class.shell-sidenav--open]="sidebarOpen()" [class.shell-sidenav--mobile]="isHandset()">
     <div class="sidenav-brand">
-      <i class="pi pi-shield" aria-hidden="true"></i>
+      <span class="brand-badge" aria-hidden="true">
+        <i class="pi pi-shield"></i>
+      </span>
       <span>ByMed Admin</span>
     </div>
 
     <nav class="nav-list" aria-label="Admin navigation">
-      @for (item of navItems; track item.route) {
-        <a
-          class="nav-link"
-          routerLinkActive="active-link"
-          [routerLink]="item.route"
-          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
-          (click)="closeSidebarForHandset()"
-        >
-          <span class="nav-icon-wrap">
-            <i [class]="item.icon" aria-hidden="true"></i>
-            @if (item.route === '/inventory' && lowStockCount() > 0) {
-              <span class="inline-badge">{{ lowStockBadge() }}</span>
-            }
-          </span>
-          <span>{{ item.label }}</span>
-        </a>
+      @for (section of navSections; track section.label) {
+        <section class="nav-section" [attr.aria-label]="section.label">
+          <h2 class="section-title">{{ section.label }}</h2>
+          @for (item of section.items; track item.route) {
+            <a
+              class="nav-link"
+              routerLinkActive="active-link"
+              [routerLink]="item.route"
+              [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+              (click)="closeSidebarForHandset()"
+            >
+              <span class="nav-icon-wrap">
+                <i [class]="item.icon" aria-hidden="true"></i>
+                @if (item.route === '/inventory' && lowStockCount() > 0) {
+                  <span class="inline-badge">{{ lowStockBadge() }}</span>
+                }
+              </span>
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </section>
       }
     </nav>
+
+    <div class="sidenav-profile">
+      <span class="profile-avatar" aria-hidden="true">{{ userInitials() }}</span>
+      <div class="profile-meta">
+        <strong>{{ userName() }}</strong>
+        <span>Admin</span>
+      </div>
+      <button class="profile-logout" type="button" (click)="logout()" aria-label="Log out">
+        <i class="pi pi-sign-out" aria-hidden="true"></i>
+      </button>
+    </div>
   </aside>
 
   <div class="shell-main">
