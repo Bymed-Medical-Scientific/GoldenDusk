@@ -1,8 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, EMPTY, finalize, tap } from 'rxjs';
+import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { CatalogueItemDto, CategoryDto } from '@shared/models';
@@ -11,9 +12,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 
 type PublishedFilter = 'all' | 'published' | 'unpublished';
+type CatalogueRow = CatalogueItemDto & { readonly categoryDisplay: string };
 
 @Component({
   selector: 'app-catalogue-list',
@@ -27,8 +28,7 @@ type PublishedFilter = 'all' | 'published' | 'unpublished';
     RouterLink,
     SelectModule,
     TableModule,
-    TableSkeletonComponent,
-    TagModule
+    TableSkeletonComponent
   ],
   templateUrl: './catalogue-list.component.html',
   styleUrl: './catalogue-list.component.scss'
@@ -60,6 +60,13 @@ export class CatalogueListComponent implements OnInit {
     { label: 'Published', value: 'published' },
     { label: 'Unpublished', value: 'unpublished' }
   ];
+
+  protected readonly displayItems = computed<CatalogueRow[]>(() =>
+    this.items().map((row) => ({
+      ...row,
+      categoryDisplay: row.categoryName ?? this.resolveCategoryName(row.categoryId)
+    }))
+  );
 
   public ngOnInit(): void {
     this.adminApi.getCategories().subscribe({
@@ -95,34 +102,45 @@ export class CatalogueListComponent implements OnInit {
 
   protected onPageChange(event: PaginatorState): void {
     this.pageNumber.set((event.page ?? 0) + 1);
-    if (event.rows) this.pageSize.set(event.rows);
+    this.pageSize.set(event.rows ?? this.pageSize());
     this.loadPage();
   }
 
   protected deleteItem(item: CatalogueItemDto): void {
-    if (!confirm(`Unpublish "${item.name}"?`)) return;
+    const confirmed = window.confirm(
+      `Unpublish "${item.name}"?\n\nThe item will be removed from the public catalogue.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
     this.deletingId.set(item.id);
+    this.pageMessage.set(null);
     this.adminApi
       .deleteCatalogueItem(item.id)
       .pipe(
-        tap(() => this.pageMessage.set('Catalogue item unpublished.')),
-        catchError(() => {
-          this.pageMessage.set('Failed to unpublish catalogue item.');
+        catchError((err: unknown) => {
+          this.pageMessage.set(
+            err instanceof ApiError ? err.message : 'Could not unpublish catalogue item.'
+          );
           return EMPTY;
         }),
-        finalize(() => {
-          this.deletingId.set(null);
-          this.loadPage();
-        })
+        finalize(() => this.deletingId.set(null))
       )
-      .subscribe();
+      .subscribe(() => {
+        this.pageMessage.set('Catalogue item unpublished.');
+        this.loadPage();
+      });
+  }
+
+  private resolveCategoryName(categoryId: string): string {
+    return this.categories().find((c) => c.id === categoryId)?.name ?? 'Uncategorized';
   }
 
   private loadPage(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const categoryId = this.selectedCategoryId();
     const published = this.publishedFilter();
     let isPublished: boolean | null = null;
     if (published === 'published') isPublished = true;
@@ -130,21 +148,22 @@ export class CatalogueListComponent implements OnInit {
 
     this.adminApi
       .getCatalogueItems(this.pageNumber(), this.pageSize(), {
-        categoryId: categoryId === 'all' ? null : categoryId,
+        categoryId: this.selectedCategoryId() === 'all' ? null : this.selectedCategoryId(),
         search: this.searchQuery().trim() || null,
         isPublished
       })
       .pipe(
-        tap((result) => {
-          this.items.set(result.items);
-          this.totalCount.set(result.totalCount);
-        }),
         catchError(() => {
-          this.errorMessage.set('Failed to load catalogue items.');
+          this.errorMessage.set('Catalogue items could not be loaded. Please try again.');
           return EMPTY;
         }),
         finalize(() => this.isLoading.set(false))
       )
-      .subscribe();
+      .subscribe((result) => {
+        this.items.set(result.items);
+        this.totalCount.set(result.totalCount);
+        this.pageNumber.set(result.pageNumber);
+        this.pageSize.set(result.pageSize);
+      });
   }
 }
