@@ -72,29 +72,14 @@
         (ngModelChange)="selectedCategoryId.set($event)"
         appendTo="body"
       />
-      <p-select
-        [options]="[
-          { label: 'All client types', value: 'all' },
-          { label: 'School', value: 'school' },
-          { label: 'University/College', value: 'university-college' },
-          { label: 'Hospital/Clinic', value: 'hospital-clinic' },
-          { label: 'Nursing School', value: 'nursing-school' },
-          { label: 'General', value: 'general' }
-        ]"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="selectedClientType()"
-        (ngModelChange)="selectedClientType.set($event)"
-        appendTo="body"
-      />
-      <input pInputText [ngModel]="productSearch()" (ngModelChange)="productSearch.set($event)" placeholder="Search by product name" />
+      <input pInputText [ngModel]="productSearch()" (ngModelChange)="productSearch.set($event)" placeholder="Search catalogue items" />
     </div>
     <div class="product-list">
       @for (product of productRows().slice(0, 50); track product.id) {
         <div class="product-row">
           <div>
             <div class="cell-strong">{{ product.name }}</div>
-            <div class="cell-subtext">{{ product.sku || 'No SKU' }} · {{ product.currency }} {{ product.price }}</div>
+            <div class="cell-subtext">{{ product.sku || 'No SKU' }} · {{ product.categoryName || 'Uncategorised' }}</div>
           </div>
           <button pButton type="button" size="small" label="Add" (click)="addProduct(product)"></button>
         </div>

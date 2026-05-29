@@ -354,7 +354,7 @@ public class OrderProcessingPropertyTests
 
         var add = new AddToCartCommandHandler(
             sp.GetRequiredService<ICartRepository>(),
-            sp.GetRequiredService<IProductRepository>(),
+            TestCatalogueLineItemResolverHelper.ForProductsOnly(sp.GetRequiredService<IProductRepository>()),
             sp.GetRequiredService<IUnitOfWork>());
 
         var res = add.Handle(

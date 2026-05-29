@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<CatalogueItem> CatalogueItems => Set<CatalogueItem>();
+    public DbSet<CatalogueItemImage> CatalogueItemImages => Set<CatalogueItemImage>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
@@ -54,6 +56,8 @@ public class ApplicationDbContext : DbContext
         ApplyCategoryConfiguration(modelBuilder);
         ApplyProductConfiguration(modelBuilder);
         ApplyProductImageConfiguration(modelBuilder);
+        ApplyCatalogueItemConfiguration(modelBuilder);
+        ApplyCatalogueItemImageConfiguration(modelBuilder);
         ApplyUserConfiguration(modelBuilder);
         ApplyCartConfiguration(modelBuilder);
         ApplyCartItemConfiguration(modelBuilder);
@@ -136,6 +140,47 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ApplyCatalogueItemConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CatalogueItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Slug).IsUnique();
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.IsPublished);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.Brand);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(CatalogueItem.NameMaxLength);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(CatalogueItem.SlugMaxLength);
+            entity.Property(e => e.Description);
+            entity.Property(e => e.Sku).HasMaxLength(CatalogueItem.SkuMaxLength);
+            entity.Property(e => e.Brand).HasMaxLength(CatalogueItem.BrandMaxLength);
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ApplyCatalogueItemImageConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CatalogueItemImage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.CatalogueItemId);
+            entity.HasIndex(e => new { e.CatalogueItemId, e.DisplayOrder });
+
+            entity.Property(e => e.Url).IsRequired().HasMaxLength(CatalogueItemImage.UrlMaxLength);
+            entity.Property(e => e.AltText).IsRequired().HasMaxLength(CatalogueItemImage.AltTextMaxLength);
+
+            entity.HasOne(e => e.CatalogueItem)
+                .WithMany()
+                .HasForeignKey(e => e.CatalogueItemId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

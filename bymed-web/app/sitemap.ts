@@ -1,6 +1,9 @@
 import { listCategories } from "@/lib/api/categories";
 import { listContentPages } from "@/lib/api/content";
+import { listCatalogueItems } from "@/lib/api/catalogue-items";
 import { listProducts } from "@/lib/api/products";
+import { categoryCataloguePath } from "@/lib/catalogue/catalogue-params";
+import { catalogueDetailPath } from "@/lib/catalogue/catalogue-path";
 import { categoryProductsPath } from "@/lib/catalog/catalog-params";
 import { productDetailPath } from "@/lib/catalog/product-path";
 import { getSiteBaseUrl } from "@/lib/site-url";
@@ -49,6 +52,40 @@ async function getProductUrls(baseUrl: string): Promise<MetadataRoute.Sitemap> {
   return entries;
 }
 
+async function getCatalogueItemUrls(baseUrl: string): Promise<MetadataRoute.Sitemap> {
+  const pageSize = 100;
+  const entries: MetadataRoute.Sitemap = [];
+  const now = new Date();
+
+  try {
+    const firstPage = await listCatalogueItems({ pageNumber: 1, pageSize });
+    entries.push(
+      ...firstPage.items.map((item) => ({
+        url: withBase(baseUrl, catalogueDetailPath(item)),
+        lastModified: now,
+        changeFrequency: "daily" as const,
+        priority: 0.7,
+      })),
+    );
+
+    for (let page = 2; page <= firstPage.totalPages; page += 1) {
+      const nextPage = await listCatalogueItems({ pageNumber: page, pageSize });
+      entries.push(
+        ...nextPage.items.map((item) => ({
+          url: withBase(baseUrl, catalogueDetailPath(item)),
+          lastModified: now,
+          changeFrequency: "daily" as const,
+          priority: 0.7,
+        })),
+      );
+    }
+  } catch {
+    return [];
+  }
+
+  return entries;
+}
+
 async function getCmsPageUrls(baseUrl: string): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   try {
@@ -81,6 +118,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 1,
+    },
+    {
+      url: withBase(baseUrl, "/catalogue"),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
     },
     {
       url: withBase(baseUrl, "/products"),
@@ -132,17 +175,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const [productRoutes, categoryRoutes, cmsRoutes] = await Promise.all([
+  const [productRoutes, catalogueRoutes, categoryRoutes, cmsRoutes] = await Promise.all([
     getProductUrls(baseUrl),
+    getCatalogueItemUrls(baseUrl),
     (async () => {
       try {
         const categories = await listCategories();
-        return categories.map((category) => ({
-          url: withBase(baseUrl, categoryProductsPath(category.slug)),
-          lastModified: now,
-          changeFrequency: "daily" as const,
-          priority: 0.85,
-        }));
+        return categories.flatMap((category) => [
+          {
+            url: withBase(baseUrl, categoryProductsPath(category.slug)),
+            lastModified: now,
+            changeFrequency: "daily" as const,
+            priority: 0.85,
+          },
+          {
+            url: withBase(baseUrl, categoryCataloguePath(category.slug)),
+            lastModified: now,
+            changeFrequency: "daily" as const,
+            priority: 0.85,
+          },
+        ]);
       } catch {
         return [];
       }
@@ -150,5 +202,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getCmsPageUrls(baseUrl),
   ]);
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...cmsRoutes];
+  return [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...productRoutes,
+    ...catalogueRoutes,
+    ...cmsRoutes,
+  ];
 }

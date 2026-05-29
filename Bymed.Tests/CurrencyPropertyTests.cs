@@ -153,7 +153,7 @@ public sealed class OrderCurrencyRecordingPropertyTests
             var productId = CartTestHelpers.SeedProductAsync(db, scenario.Price).GetAwaiter().GetResult();
             var addHandler = new AddToCartCommandHandler(
                 sp.GetRequiredService<ICartRepository>(),
-                sp.GetRequiredService<IProductRepository>(),
+                TestCatalogueLineItemResolverHelper.ForProductsOnly(sp.GetRequiredService<IProductRepository>()),
                 sp.GetRequiredService<IUnitOfWork>());
 
             var addResult = addHandler.Handle(

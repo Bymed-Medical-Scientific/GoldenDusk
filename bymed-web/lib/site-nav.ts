@@ -3,6 +3,7 @@ export const primaryNavLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
+  { href: "/catalogue", label: "Catalogue" },
   { href: "/products", label: "Products" },
   { href: "/contact", label: "Contact" },
 ] as const;

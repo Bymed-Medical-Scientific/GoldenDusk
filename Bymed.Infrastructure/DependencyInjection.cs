@@ -63,6 +63,8 @@ public static class DependencyInjection
     {
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductImageRepository, ProductImageRepository>();
+        services.AddScoped<ICatalogueItemRepository, CatalogueItemRepository>();
+        services.AddScoped<ICatalogueItemImageRepository, CatalogueItemImageRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
@@ -86,6 +88,7 @@ public static class DependencyInjection
             services.AddDistributedMemoryCache();
 
         services.AddSingleton<ICatalogReadCache, DistributedCatalogReadCache>();
+        services.AddSingleton<ICatalogueReadCache, DistributedCatalogueReadCache>();
         return services;
     }
 

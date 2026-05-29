@@ -65,7 +65,10 @@ public class CartItemCountAccuracyPropertyTests
                 var cartRepo = sp.GetRequiredService<ICartRepository>();
                 var productRepo = sp.GetRequiredService<IProductRepository>();
                 var uow = sp.GetRequiredService<IUnitOfWork>();
-                var addHandler = new AddToCartCommandHandler(cartRepo, productRepo, uow);
+                var addHandler = new AddToCartCommandHandler(
+                    cartRepo,
+                    TestCatalogueLineItemResolverHelper.ForProductsOnly(productRepo),
+                    uow);
                 var getHandler = new GetCartQueryHandler(cartRepo);
 
                 var expectedTotalItems = 0;

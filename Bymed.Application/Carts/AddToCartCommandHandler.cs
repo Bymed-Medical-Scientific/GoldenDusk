@@ -1,4 +1,5 @@
 using Bymed.Application.Carts;
+using Bymed.Application.CatalogueItems;
 using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -10,16 +11,16 @@ namespace Bymed.Application.Carts;
 public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, Result<CartDto>>
 {
     private readonly ICartRepository _cartRepository;
-    private readonly IProductRepository _productRepository;
+    private readonly ICatalogueLineItemResolver _lineItemResolver;
     private readonly IUnitOfWork _unitOfWork;
 
     public AddToCartCommandHandler(
         ICartRepository cartRepository,
-        IProductRepository productRepository,
+        ICatalogueLineItemResolver lineItemResolver,
         IUnitOfWork unitOfWork)
     {
         _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
-        _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _lineItemResolver = lineItemResolver ?? throw new ArgumentNullException(nameof(lineItemResolver));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
 
@@ -34,15 +35,12 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
         if (request.Request.Quantity <= 0)
             return Result<CartDto>.Failure("Quantity must be greater than zero.");
 
-        var product = await _productRepository
-            .GetByIdAsync(request.Request.ProductId, cancellationToken)
+        var lineItem = await _lineItemResolver
+            .ResolveAsync(request.Request.ProductId, cancellationToken)
             .ConfigureAwait(false);
 
-        if (product is null)
+        if (lineItem is null)
             return Result<CartDto>.Failure("Product not found.");
-
-        if (!product.IsAvailable)
-            return Result<CartDto>.Failure("Product is not available.");
 
         Cart? cart = null;
         var isNewCart = false;
@@ -75,7 +73,7 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
         if (cart is null)
             return Result<CartDto>.Failure("Failed to resolve cart.");
 
-        cart.AddOrUpdateItem(product.Id, request.Request.Quantity, product.Price);
+        cart.AddOrUpdateItem(lineItem.Id, request.Request.Quantity, lineItem.PriceAtAdd);
 
         if (isNewCart)
             _cartRepository.Add(cart);

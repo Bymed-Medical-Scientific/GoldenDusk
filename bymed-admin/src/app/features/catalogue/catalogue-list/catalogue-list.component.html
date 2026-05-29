@@ -1,0 +1,103 @@
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Catalogue</h1>
+      <p class="page-subtitle">Manage quotation catalogue items (no online pricing).</p>
+    </div>
+    <a pButton routerLink="/catalogue/new" label="New item" icon="pi pi-plus"></a>
+  </div>
+
+  <div class="toolbar-filters">
+    <span class="search-box">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        pInputText
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search name or SKU"
+        aria-label="Search catalogue"
+      />
+    </span>
+    <p-select
+      [options]="categoryOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="selectedCategoryId()"
+      (ngModelChange)="onCategoryChange($event)"
+      placeholder="Category"
+      appendTo="body"
+    />
+    <p-select
+      [options]="publishedOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="publishedFilter()"
+      (ngModelChange)="onPublishedChange($event)"
+      placeholder="Status"
+      appendTo="body"
+    />
+  </div>
+
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
+
+  @if (isLoading()) {
+    <app-table-skeleton [columnCount]="5" [rowCount]="8" ariaLabel="Loading catalogue" />
+  } @else {
+    <p-table [value]="items()" [rowHover]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Brand</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.categoryName || '—' }}</td>
+          <td>{{ item.brand || '—' }}</td>
+          <td>
+            @if (item.isPublished) {
+              <p-tag value="Published" severity="success" />
+            } @else {
+              <p-tag value="Unpublished" severity="secondary" />
+            }
+          </td>
+          <td class="actions-cell">
+            <a pButton [text]="true" [routerLink]="['/catalogue', item.id, 'edit']" label="Edit" icon="pi pi-pencil"></a>
+            <button
+              pButton
+              type="button"
+              [text]="true"
+              severity="danger"
+              label="Unpublish"
+              icon="pi pi-eye-slash"
+              (click)="deleteItem(item)"
+              [loading]="deletingId() === item.id"
+            ></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">No catalogue items found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-paginator
+      [rows]="pageSize()"
+      [totalRecords]="totalCount()"
+      [rowsPerPageOptions]="pageSizeOptions"
+      [first]="(pageNumber() - 1) * pageSize()"
+      (onPageChange)="onPageChange($event)"
+    />
+  }
+}

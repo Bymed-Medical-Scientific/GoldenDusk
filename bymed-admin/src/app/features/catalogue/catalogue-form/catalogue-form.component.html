@@ -1,0 +1,60 @@
+@if (initError()) {
+  <app-global-error [message]="initError() ?? ''" />
+} @else if (isInitializing()) {
+  <app-page-loading />
+} @else {
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ isEditMode ? 'Edit catalogue item' : 'New catalogue item' }}</h1>
+    </div>
+    <a pButton routerLink="/catalogue" label="Back" icon="pi pi-arrow-left" [text]="true"></a>
+  </div>
+
+  @if (generalError()) {
+    <app-global-error [message]="generalError() ?? ''" />
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+    <label>
+      Name
+      <input pInputText formControlName="name" />
+    </label>
+    <label>
+      Slug
+      <input pInputText formControlName="slug" />
+    </label>
+    <label>
+      Category
+      <p-select formControlName="categoryId" [options]="categoryOptions()" optionLabel="label" optionValue="value" appendTo="body" />
+    </label>
+    <label>
+      SKU
+      <input pInputText formControlName="sku" />
+    </label>
+    <label>
+      Brand
+      <input pInputText formControlName="brand" />
+    </label>
+    <label class="checkbox-row">
+      <p-checkbox formControlName="isPublished" [binary]="true" inputId="isPublished" />
+      <label for="isPublished">Published on storefront catalogue</label>
+    </label>
+    <label class="full-width">
+      Description
+      <quill-editor formControlName="description" theme="snow" />
+    </label>
+    <label class="full-width">
+      Primary image
+      <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+      @if (imagePreviewUrl()) {
+        <img [src]="imagePreviewUrl()!" alt="" class="image-preview" />
+      }
+      @if (uploadProgress() !== null) {
+        <p-progressBar [value]="uploadProgress() ?? 0" />
+      }
+    </label>
+    <div class="form-actions full-width">
+      <button pButton type="submit" [label]="isEditMode ? 'Save changes' : 'Create item'" [loading]="isSubmitting()"></button>
+    </div>
+  </form>
+}

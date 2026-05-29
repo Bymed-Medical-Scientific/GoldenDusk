@@ -3,8 +3,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
+  CatalogueItemDto,
+  CatalogueItemImageDto,
   CategoryDto,
   ClientDto,
+  CreateCatalogueItemRequestDto,
   ClientTypeDto,
   BulkOperationResultDto,
   BulkDeleteProductsRequestDto,
@@ -49,6 +52,7 @@ import {
   UpdateCategoryRequestDto,
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
+  UpdateCatalogueItemRequestDto,
   UpdateProductRequestDto,
   UserSummaryDto,
   CreateMarketingCampaignRequestDto,
@@ -127,6 +131,84 @@ export class AdminApiService {
 
   public deleteClient(clientId: string): Observable<void> {
     return this.apiService.delete<void>(`clients/${clientId}`);
+  }
+
+  public getCatalogueItems(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly categoryId?: string | null;
+      readonly search?: string | null;
+      readonly brand?: string | null;
+      readonly isPublished?: boolean | null;
+    }
+  ): Observable<PagedResultDto<CatalogueItemDto>> {
+    return this.apiService.get<PagedResultDto<CatalogueItemDto>>('catalogue-items', {
+      pageNumber,
+      pageSize,
+      categoryId: query?.categoryId,
+      search: query?.search,
+      brand: query?.brand,
+      isPublished: query?.isPublished
+    });
+  }
+
+  public getCatalogueItemById(catalogueItemId: string): Observable<CatalogueItemDto> {
+    return this.apiService.get<CatalogueItemDto>(`catalogue-items/${catalogueItemId}`);
+  }
+
+  public createCatalogueItem(request: CreateCatalogueItemRequestDto): Observable<CatalogueItemDto> {
+    return this.apiService.post<CreateCatalogueItemRequestDto, CatalogueItemDto>('catalogue-items', request);
+  }
+
+  public updateCatalogueItem(
+    catalogueItemId: string,
+    request: UpdateCatalogueItemRequestDto
+  ): Observable<CatalogueItemDto> {
+    return this.apiService.put<UpdateCatalogueItemRequestDto, CatalogueItemDto>(
+      `catalogue-items/${catalogueItemId}`,
+      request
+    );
+  }
+
+  public deleteCatalogueItem(catalogueItemId: string): Observable<void> {
+    return this.apiService.delete<void>(`catalogue-items/${catalogueItemId}`);
+  }
+
+  public uploadCatalogueItemImage(
+    catalogueItemId: string,
+    file: File,
+    altText?: string
+  ): Observable<CatalogueItemImageDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormData<CatalogueItemImageDto>(
+      `catalogue-items/${catalogueItemId}/images`,
+      formData
+    );
+  }
+
+  public uploadCatalogueItemImageWithProgress(
+    catalogueItemId: string,
+    file: File,
+    altText?: string
+  ): Observable<HttpEvent<CatalogueItemImageDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormDataWithProgress<CatalogueItemImageDto>(
+      `catalogue-items/${catalogueItemId}/images`,
+      formData
+    );
+  }
+
+  public deleteCatalogueItemImage(catalogueItemId: string, imageId: string): Observable<void> {
+    return this.apiService.delete<void>(`catalogue-items/${catalogueItemId}/images/${imageId}`);
   }
 
   public getProducts(

@@ -114,6 +114,27 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'catalogue',
+        loadComponent: () =>
+          import('@features/catalogue/catalogue-list/catalogue-list.component').then(
+            (m) => m.CatalogueListComponent
+          )
+      },
+      {
+        path: 'catalogue/new',
+        loadComponent: () =>
+          import('@features/catalogue/catalogue-form/catalogue-form.component').then(
+            (m) => m.CatalogueFormComponent
+          )
+      },
+      {
+        path: 'catalogue/:id/edit',
+        loadComponent: () =>
+          import('@features/catalogue/catalogue-form/catalogue-form.component').then(
+            (m) => m.CatalogueFormComponent
+          )
+      },
+      {
         path: 'products',
         loadComponent: () =>
           import('@features/products/product-list/product-list.component').then(
