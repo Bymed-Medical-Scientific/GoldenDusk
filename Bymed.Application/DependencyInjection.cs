@@ -1,5 +1,6 @@
 using Bymed.Application.CatalogueItems;
 using Bymed.Application.Categories;
+using Bymed.Application.Products;
 using Bymed.Application.Quotations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IPricingCalculator, PricingCalculator>();
         services.AddScoped<ICatalogueLineItemResolver, CatalogueLineItemResolver>();
         services.AddScoped<ICatalogueItemSlugGenerator, CatalogueItemSlugGenerator>();
+        services.AddScoped<IProductSlugGenerator, ProductSlugGenerator>();
         return services;
     }
 }

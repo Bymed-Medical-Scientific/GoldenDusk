@@ -10,15 +10,18 @@ namespace Bymed.Application.Products;
 public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<ProductDto>>
 {
     private readonly IProductRepository _productRepository;
+    private readonly IProductSlugGenerator _slugGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICatalogReadCache _catalogReadCache;
 
     public CreateProductCommandHandler(
         IProductRepository productRepository,
+        IProductSlugGenerator slugGenerator,
         IUnitOfWork unitOfWork,
         ICatalogReadCache catalogReadCache)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _slugGenerator = slugGenerator ?? throw new ArgumentNullException(nameof(slugGenerator));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _catalogReadCache = catalogReadCache ?? throw new ArgumentNullException(nameof(catalogReadCache));
     }
@@ -27,15 +30,13 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
     {
         var req = request.Request;
 
-        var slugExists = await _productRepository
-            .ExistsSlugAsync(req.Slug.Trim(), excludeProductId: null, cancellationToken)
+        var slug = await _slugGenerator
+            .GenerateUniqueSlugAsync(req.Name, excludeProductId: null, cancellationToken)
             .ConfigureAwait(false);
-        if (slugExists)
-            return Result<ProductDto>.Failure("A product with this slug already exists.");
 
         var product = new Product(
             req.Name,
-            req.Slug,
+            slug,
             req.Description,
             req.CategoryId,
             req.Price,

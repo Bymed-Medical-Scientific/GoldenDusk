@@ -113,6 +113,15 @@
   color: #b3261e;
 }
 
+.name-slug-hint {
+  margin: 0 0 1rem;
+}
+
+.read-only-value {
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 .read-only-row {
   display: flex;
   flex-wrap: wrap;

@@ -31,11 +31,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 
 const NAME_MAX_LENGTH = 500;
-const SLUG_MAX_LENGTH = 200;
 const SKU_MAX_LENGTH = 100;
 const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 
 function isHtmlContentEmpty(html: string): boolean {
@@ -55,7 +53,6 @@ function nonEmptyHtmlValidator(control: AbstractControl): ValidationErrors | nul
 function mapServerPropertyToFormKey(propertyName: string): string {
   const map: Record<string, string> = {
     Name: 'name',
-    Slug: 'slug',
     Description: 'description',
     CategoryId: 'categoryId',
     Price: 'price',
@@ -125,7 +122,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   protected readonly productForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(NAME_MAX_LENGTH)]],
-    slug: ['', [Validators.required, Validators.maxLength(SLUG_MAX_LENGTH), Validators.pattern(SLUG_PATTERN)]],
     description: ['', [nonEmptyHtmlValidator, Validators.maxLength(DESCRIPTION_MAX_HTML_LENGTH)]],
     categoryId: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
@@ -245,15 +241,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (controlName === 'name' && control.hasError('maxlength')) {
       return `Name must not exceed ${NAME_MAX_LENGTH} characters.`;
     }
-    if (controlName === 'slug' && control.hasError('required')) {
-      return 'Slug is required.';
-    }
-    if (controlName === 'slug' && control.hasError('maxlength')) {
-      return `Slug must not exceed ${SLUG_MAX_LENGTH} characters.`;
-    }
-    if (controlName === 'slug' && control.hasError('pattern')) {
-      return 'Use a URL-safe slug: lowercase letters, digits, and hyphens only.';
-    }
     if (controlName === 'description' && (control.hasError('required') || control.errors?.['required'])) {
       return 'Description is required.';
     }
@@ -328,7 +315,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private patchFormFromProduct(product: ProductDto): void {
     this.productForm.patchValue({
       name: product.name,
-      slug: product.slug ?? '',
       description: product.description ?? '',
       categoryId: product.categoryId,
       price: product.price,
@@ -348,7 +334,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
-      slug: raw.slug.trim(),
       description: raw.description,
       categoryId: raw.categoryId,
       price: Number(raw.price),
@@ -369,7 +354,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     const clientType = raw.clientType.trim();
     return {
       name: raw.name.trim(),
-      slug: raw.slug.trim(),
       description: raw.description,
       categoryId: raw.categoryId,
       price: Number(raw.price),

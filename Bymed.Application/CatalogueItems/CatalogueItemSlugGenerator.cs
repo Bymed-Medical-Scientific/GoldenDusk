@@ -16,25 +16,14 @@ public sealed class CatalogueItemSlugGenerator : ICatalogueItemSlugGenerator
             ?? throw new ArgumentNullException(nameof(catalogueItemRepository));
     }
 
-    public async Task<string> GenerateUniqueSlugAsync(
+    public Task<string> GenerateUniqueSlugAsync(
         string name,
         Guid? excludeCatalogueItemId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var baseSlug = SlugGenerator.FromName(name, CatalogueItem.SlugMaxLength);
-        if (string.IsNullOrEmpty(baseSlug))
-            baseSlug = FallbackSlug;
-
-        var candidate = baseSlug;
-        var suffix = 2;
-
-        while (await _catalogueItemRepository
-                   .ExistsSlugAsync(candidate, excludeCatalogueItemId, cancellationToken)
-                   .ConfigureAwait(false))
-        {
-            candidate = SlugGenerator.WithNumericSuffix(baseSlug, suffix++, CatalogueItem.SlugMaxLength);
-        }
-
-        return candidate;
-    }
+        CancellationToken cancellationToken = default) =>
+        UniqueSlugGenerator.GenerateUniqueAsync(
+            name,
+            CatalogueItem.SlugMaxLength,
+            FallbackSlug,
+            (slug, ct) => _catalogueItemRepository.ExistsSlugAsync(slug, excludeCatalogueItemId, ct),
+            cancellationToken);
 }

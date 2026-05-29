@@ -27,7 +27,6 @@ export interface ProductDto {
 
 export interface CreateProductRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly price: number;
@@ -42,7 +41,6 @@ export interface CreateProductRequestDto {
 
 export interface UpdateProductRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly price: number;

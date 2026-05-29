@@ -32,15 +32,10 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             return Result<ProductDto>.Failure("Product not found.");
 
         var req = request.Request;
-        var slugExists = await _productRepository
-            .ExistsSlugAsync(req.Slug.Trim(), excludeProductId: request.Id, cancellationToken)
-            .ConfigureAwait(false);
-        if (slugExists)
-            return Result<ProductDto>.Failure("A product with this slug already exists.");
 
         product.Update(
             req.Name,
-            req.Slug,
+            product.Slug,
             req.Description,
             req.CategoryId,
             req.Price,

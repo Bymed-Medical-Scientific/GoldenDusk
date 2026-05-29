@@ -90,7 +90,6 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: '',
-      slug: 'Bad Slug',
       description: '',
       categoryId: '',
       price: -1,
@@ -104,7 +103,6 @@ describe('ProductFormComponent', () => {
 
     expect(adminApiSpy.createProduct).not.toHaveBeenCalled();
     expect((component as any).fieldError('name')).toBe('Name is required.');
-    expect((component as any).fieldError('slug')).toContain('URL-safe slug');
     expect((component as any).fieldError('description')).toBe('Description is required.');
     expect((component as any).fieldError('categoryId')).toBe('Category is required.');
     expect((component as any).fieldError('price')).toBe('Price cannot be negative.');
@@ -116,7 +114,6 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: '  New Product  ',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
@@ -130,7 +127,6 @@ describe('ProductFormComponent', () => {
 
     expect(adminApiSpy.createProduct).toHaveBeenCalledWith({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
@@ -148,7 +144,6 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
@@ -175,14 +170,13 @@ describe('ProductFormComponent', () => {
       throwError(
         () =>
           new ApiError(400, 'Validation failed', null, [
-            { propertyName: 'Slug', errorMessage: 'Slug already exists.' }
+            { propertyName: 'Name', errorMessage: 'Product name is required.' }
           ])
       )
     );
 
     (component as any).productForm.patchValue({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>x</p>',
       categoryId: category.id,
       price: 10,
@@ -193,7 +187,7 @@ describe('ProductFormComponent', () => {
     });
     (component as any).submit();
 
-    expect((component as any).fieldError('slug')).toBe('Slug already exists.');
+    expect((component as any).fieldError('name')).toBe('Product name is required.');
     expect((component as any).generalError()).toBeNull();
   });
 });

@@ -28,7 +28,6 @@ export type ProductDto = {
 
 export type CreateProductRequest = {
   name: string;
-  slug: string;
   description: string;
   categoryId: string;
   price: number;
@@ -43,7 +42,6 @@ export type CreateProductRequest = {
 
 export type UpdateProductRequest = {
   name: string;
-  slug: string;
   description: string;
   categoryId: string;
   price: number;

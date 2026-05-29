@@ -32,7 +32,6 @@ public class ProductCrudPropertyTests
         var request = new CreateProductRequest
         {
             Name = "Infusion Pump",
-            Slug = "infusion-pump",
             Description = "High-precision infusion pump",
             CategoryId = Guid.NewGuid(),
             Price = 1000m,
@@ -43,7 +42,11 @@ public class ProductCrudPropertyTests
             Specifications = new Dictionary<string, string> { ["flow-rate"] = "0.1-1200 ml/h" }
         };
 
-        var handler = new CreateProductCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
+        var handler = new CreateProductCommandHandler(
+            repo,
+            new ProductSlugGenerator(repo),
+            unitOfWork,
+            TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new CreateProductCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -81,7 +84,6 @@ public class ProductCrudPropertyTests
         var request = new UpdateProductRequest
         {
             Name = "Updated Name",
-            Slug = "updated-slug",
             Description = "Updated description",
             CategoryId = Guid.NewGuid(),
             Price = 750m,
@@ -96,9 +98,9 @@ public class ProductCrudPropertyTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be("Updated Name");
-        result.Value.Slug.Should().Be("updated-slug");
+        result.Value.Slug.Should().Be("old-slug");
         existing.Name.Should().Be("Updated Name");
-        existing.Slug.Should().Be("updated-slug");
+        existing.Slug.Should().Be("old-slug");
         repo.Received(1).Update(existing);
         unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
