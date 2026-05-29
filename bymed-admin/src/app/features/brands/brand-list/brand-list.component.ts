@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
@@ -28,6 +29,7 @@ import { TableModule } from 'primeng/table';
 })
 export class BrandListComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly apiBaseUrl = inject(API_BASE_URL);
 
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
@@ -52,6 +54,17 @@ export class BrandListComponent implements OnInit {
 
   protected clearSearch(): void {
     this.searchQuery.set('');
+  }
+
+  protected resolveLogoUrl(url?: string | null): string | null {
+    if (!url?.trim()) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    try {
+      const origin = new URL(this.apiBaseUrl).origin;
+      return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
+    } catch {
+      return url;
+    }
   }
 
   protected deleteBrand(brand: BrandDto): void {

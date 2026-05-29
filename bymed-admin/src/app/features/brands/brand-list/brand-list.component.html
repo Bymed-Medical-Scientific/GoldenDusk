@@ -60,8 +60,8 @@
               }
             </td>
             <td>
-              @if (row.logoUrl) {
-                <img [src]="row.logoUrl" [alt]="row.name + ' logo'" class="logo-thumb" />
+              @if (resolveLogoUrl(row.logoUrl); as logoSrc) {
+                <img [src]="logoSrc" [alt]="row.name + ' logo'" class="logo-thumb" />
               } @else {
                 <span class="text-muted">No logo</span>
               }
