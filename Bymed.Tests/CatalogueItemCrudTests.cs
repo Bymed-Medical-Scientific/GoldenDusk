@@ -28,7 +28,6 @@ public class CatalogueItemCrudTests
             Slug = "lab-microscope",
             Description = "Precision microscope",
             CategoryId = Guid.NewGuid(),
-            Sku = "MIC-01",
             Brand = "OptiLab",
             IsPublished = true,
         };
@@ -54,7 +53,6 @@ public class CatalogueItemCrudTests
             "catalogue-only",
             "Description",
             Guid.NewGuid(),
-            sku: "CAT-1",
             isPublished: true);
 
         var catalogueRepo = CreateRepository();

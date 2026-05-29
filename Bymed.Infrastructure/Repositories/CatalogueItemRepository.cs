@@ -62,8 +62,7 @@ public sealed class CatalogueItemRepository : ICatalogueItemRepository
             var searchTerm = search.Trim();
             query = query.Where(c =>
                 EF.Functions.ILike(c.Name, $"%{searchTerm}%") ||
-                EF.Functions.ILike(c.Description, $"%{searchTerm}%") ||
-                (c.Sku != null && EF.Functions.ILike(c.Sku, $"%{searchTerm}%")));
+                EF.Functions.ILike(c.Description, $"%{searchTerm}%"));
         }
 
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);

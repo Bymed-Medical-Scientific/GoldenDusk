@@ -11,6 +11,5 @@ public sealed record CatalogueItemDto
     public string? PrimaryImageUrl { get; init; }
     public IReadOnlyList<CatalogueItemImageDto>? Images { get; init; }
     public bool IsPublished { get; init; }
-    public string? Sku { get; init; }
     public string? Brand { get; init; }
 }

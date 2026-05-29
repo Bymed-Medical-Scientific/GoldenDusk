@@ -157,7 +157,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(CatalogueItem.NameMaxLength);
             entity.Property(e => e.Slug).IsRequired().HasMaxLength(CatalogueItem.SlugMaxLength);
             entity.Property(e => e.Description);
-            entity.Property(e => e.Sku).HasMaxLength(CatalogueItem.SkuMaxLength);
             entity.Property(e => e.Brand).HasMaxLength(CatalogueItem.BrandMaxLength);
 
             entity.HasOne(e => e.Category)

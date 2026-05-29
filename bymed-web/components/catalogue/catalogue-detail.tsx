@@ -55,13 +55,6 @@ export function CatalogueDetail({
             {item.name}
           </h1>
 
-          {item.sku?.trim() ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              SKU:{" "}
-              <span className="break-all font-mono text-foreground">{item.sku.trim()}</span>
-            </p>
-          ) : null}
-
           {item.brand?.trim() ? (
             <p className="mt-2 text-sm text-muted-foreground">
               Brand: <span className="text-foreground">{item.brand.trim()}</span>

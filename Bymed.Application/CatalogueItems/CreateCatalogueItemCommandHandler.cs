@@ -42,7 +42,6 @@ public sealed class CreateCatalogueItemCommandHandler
             req.Slug,
             req.Description,
             req.CategoryId,
-            req.Sku,
             req.Brand,
             req.IsPublished);
 
@@ -59,7 +58,6 @@ public sealed class CreateCatalogueItemCommandHandler
             CategoryId = item.CategoryId,
             CategoryName = string.Empty,
             IsPublished = item.IsPublished,
-            Sku = item.Sku,
             Brand = item.Brand,
         };
 

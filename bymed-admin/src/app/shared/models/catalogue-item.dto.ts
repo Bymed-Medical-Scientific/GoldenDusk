@@ -11,7 +11,6 @@ export interface CatalogueItemDto {
   readonly name: string;
   readonly slug: string;
   readonly description?: string;
-  readonly sku?: string;
   readonly categoryId: string;
   readonly categoryName?: string;
   readonly primaryImageUrl?: string;
@@ -25,7 +24,6 @@ export interface CreateCatalogueItemRequestDto {
   readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
-  readonly sku?: string | null;
   readonly brand?: string | null;
   readonly isPublished: boolean;
 }
@@ -35,7 +33,6 @@ export interface UpdateCatalogueItemRequestDto {
   readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
-  readonly sku?: string | null;
   readonly brand?: string | null;
   readonly isPublished: boolean;
 }

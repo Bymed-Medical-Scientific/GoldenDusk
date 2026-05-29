@@ -42,7 +42,7 @@ public sealed class UpdateCatalogueItemCommandHandler
         if (slugExists)
             return Result<CatalogueItemDto>.Failure("A catalogue item with this slug already exists.");
 
-        item.Update(req.Name, req.Slug, req.Description, req.CategoryId, req.Sku, req.Brand);
+        item.Update(req.Name, req.Slug, req.Description, req.CategoryId, req.Brand);
         item.SetPublished(req.IsPublished);
 
         _catalogueItemRepository.Update(item);
@@ -58,7 +58,6 @@ public sealed class UpdateCatalogueItemCommandHandler
             CategoryId = item.CategoryId,
             CategoryName = item.Category.Name,
             IsPublished = item.IsPublished,
-            Sku = item.Sku,
             Brand = item.Brand,
         };
 

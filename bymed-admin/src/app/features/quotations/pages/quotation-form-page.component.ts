@@ -131,7 +131,8 @@ export class QuotationFormPageComponent implements OnInit {
       const matchesSearch =
         !search ||
         p.name.toLowerCase().includes(search) ||
-        (p.sku ?? '').toLowerCase().includes(search);
+        p.slug.toLowerCase().includes(search) ||
+        (p.brand ?? '').toLowerCase().includes(search);
       const matchesCategory = categoryId === 'all' || p.categoryId === categoryId;
       return matchesSearch && matchesCategory;
     });
@@ -190,7 +191,7 @@ export class QuotationFormPageComponent implements OnInit {
         localId: crypto.randomUUID(),
         productId: product.id,
         productName: product.name,
-        productSku: product.sku ?? '',
+        productSku: '',
         productImageUrl: product.primaryImageUrl ?? '',
         quantity: 1,
         supplierUnitCost: 0,

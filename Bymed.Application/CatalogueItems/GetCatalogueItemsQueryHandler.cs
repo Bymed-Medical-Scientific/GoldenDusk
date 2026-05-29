@@ -62,7 +62,6 @@ public sealed class GetCatalogueItemsQueryHandler
                 CategoryName = c.Category.Name,
                 PrimaryImageUrl = primaryImageUrls.TryGetValue(c.Id, out var url) ? url : null,
                 IsPublished = c.IsPublished,
-                Sku = c.Sku,
                 Brand = c.Brand,
             })
             .ToList();

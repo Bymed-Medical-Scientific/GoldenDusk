@@ -31,7 +31,6 @@ import { SelectModule } from 'primeng/select';
 
 const NAME_MAX_LENGTH = 500;
 const SLUG_MAX_LENGTH = 200;
-const SKU_MAX_LENGTH = 100;
 const BRAND_MAX_LENGTH = 120;
 const DESCRIPTION_MAX_HTML_LENGTH = 200000;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -56,7 +55,6 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     Slug: 'slug',
     Description: 'description',
     CategoryId: 'categoryId',
-    Sku: 'sku',
     Brand: 'brand',
     IsPublished: 'isPublished'
   };
@@ -111,7 +109,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     slug: ['', [Validators.required, Validators.maxLength(SLUG_MAX_LENGTH), Validators.pattern(SLUG_PATTERN)]],
     description: ['', [nonEmptyHtmlValidator, Validators.maxLength(DESCRIPTION_MAX_HTML_LENGTH)]],
     categoryId: ['', Validators.required],
-    sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]],
     brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
     isPublished: [true]
   });
@@ -229,9 +226,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
     if (controlName === 'categoryId' && control.hasError('required')) {
       return 'Category is required.';
     }
-    if (controlName === 'sku' && control.hasError('maxlength')) {
-      return `SKU must not exceed ${SKU_MAX_LENGTH} characters.`;
-    }
     if (controlName === 'brand' && control.hasError('maxlength')) {
       return `Brand must not exceed ${BRAND_MAX_LENGTH} characters.`;
     }
@@ -271,7 +265,6 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
       slug: item.slug,
       description: item.description ?? '',
       categoryId: item.categoryId,
-      sku: item.sku ?? '',
       brand: item.brand ?? '',
       isPublished: item.isPublished
     });
@@ -279,14 +272,12 @@ export class CatalogueFormComponent implements OnInit, OnDestroy {
 
   private buildCreatePayload(): CreateCatalogueItemRequestDto {
     const raw = this.form.getRawValue();
-    const sku = raw.sku.trim();
     const brand = raw.brand.trim();
     return {
       name: raw.name.trim(),
       slug: raw.slug.trim(),
       description: raw.description,
       categoryId: raw.categoryId,
-      sku: sku.length > 0 ? sku : null,
       brand: brand.length > 0 ? brand : null,
       isPublished: raw.isPublished
     };

@@ -17,7 +17,7 @@
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
-        placeholder="Search name, SKU, or category"
+        placeholder="Search name or category"
         aria-label="Search catalogue"
       />
       @if (searchQuery()) {
@@ -53,13 +53,12 @@
 
   <div class="table-wrap">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="6" [rowCount]="pageSize()" ariaLabel="Loading catalogue" />
+      <app-table-skeleton [columnCount]="5" [rowCount]="pageSize()" ariaLabel="Loading catalogue" />
     } @else {
       <p-table [value]="displayItems()" styleClass="catalogue-table desktop-table" [rowHover]="true">
         <ng-template pTemplate="header">
           <tr>
             <th>Item</th>
-            <th>SKU</th>
             <th>Category</th>
             <th>Brand</th>
             <th>Status</th>
@@ -74,7 +73,6 @@
                 <div class="cell-subtext">/{{ row.slug }}</div>
               }
             </td>
-            <td>{{ row.sku ?? '—' }}</td>
             <td>{{ row.categoryDisplay }}</td>
             <td>{{ row.brand ?? '—' }}</td>
             <td>
@@ -108,7 +106,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="empty-cell" [attr.colspan]="6">No catalogue items match your filters.</td>
+            <td class="empty-cell" [attr.colspan]="5">No catalogue items match your filters.</td>
           </tr>
         </ng-template>
       </p-table>
@@ -120,7 +118,6 @@
             @if (row.slug) {
               <p class="card-row"><span>Slug:</span> /{{ row.slug }}</p>
             }
-            <p class="card-row"><span>SKU:</span> {{ row.sku ?? '—' }}</p>
             <p class="card-row"><span>Category:</span> {{ row.categoryDisplay }}</p>
             <p class="card-row"><span>Brand:</span> {{ row.brand ?? '—' }}</p>
             <p class="card-row">

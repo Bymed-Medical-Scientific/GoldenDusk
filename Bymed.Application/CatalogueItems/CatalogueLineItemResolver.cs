@@ -32,7 +32,7 @@ public sealed class CatalogueLineItemResolver : ICatalogueLineItemResolver
             return new CatalogueLineItemResolution(
                 catalogueItem.Id,
                 catalogueItem.Name,
-                catalogueItem.Sku ?? string.Empty,
+                SkuSnapshot: string.Empty,
                 PriceAtAdd: 0m,
                 IsCatalogueItem: true);
         }

@@ -6,7 +6,6 @@ public sealed record UpdateCatalogueItemRequest
     public required string Slug { get; init; }
     public required string Description { get; init; }
     public required Guid CategoryId { get; init; }
-    public string? Sku { get; init; }
     public string? Brand { get; init; }
     public bool IsPublished { get; init; } = true;
 }

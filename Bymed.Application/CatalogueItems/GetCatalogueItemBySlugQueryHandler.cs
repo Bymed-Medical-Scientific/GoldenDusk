@@ -60,7 +60,6 @@ public sealed class GetCatalogueItemBySlugQueryHandler
             PrimaryImageUrl = imageDtos.FirstOrDefault()?.Url,
             Images = imageDtos,
             IsPublished = item.IsPublished,
-            Sku = item.Sku,
             Brand = item.Brand,
         };
 

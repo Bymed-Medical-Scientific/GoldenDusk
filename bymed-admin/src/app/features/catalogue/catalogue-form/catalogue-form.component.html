@@ -81,24 +81,13 @@
 
       <h2 class="section-title">Details</h2>
 
-      <div class="form-grid">
-        <div class="field-group grid-span-2">
-          <label for="sku">SKU</label>
-          <input id="sku" pInputText formControlName="sku" autocomplete="off" [maxlength]="100" class="full-width" />
-          <small class="field-hint">Optional</small>
-          @if (fieldError('sku')) {
-            <small class="field-error">{{ fieldError('sku') }}</small>
-          }
-        </div>
-
-        <div class="field-group">
-          <label for="brand">Brand</label>
-          <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
-          <small class="field-hint">Optional</small>
-          @if (fieldError('brand')) {
-            <small class="field-error">{{ fieldError('brand') }}</small>
-          }
-        </div>
+      <div class="field-group">
+        <label for="brand">Brand</label>
+        <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
+        <small class="field-hint">Optional</small>
+        @if (fieldError('brand')) {
+          <small class="field-error">{{ fieldError('brand') }}</small>
+        }
       </div>
 
       <div class="publish-row">

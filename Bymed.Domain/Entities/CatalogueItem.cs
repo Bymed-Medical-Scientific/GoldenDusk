@@ -9,7 +9,6 @@ public class CatalogueItem : FullAuditedEntity
 
     public const int NameMaxLength = 500;
     public const int SlugMaxLength = 200;
-    public const int SkuMaxLength = 100;
     public const int BrandMaxLength = 120;
 
     public string Name { get; private set; } = string.Empty;
@@ -18,7 +17,6 @@ public class CatalogueItem : FullAuditedEntity
     public Guid CategoryId { get; private set; }
     public Category Category { get; private set; } = null!;
     public bool IsPublished { get; private set; } = true;
-    public string? Sku { get; private set; }
     public string? Brand { get; private set; }
 
     private CatalogueItem()
@@ -30,7 +28,6 @@ public class CatalogueItem : FullAuditedEntity
         string slug,
         string description,
         Guid categoryId,
-        string? sku = null,
         string? brand = null,
         bool isPublished = true)
     {
@@ -38,7 +35,6 @@ public class CatalogueItem : FullAuditedEntity
         SetSlug(slug);
         SetDescription(description);
         SetCategoryId(categoryId);
-        Sku = SetSku(sku);
         Brand = SetBrand(brand);
         IsPublished = isPublished;
     }
@@ -48,14 +44,12 @@ public class CatalogueItem : FullAuditedEntity
         string slug,
         string description,
         Guid categoryId,
-        string? sku = null,
         string? brand = null)
     {
         SetName(name);
         SetSlug(slug);
         SetDescription(description);
         SetCategoryId(categoryId);
-        Sku = SetSku(sku);
         Brand = SetBrand(brand);
     }
 
@@ -100,15 +94,6 @@ public class CatalogueItem : FullAuditedEntity
         if (categoryId == Guid.Empty)
             throw new ArgumentException("Category is required.", nameof(categoryId));
         CategoryId = categoryId;
-    }
-
-    private static string? SetSku(string? sku)
-    {
-        if (string.IsNullOrWhiteSpace(sku)) return null;
-        var trimmed = sku.Trim();
-        if (trimmed.Length > SkuMaxLength)
-            throw new ArgumentException($"SKU must not exceed {SkuMaxLength} characters.", nameof(sku));
-        return trimmed;
     }
 
     private static string? SetBrand(string? brand)

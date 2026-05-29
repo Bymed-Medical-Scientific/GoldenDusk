@@ -23,7 +23,5 @@ public sealed class UpdateCatalogueItemRequestValidator : AbstractValidator<Upda
         RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Category is required.");
 
         RuleFor(x => x.Brand).MaximumLength(CatalogueItem.BrandMaxLength);
-
-        RuleFor(x => x.Sku).MaximumLength(CatalogueItem.SkuMaxLength);
     }
 }

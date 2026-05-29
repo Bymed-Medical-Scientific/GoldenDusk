@@ -79,7 +79,7 @@
         <div class="product-row">
           <div>
             <div class="cell-strong">{{ product.name }}</div>
-            <div class="cell-subtext">{{ product.sku || 'No SKU' }} · {{ product.categoryName || 'Uncategorised' }}</div>
+            <div class="cell-subtext">{{ product.categoryName || 'Uncategorised' }}</div>
           </div>
           <button pButton type="button" size="small" label="Add" (click)="addProduct(product)"></button>
         </div>
@@ -109,7 +109,9 @@
         <tr>
           <td>
             <div class="cell-strong">{{ line.productName }}</div>
-            <div class="cell-subtext">{{ line.productSku || 'No SKU' }}</div>
+            @if (line.productSku) {
+              <div class="cell-subtext">{{ line.productSku }}</div>
+            }
           </td>
           <td>
             <div class="number-edit">
