@@ -4,6 +4,7 @@ import { useAuth } from "@/components/auth/auth-context";
 import { BymedLogo } from "@/components/brand/bymed-logo";
 import { useCart } from "@/components/cart/cart-context";
 import { useQuoteCart } from "@/components/cart/quote-cart-context";
+import { HeaderCartMenu, MobileCartLinks } from "@/components/layout/header-cart-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -84,50 +85,6 @@ function IconSearch({ className }: { className?: string }) {
     >
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function IconCart({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="9" cy="21" r="1" />
-      <circle cx="20" cy="21" r="1" />
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
-  );
-}
-
-function IconQuote({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <path d="M14 2v6h6" />
-      <path d="M16 13H8" />
-      <path d="M16 17H8" />
-      <path d="M10 9H8" />
     </svg>
   );
 }
@@ -467,7 +424,8 @@ export function SiteHeader() {
               );
             })}
             <Link
-              href="/contact"
+              href="/quote-cart"
+              onClick={closeMobile}
               className={buttonVariants({
                 className:
                   "mt-3 h-12 w-full justify-center rounded-full border-0 bg-brand px-6 text-brand-foreground shadow-[0_8px_24px_-8px_rgb(0_0_0_/_0.2)] transition-shadow hover:bg-brand-hover hover:shadow-[0_12px_28px_-10px_rgb(0_0_0_/_0.28)]",
@@ -477,20 +435,11 @@ export function SiteHeader() {
             </Link>
           </nav>
           <div className="mt-auto border-t border-border p-4">
-            <Link
-              href="/cart"
-              className="mb-2 block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Shopping cart
-              {totalItems > 0 ? ` (${totalItems})` : ""}
-            </Link>
-            <Link
-              href="/quote-cart"
-              className="mb-2 block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Quote cart
-              {quoteTotalItems > 0 ? ` (${quoteTotalItems})` : ""}
-            </Link>
+            <MobileCartLinks
+              shopCount={totalItems}
+              quoteCount={quoteTotalItems}
+              onNavigate={closeMobile}
+            />
             {!user ? (
               <Link
                 href="/login"
@@ -615,26 +564,8 @@ export function SiteHeader() {
             ) : null}
           </div>
 
-          <HeaderIconHint label="Quote cart" className="hidden lg:inline-flex">
-            <Link href="/quote-cart" className={iconBtnClass} aria-label="Quote cart">
-              <IconQuote />
-              {quoteTotalItems > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold leading-none text-brand-foreground">
-                  {quoteTotalItems > 99 ? "99+" : quoteTotalItems}
-                </span>
-              ) : null}
-            </Link>
-          </HeaderIconHint>
-
-          <HeaderIconHint label="Shopping cart" className="hidden lg:inline-flex">
-            <Link href="/cart" className={iconBtnClass} aria-label="Shopping cart">
-              <IconCart />
-              {totalItems > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold leading-none text-brand-foreground">
-                  {totalItems > 99 ? "99+" : totalItems}
-                </span>
-              ) : null}
-            </Link>
+          <HeaderIconHint label="Cart">
+            <HeaderCartMenu iconBtnClass={iconBtnClass} />
           </HeaderIconHint>
 
           <HeaderIconHint label="Theme">
@@ -709,7 +640,7 @@ export function SiteHeader() {
           </HeaderIconHint>
 
           <Link
-            href="/contact"
+            href="/quote-cart"
             className={cn(
               buttonVariants({
                 size: "sm",
