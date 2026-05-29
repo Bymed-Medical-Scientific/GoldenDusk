@@ -241,25 +241,30 @@ export function HomeMarketingPremium({
               id="final-cta-heading"
               className="font-heading mt-2 text-3xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl"
             >
-              Ready to upgrade your medical facility?
+              {data.contactHeading}
             </h2>
             <p className="mt-4 text-muted-foreground sm:text-lg">
-              Speak with our sales engineers about specifications, timelines,
-              and training—or browse the full product range online.
+              {data.contactIntro}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/contact"
                 className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-brand px-8 text-sm font-semibold text-brand-foreground shadow-md transition hover:bg-brand-hover"
               >
-                Contact sales team
+                {data.contactCtaLabel}
               </Link>
-              {/* <Link
-                href="/products"
+              <Link
+                href="/contact?intent=consultation"
                 className="inline-flex h-12 min-h-12 items-center justify-center rounded-full bg-card px-8 text-sm font-semibold text-card-foreground ring-1 ring-border transition hover:bg-muted"
               >
-                Download catalog
-              </Link> */}
+                Get Free Consultation
+              </Link>
+              <Link
+                href="/contact?intent=procurement-guide"
+                className="inline-flex h-12 min-h-12 items-center justify-center rounded-full px-6 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Download procurement guide
+              </Link>
             </div>
           </MotionFadeUp>
         </div>

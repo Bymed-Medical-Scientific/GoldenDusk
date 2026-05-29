@@ -5,7 +5,7 @@ import {
   parseCatalogQuery,
 } from "@/lib/catalog/catalog-params";
 import { catalogListingRobots } from "@/lib/seo/catalog-metadata";
-import { absoluteUrl } from "@/lib/site-url";
+import { buildSocialMetadata } from "@/lib/seo/social-metadata";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -14,6 +14,21 @@ type CategoryProductsPageProps = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
+export const revalidate = 3600;
+
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  try {
+    const categories = await listCategories();
+    return categories.map((category) => ({ slug: category.slug }));
+  } catch {
+    return [];
+  }
+}
+
+function categoryMetaDescription(categoryName: string): string {
+  return `Shop ${categoryName} in Zimbabwe from ByMed Medical & Scientific—medical equipment suppliers with quotes, installation, training, and local support for hospitals, laboratories, and universities.`;
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -21,32 +36,40 @@ export async function generateMetadata({
   const categories = await listCategories();
   const category = categories.find((c) => c.slug === params.slug);
   if (!category) {
-    return { title: "Products | Bymed Medical & Scientific" };
+    return { title: "Products | ByMed Medical & Scientific" };
   }
 
   const { q } = parseCatalogQuery(searchParams);
   const title = q
-    ? `${category.name} — “${q}” | Bymed Medical & Scientific`
-    : `${category.name} | Bymed Medical & Scientific`;
+    ? `${category.name} — “${q}” | ByMed Medical & Scientific`
+    : `${category.name} Equipment Zimbabwe | ByMed`;
   const description = q
-    ? `Browse ${category.name} products matching “${q}” at Bymed Medical & Scientific.`
-    : `Browse ${category.name} in Zimbabwe — medical and scientific equipment from ByMed Medical & Scientific.`;
-  const canonical = absoluteUrl(
-    buildProductsHref({
-      categorySlug: category.slug,
-      q: undefined,
-      brand: undefined,
-      clientType: undefined,
-    }),
-  );
+    ? `Browse ${category.name} products matching “${q}” at ByMed Medical & Scientific.`
+    : categoryMetaDescription(category.name);
+  const canonicalPath = buildProductsHref({
+    categorySlug: category.slug,
+    q: undefined,
+    brand: undefined,
+    clientType: undefined,
+  });
   const robots = catalogListingRobots(searchParams);
 
   return {
     title,
     description,
-    alternates: canonical ? { canonical } : undefined,
+    keywords: [
+      category.name,
+      `${category.name} Zimbabwe`,
+      "medical equipment Zimbabwe",
+      "laboratory equipment Zimbabwe",
+      "ByMed",
+    ],
     robots,
-    openGraph: { title, description, type: "website", url: canonical },
+    ...buildSocialMetadata({
+      title,
+      description,
+      canonicalPath,
+    }),
   };
 }
 

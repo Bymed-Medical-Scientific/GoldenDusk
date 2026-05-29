@@ -19,6 +19,8 @@ export default function robots(): MetadataRoute.Robots {
           "/contact",
           "/case-studies",
           "/compliance",
+          "/privacy-policy",
+          "/terms-of-service",
         ],
         disallow: [
           "/account",
@@ -29,6 +31,9 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/register",
           "/reset-password",
+          "/verify-email",
+          "/api/",
+          "/search",
         ],
       },
     ],

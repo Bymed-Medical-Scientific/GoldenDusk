@@ -107,32 +107,37 @@ export type ServicesMarketingContent = {
 
 export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   metaTitle:
-    "Medical & Scientific Equipment Zimbabwe | ByMed Medical & Scientific",
+    "Medical Equipment Suppliers Zimbabwe | Laboratory & Hospital Equipment | ByMed",
   metaDescription:
-    "Shaping the future of healthcare, scientific research, and engineering education in Zimbabwe—point-of-care, theatre, imaging, ICU, teaching tools, and trusted brands.",
-  ogTitle: "ByMed Medical & Scientific",
+    "ByMed supplies medical and laboratory equipment across Zimbabwe—trusted by hospitals in Harare, clinics, universities, and research labs. Request a quote, free consultation, installation, training, and local repairs.",
+  ogTitle:
+    "Medical Equipment Suppliers in Zimbabwe | ByMed Medical & Scientific",
   keywords: [
     "ByMed",
-    "medical equipment Zimbabwe",
-    "scientific equipment",
-    "laboratory supplies",
-    "point of care",
-    "medical imaging",
-    "ICU equipment",
+    "medical equipment suppliers Zimbabwe",
+    "medical equipment suppliers in Zimbabwe",
+    "laboratory equipment Zimbabwe",
+    "hospital equipment Harare",
+    "hospital equipment Zimbabwe",
+    "scientific equipment Zimbabwe",
+    "laboratory supplies Zimbabwe",
+    "point of care diagnostics Zimbabwe",
+    "medical imaging Zimbabwe",
+    "ICU equipment Zimbabwe",
     "engineering education Zimbabwe",
   ],
-  heroEyebrow: "Innovating medical excellence",
+  heroEyebrow: "Medical equipment suppliers · Zimbabwe",
   heroTitle:
-    "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
+    "Medical & laboratory equipment for hospitals, clinics, and universities across Zimbabwe.",
   heroSubtitle:
-    "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+    "For more than 20 years, ByMed has helped healthcare and research institutions source quality equipment—with installation, staff training, and responsive local support from Bulawayo to Harare and nationwide.",
   heroSlides: [
     {
-      tag: "Innovating medical excellence",
+      tag: "Medical equipment suppliers · Zimbabwe",
       title:
-        "Shaping Zimbabwe’s future in healthcare, research, and engineering.",
+        "Medical & laboratory equipment for hospitals, clinics, and universities across Zimbabwe.",
       subtitle:
-        "With 20+ years of experience supplying medical equipment to leading institutions, we deliver precision tools that power discovery and save lives.",
+        "For more than 20 years, ByMed has helped healthcare and research institutions source quality equipment—with installation, staff training, and responsive local support from Bulawayo to Harare and nationwide.",
     },
     {
       tag: "Technical teaching",
@@ -150,17 +155,18 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
       subtitle: "Built for Zimbabwe’s toughest environments. We supply robust industrial scales and laboratory balances that deliver reliable data for mining, agriculture, and manufacturing",
     },
     {
-      tag: "Hospital Equipment",
-      title: "Elevating the Standard of Care",
-      subtitle: "From patient monitoring systems to advanced diagnostic imaging, we deliver the medical technology that powers Zimbabwe’s leading hospitals. Trusted by clinicians for 20+ years to improve patient outcomes and save lives.",
+      tag: "Hospital equipment · Harare & nationwide",
+      title: "Hospital equipment trusted by clinicians across Zimbabwe",
+      subtitle:
+        "Patient monitoring, diagnostic imaging, theatre systems, and ward solutions—specified, delivered, and supported by a team that understands acute care and procurement timelines.",
       imageSrc: "/images/tekno-operating.webp",
     },
   ],
-  primaryCta: { label: "Browse Products", href: "/products" },
-  secondaryCta: { label: "Request Quote", href: "/contact" },
-  whatWeOfferHeading: "What we offer",
+  primaryCta: { label: "Request Quote", href: "/contact" },
+  secondaryCta: { label: "Get Free Consultation", href: "/contact?intent=consultation" },
+  whatWeOfferHeading: "Medical & laboratory equipment for every care setting",
   whatWeOfferIntro:
-    "From teaching labs and theatres to hospitals and point-of-care settings—we supply equipment, instruments, and consumables aligned to how you work.",
+    "As a leading medical equipment supplier in Zimbabwe, we match hospitals, laboratories, universities, and industry with imaging, theatre, ICU, teaching, and weighing solutions—backed by installation, training, and repairs.",
   offerings: [
     {
       title: "Technical Teaching Equipment",
@@ -236,29 +242,29 @@ export const DEFAULT_HOME_MARKETING: HomeMarketingContent = {
   brandsIntro:
     "We supply equipment and consumables from recognised manufacturers so you can standardise quality across your facility or campus.",
   brandsLinkLabel: "Explore brands in the store →",
-  whyHeading: "Why Choose Us",
-  whyLead: "Precision and innovation",
+  whyHeading: "Why institutions choose ByMed",
+  whyLead: "Experience you can verify",
   whySub:
-    "We combine trusted global partnerships, tailored delivery, and innovative technology to support healthcare, science, and engineering institutions across Zimbabwe.",
+    "We combine authorised global brands, specification support, and on-the-ground service—so your team spends less time chasing suppliers and more time delivering care and research outcomes.",
   differentiators: [
     {
-      title: "World Class Partnerships",
-      body: "We partner with industry leaders like MedicalCSE and EDIBON to bring best medical, scientific and engineering technologies to Zimbabwe.",
+      title: "Authorised global partnerships",
+      body: "We represent recognised manufacturers in medical imaging, theatre, laboratory, and engineering education—so you standardise quality and traceability across your facility.",
     },
     {
-      title: "Tailored Solutions",
-      body: "From advanced medical devices to engineering research equipment, we provide customized solutions for universities, healthcare providers and research institutions.",
+      title: "Local installation & training",
+      body: "Our engineers install, commission, and train your staff—reducing downtime from “box on the floor” to confident daily use, including in Harare, Bulawayo, and regional centres.",
     },
     {
-      title: "Innovative Technology",
-      body: "We are committed to staying ahead of the curve, offering the latest innovations in medical, engineering and scientific technologies.",
+      title: "Repairs & lifecycle support",
+      body: "Autoclaves, imaging, monitors, and laboratory instruments are maintained by technicians who understand Zimbabwe’s power, logistics, and clinical urgency.",
     },
   ],
-  servicesLinkLabel: "Our services →",
-  contactHeading: "We would love to hear from you",
+  servicesLinkLabel: "Equipment services & repairs →",
+  contactHeading: "Request a quote or free consultation",
   contactIntro:
-    "Whether you need ECG technologies, science and research equipment, or training services, our team is here to help.",
-  contactCtaLabel: "Contact us",
+    "Tell us your facility type, equipment needs, and timeline—our sales engineers will respond with specifications, lead times, and training options.",
+  contactCtaLabel: "Request Quote",
   testimonials: [
     {
       quote:

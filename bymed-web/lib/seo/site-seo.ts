@@ -3,18 +3,24 @@
  */
 export const SITE_NAME = "ByMed Medical & Scientific";
 
+export const SITE_DEFAULT_TITLE =
+  "Medical Equipment Suppliers Zimbabwe | Laboratory & Hospital Equipment";
+
 export const SITE_DEFAULT_DESCRIPTION =
-  "ByMed Medical & Scientific supplies medical and scientific equipment, industrial and laboratory scales, technical teaching systems, consumables, installation, training, and repairs across Zimbabwe—hospitals, laboratories, universities, and industry.";
+  "ByMed Medical & Scientific is a trusted medical equipment supplier in Zimbabwe—hospitals, clinics, laboratories, and universities rely on us for laboratory equipment, hospital equipment in Harare and nationwide, installation, training, repairs, and local support from Bulawayo.";
 
 export const SITE_DEFAULT_KEYWORDS = [
   "Bymed",
   "ByMed Medical and Scientific",
-  "medical equipment Zimbabwe",
-  "scientific equipment Zimbabwe",
+  "medical equipment suppliers Zimbabwe",
+  "medical equipment suppliers in Zimbabwe",
   "medical equipment supplier Zimbabwe",
+  "medical equipment Zimbabwe",
+  "laboratory equipment Zimbabwe",
+  "hospital equipment Harare",
   "hospital equipment Zimbabwe",
   "hospital equipment Bulawayo",
-  "laboratory equipment Zimbabwe",
+  "scientific equipment Zimbabwe",
   "laboratory supplies Zimbabwe",
   "laboratory scales Zimbabwe",
   "laboratory balances Zimbabwe",
@@ -48,6 +54,31 @@ export const SITE_DEFAULT_KEYWORDS = [
   "orthopaedic implants Zimbabwe",
   "surgical instruments Zimbabwe",
   "medical consumables Zimbabwe",
+  // === MEDICAL SIMULATION & ANATOMY MODELS ===
+  "medical simulation equipment Zimbabwe",
+  "anatomy models Zimbabwe",
+  "medical training manikins Zimbabwe",
+  "anatomical models Zimbabwe",
+  "simulation manikins Zimbabwe",
+  "nursing simulation equipment Zimbabwe",
+  "clinical skills trainers Zimbabwe",
+  "human skeleton model Zimbabwe",
+  "medical education equipment Zimbabwe",
+  "anatomy teaching models Harare",
+  "surgical simulation trainers Zimbabwe",
+  "patient simulators Zimbabwe",
+  "medical school equipment Zimbabwe",
+  "university laboratory models Zimbabwe",
+
+  // Long-tail high-intent
+  "anatomy models suppliers Zimbabwe",
+  "medical simulation manikins Harare",
+  "buy anatomy models Bulawayo",
+  "nursing training manikins Zimbabwe",
+  "advanced medical simulators Zimbabwe",
+  "human organ models for education Zimbabwe",
+  "CPR training manikins Zimbabwe",
+  "medical simulation center equipment Zimbabwe",
 ] as const;
 
 export const SITE_LOCALE = "en_ZW";
@@ -62,4 +93,6 @@ export const SITE_BUSINESS = {
   telephone: "+263715766050",
   addressLocality: "Bulawayo",
   addressCountry: "ZW",
+  /** Cities and regions served (E-E-A-T: local presence + national coverage). */
+  areaServed: ["Bulawayo", "Harare", "Zimbabwe"] as const,
 } as const;

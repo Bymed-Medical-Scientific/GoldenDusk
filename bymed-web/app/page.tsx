@@ -8,7 +8,7 @@ import {
 } from "@/lib/content/marketing-pages";
 import { getProductById, listProducts } from "@/lib/api/products";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
-import { absoluteUrl } from "@/lib/site-url";
+import { buildSocialMetadata } from "@/lib/seo/social-metadata";
 import type { Metadata } from "next";
 import ReactDOM from "react-dom";
 
@@ -89,7 +89,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = page?.metadata.metaTitle?.trim() || parsed.metaTitle;
   const description =
     page?.metadata.metaDescription?.trim() || parsed.metaDescription;
-  const canonical = absoluteUrl("/");
   const ogTitle =
     page?.metadata.metaTitle?.trim() || parsed.ogTitle;
   const ogImage = page?.metadata.ogImage?.trim() || undefined;
@@ -98,19 +97,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     keywords: parsed.keywords,
-    alternates: canonical ? { canonical } : undefined,
-    openGraph: {
+    ...buildSocialMetadata({
       title: ogTitle,
       description,
-      type: "website",
-      url: canonical,
-      images: ogImage ? [{ url: ogImage }] : undefined,
-    },
-    twitter: {
-      card: ogImage ? "summary_large_image" : "summary",
-      title: ogTitle,
-      description,
-    },
+      image: ogImage,
+      canonicalPath: "/",
+    }),
   };
 }
 

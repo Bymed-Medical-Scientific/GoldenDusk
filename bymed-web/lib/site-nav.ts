@@ -26,8 +26,11 @@ export const footerServiceLinks = [
 ] as const;
 
 export const footerExploreLinks = [
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "/about", label: "About ByMed" },
+  { href: "/services", label: "Installation & Repairs" },
+  { href: "/case-studies", label: "Case Studies" },
+  { href: "/contact", label: "Request Quote" },
+  { href: "/compliance", label: "Compliance" },
 ] as const;
 
 export const footerQuickLinks = [

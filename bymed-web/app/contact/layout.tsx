@@ -1,29 +1,29 @@
 import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { buildSocialMetadata } from "@/lib/seo/social-metadata";
 import { SITE_BUSINESS, SITE_NAME } from "@/lib/seo/site-seo";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
-const title = "Contact us";
+const title = "Request Quote & Contact | Medical Equipment Zimbabwe";
 const description =
-  "Contact ByMed Medical & Scientific in Bulawayo, Zimbabwe — product quotes, clinical support, equipment service, and procurement for hospitals, laboratories, and universities.";
-const canonical = absoluteUrl("/contact");
+  "Request a quote, book a free equipment consultation, or contact ByMed in Bulawayo—medical and laboratory equipment suppliers serving hospitals, clinics, and universities across Zimbabwe including Harare.";
+const canonicalPath = "/contact";
 
 export const metadata: Metadata = {
   title,
   description,
   keywords: [
-    "contact ByMed Zimbabwe",
+    "request quote medical equipment Zimbabwe",
     "medical equipment supplier Bulawayo",
-    "request quote medical equipment",
-    "hospital equipment Zimbabwe",
+    "hospital equipment quote Harare",
+    "laboratory equipment supplier Zimbabwe",
+    "contact ByMed Zimbabwe",
   ],
-  alternates: canonical ? { canonical } : undefined,
-  openGraph: {
+  ...buildSocialMetadata({
     title: `${title} | ${SITE_NAME}`,
     description,
-    type: "website",
-    url: canonical,
-  },
+    canonicalPath,
+  }),
 };
 
 function contactPageJsonLd(): Record<string, unknown> {
@@ -34,7 +34,7 @@ function contactPageJsonLd(): Record<string, unknown> {
     name: `Contact ${SITE_NAME}`,
     url: url ?? undefined,
     mainEntity: {
-      "@type": "MedicalBusiness",
+      "@type": ["MedicalBusiness", "LocalBusiness"],
       name: SITE_NAME,
       url: absoluteUrl("/") ?? SITE_BUSINESS.url,
       email: SITE_BUSINESS.email,
@@ -44,7 +44,10 @@ function contactPageJsonLd(): Record<string, unknown> {
         addressLocality: SITE_BUSINESS.addressLocality,
         addressCountry: SITE_BUSINESS.addressCountry,
       },
-      areaServed: { "@type": "Country", name: "Zimbabwe" },
+      areaServed: SITE_BUSINESS.areaServed.map((name) => ({
+        "@type": name === "Zimbabwe" ? "Country" : "City",
+        name,
+      })),
     },
   };
 }

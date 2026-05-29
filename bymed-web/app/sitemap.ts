@@ -71,6 +71,9 @@ async function getCmsPageUrls(baseUrl: string): Promise<MetadataRoute.Sitemap> {
   }
 }
 
+/** Regenerate sitemap hourly when catalog/CMS changes. */
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteBaseUrl() ?? DEFAULT_BASE_URL;
   const now = new Date();

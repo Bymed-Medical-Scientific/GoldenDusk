@@ -40,6 +40,11 @@ export function buildProductJsonLd({
     "@type": "Product",
     name: product.name,
     description: plainTextFromHtml(product.description),
+    category: product.categoryName?.trim() || undefined,
+    brand: {
+      "@type": "Brand",
+      name: "ByMed Medical & Scientific",
+    },
     offers: offer,
   };
 

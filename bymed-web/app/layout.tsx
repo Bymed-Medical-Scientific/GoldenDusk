@@ -4,14 +4,16 @@ import { CartProvider } from "@/components/cart/cart-context";
 import { CurrencyProvider } from "@/components/currency/currency-context";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { FloatingWhatsAppButton } from "@/components/seo/floating-whatsapp-button";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { buildSiteOrganizationJsonLd } from "@/lib/seo/organization-json-ld";
+import { defaultOgImageUrl, buildSocialMetadata } from "@/lib/seo/social-metadata";
 import {
   SITE_DEFAULT_DESCRIPTION,
   SITE_DEFAULT_KEYWORDS,
+  SITE_DEFAULT_TITLE,
   SITE_GEO_REGION,
-  SITE_LOCALE,
   SITE_NAME,
 } from "@/lib/seo/site-seo";
 import { getSiteBaseUrl } from "@/lib/site-url";
@@ -19,40 +21,37 @@ import "./fontface.css";
 import "./globals.css";
 
 const siteBaseUrl = getSiteBaseUrl();
-const defaultOgImage = siteBaseUrl
-  ? new URL("/images/bymed-logo.webp", siteBaseUrl).toString()
-  : "/images/bymed-logo.webp";
+const rootSocial = buildSocialMetadata({
+  title: SITE_DEFAULT_TITLE,
+  description: SITE_DEFAULT_DESCRIPTION,
+  image: defaultOgImageUrl(),
+  canonicalPath: "/",
+});
 
 export const metadata: Metadata = {
   metadataBase: siteBaseUrl ? new URL(siteBaseUrl) : undefined,
   title: {
-    default: SITE_NAME,
+    default: SITE_DEFAULT_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DEFAULT_DESCRIPTION,
   keywords: [...SITE_DEFAULT_KEYWORDS],
-  alternates: siteBaseUrl ? { canonical: siteBaseUrl } : undefined,
-  openGraph: {
-    title: SITE_NAME,
-    description: SITE_DEFAULT_DESCRIPTION,
-    type: "website",
-    siteName: SITE_NAME,
-    locale: SITE_LOCALE,
-    images: [{ url: defaultOgImage, alt: SITE_NAME }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_NAME,
-    description: SITE_DEFAULT_DESCRIPTION,
-    images: [defaultOgImage],
-  },
+  applicationName: SITE_NAME,
+  category: "Medical equipment supplier",
+  ...rootSocial,
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   other: {
     "geo.region": SITE_GEO_REGION,
-    "geo.placename": "Bulawayo",
+    "geo.placename": "Bulawayo, Harare, Zimbabwe",
   },
 };
 
@@ -87,6 +86,7 @@ export default function RootLayout({
                     {children}
                   </main>
                   <SiteFooter />
+                  <FloatingWhatsAppButton />
                 </div>
               </CurrencyProvider>
             </CartProvider>

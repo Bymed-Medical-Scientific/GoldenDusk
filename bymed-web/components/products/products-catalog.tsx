@@ -45,7 +45,9 @@ export async function ProductsCatalog({
     maxPrice: query.maxPrice,
   };
 
-  const pageTitle = categoryName ?? "Products";
+  const pageTitle = categoryName
+    ? `${categoryName} equipment Zimbabwe`
+    : "Medical & laboratory equipment catalogue";
 
   let productResult;
   try {
@@ -102,8 +104,10 @@ export async function ProductsCatalog({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="sr-only">{pageTitle}</h1>
       <header className="mb-7 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+        <h1 className="mb-4 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {pageTitle}
+        </h1>
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <form action={catalogPath} method="get" className="min-w-0 flex-1">
             <label htmlFor="catalog-search" className="sr-only">

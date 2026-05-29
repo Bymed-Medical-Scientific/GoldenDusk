@@ -1,5 +1,6 @@
 import { ProductDetail } from "@/components/products/product-detail";
 import { ProductJsonLd } from "@/components/products/product-json-ld";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
 import type { ProductCardProduct } from "@/components/products/product-card";
 import { buildProductGalleryImages } from "@/lib/catalog/product-gallery-images";
 import { buildProductJsonLd } from "@/lib/catalog/product-json-ld";
@@ -8,6 +9,8 @@ import { resolveProductRouteParam } from "@/lib/catalog/resolve-product";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
 import { plainTextFromHtml } from "@/lib/html/plain-text-from-html";
 import { listProducts } from "@/lib/api/products";
+import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb-json-ld";
+import { buildSocialMetadata } from "@/lib/seo/social-metadata";
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -16,11 +19,15 @@ type ProductDetailPageProps = {
   params: { slug: string };
 };
 
-function productMetaDescription(html: string): string {
+export const revalidate = 3600;
+
+function productMetaDescription(html: string, categoryName: string): string {
   const plainDescription = plainTextFromHtml(html);
-  return plainDescription.length > 160
-    ? `${plainDescription.slice(0, 157)}…`
-    : plainDescription;
+  const base =
+    plainDescription.length > 0
+      ? plainDescription
+      : `${categoryName} supplied in Zimbabwe by ByMed Medical & Scientific. Request a quote, specifications, installation, and training.`;
+  return base.length > 160 ? `${base.slice(0, 157)}…` : base;
 }
 
 export async function generateMetadata({
@@ -28,17 +35,20 @@ export async function generateMetadata({
 }: ProductDetailPageProps): Promise<Metadata> {
   const resolved = await resolveProductRouteParam(params.slug);
   if (!resolved) {
-    return { title: "Product | Bymed Medical & Scientific" };
+    return { title: "Product | ByMed Medical & Scientific" };
   }
 
   const { product } = resolved;
-  const description = productMetaDescription(product.description);
+  const description = productMetaDescription(
+    product.description,
+    product.categoryName,
+  );
   const gallery = buildProductGalleryImages(product);
   const ogImage = gallery[0]?.url;
-  const canonical = absoluteUrl(productDetailPath(product));
-  const title = `${product.name} | Bymed Medical & Scientific`;
+  const path = productDetailPath(product);
+  const title = `${product.name} | ${product.categoryName} — Zimbabwe | ByMed`;
   const categoryKeyword = product.categoryName
-    ? `${product.categoryName} Zimbabwe`
+    ? `${product.categoryName} equipment Zimbabwe`
     : undefined;
 
   return {
@@ -48,22 +58,16 @@ export async function generateMetadata({
       product.name,
       product.categoryName,
       categoryKeyword,
-      "ByMed",
       "medical equipment Zimbabwe",
+      "laboratory equipment Zimbabwe",
+      "ByMed",
     ].filter((k): k is string => Boolean(k?.trim())),
-    alternates: canonical ? { canonical } : undefined,
-    openGraph: {
+    ...buildSocialMetadata({
       title: product.name,
       description,
-      type: "website",
-      url: canonical,
-      images: ogImage ? [{ url: ogImage }] : undefined,
-    },
-    twitter: {
-      card: ogImage ? "summary_large_image" : "summary",
-      title: product.name,
-      description,
-    },
+      image: ogImage,
+      canonicalPath: path,
+    }),
   };
 }
 
@@ -126,10 +130,16 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     imageUrls: galleryImages.map((g) => g.url),
     inStock,
   });
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Products", path: "/products" },
+    { name: product.name, path: productDetailPath(product) },
+  ]);
 
   return (
     <>
       <ProductJsonLd data={jsonLd} />
+      {breadcrumbJsonLd ? <JsonLdScript data={breadcrumbJsonLd} /> : null}
       <ProductDetail
         product={product}
         galleryImages={galleryImages}
