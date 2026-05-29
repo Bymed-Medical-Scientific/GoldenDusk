@@ -33,9 +33,7 @@ public class CategoryProductForeignKeyPropertyTests
                 ValidSlug,
                 ValidDescription,
                 categoryId,
-                price: 10m,
-                inventoryCount: 5,
-                lowStockThreshold: 2);
+                price: 10m);
 
             return product.CategoryId == categoryId;
         });
@@ -53,9 +51,7 @@ public class CategoryProductForeignKeyPropertyTests
                 ValidSlug,
                 ValidDescription,
                 categoryId,
-                price: 1m,
-                inventoryCount: 1,
-                lowStockThreshold: 0);
+                price: 1m);
 
             return product.CategoryId != Guid.Empty;
         });
@@ -98,9 +94,7 @@ public class CategoryProductForeignKeyPropertyTests
                 "test-product",
                 "Desc",
                 categoryId,
-                9.99m,
-                10,
-                2);
+                9.99m);
             context.Products.Add(product);
             context.SaveChanges();
         }

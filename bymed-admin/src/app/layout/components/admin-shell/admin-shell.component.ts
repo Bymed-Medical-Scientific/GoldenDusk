@@ -16,7 +16,6 @@ import {
 import { filter } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { AuthTokenStorageService } from '@core/auth/auth-token-storage.service';
-import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 
 interface NavItem {
   readonly label: string;
@@ -42,7 +41,6 @@ interface NavSection {
 })
 export class AdminShellComponent {
   private readonly document = inject(DOCUMENT);
-  private readonly lowStockAlerts = inject(LowStockAlertsService);
   private readonly tokenStorage = inject(AuthTokenStorageService);
 
   protected readonly isNavigating = signal(false);
@@ -51,22 +49,6 @@ export class AdminShellComponent {
   protected readonly userMenuOpen = signal(false);
   protected readonly isDarkMode = signal(false);
   protected readonly currentUrl = signal('');
-  protected readonly lowStockCount = computed(() => this.lowStockAlerts.items().length);
-  protected readonly showLowStockBanner = computed(
-    () => this.lowStockCount() > 0 && this.currentUrl().startsWith('/inventory')
-  );
-  protected readonly lowStockBadge = computed(() => {
-    const n = this.lowStockCount();
-    if (n <= 0) {
-      return '';
-    }
-    return n > 99 ? '99+' : String(n);
-  });
-  protected readonly lowStockPreview = computed(() => {
-    const items = this.lowStockAlerts.items();
-    return items.slice(0, 3);
-  });
-  protected readonly lowStockOverflow = computed(() => Math.max(this.lowStockCount() - 3, 0));
   protected readonly navSections: readonly NavSection[] = [
     {
       label: 'Overview',
@@ -83,7 +65,6 @@ export class AdminShellComponent {
         { label: 'Catalogue', icon: 'pi pi-book', route: '/catalogue' },
         { label: 'Categories', icon: 'pi pi-th-large', route: '/categories' },
         { label: 'Brands', icon: 'pi pi-star', route: '/brands' },
-        { label: 'Inventory', icon: 'pi pi-warehouse', route: '/inventory' },
         { label: 'Client Types', icon: 'pi pi-tags', route: '/client-types' },
         { label: 'Clients', icon: 'pi pi-building', route: '/clients' },
         { label: 'Marketing', icon: 'pi pi-send', route: '/marketing/campaigns' },
@@ -123,7 +104,6 @@ export class AdminShellComponent {
     private readonly breakpointObserver: BreakpointObserver,
     private readonly authService: AuthService
   ) {
-    this.lowStockAlerts.refresh();
     this.currentUrl.set(this.router.url);
     this.syncThemeState();
     this.breakpointObserver

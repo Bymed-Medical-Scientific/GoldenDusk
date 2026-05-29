@@ -18,7 +18,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
 type AvailabilityFilter = 'all' | 'available' | 'unavailable';
-type StockFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock';
 type ProductRow = ProductDto & { readonly categoryDisplay: string; readonly clientTypeDisplay: string };
 
 @Component({
@@ -50,7 +49,6 @@ export class ProductListComponent implements OnInit {
   protected readonly searchQuery = signal('');
   protected readonly selectedCategoryId = signal<string>('all');
   protected readonly availabilityFilter = signal<AvailabilityFilter>('all');
-  protected readonly stockFilter = signal<StockFilter>('all');
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly products = signal<ProductDto[]>([]);
   protected readonly deletingId = signal<string | null>(null);
@@ -70,15 +68,8 @@ export class ProductListComponent implements OnInit {
     { label: 'Available', value: 'available' },
     { label: 'Unavailable', value: 'unavailable' }
   ];
-  protected readonly stockOptions: Array<{ label: string; value: StockFilter }> = [
-    { label: 'All', value: 'all' },
-    { label: 'In stock', value: 'in-stock' },
-    { label: 'Out of stock', value: 'out-of-stock' },
-    { label: 'Low stock', value: 'low-stock' }
-  ];
   protected readonly filteredProducts = computed<ProductRow[]>(() => {
     const q = this.searchQuery().trim().toLowerCase();
-    const stock = this.stockFilter();
 
     return this.products()
       .map((row) => ({
@@ -96,14 +87,7 @@ export class ProductListComponent implements OnInit {
           brand.toLowerCase().includes(q) ||
           row.clientTypeDisplay.toLowerCase().includes(q) ||
           row.categoryDisplay.toLowerCase().includes(q);
-        const matchesStock =
-          stock === 'all' ||
-          (stock === 'in-stock' && row.inventoryCount > 0) ||
-          (stock === 'out-of-stock' && row.inventoryCount <= 0) ||
-          (stock === 'low-stock' &&
-            row.inventoryCount > 0 &&
-            row.inventoryCount <= row.lowStockThreshold);
-        return matchesQuery && matchesStock;
+        return matchesQuery;
       });
   });
 
@@ -129,10 +113,6 @@ export class ProductListComponent implements OnInit {
     this.availabilityFilter.set(value);
     this.pageNumber.set(1);
     this.loadPage();
-  }
-
-  protected onStockFilterChange(value: StockFilter): void {
-    this.stockFilter.set(value);
   }
 
   protected onPageChange(event: PaginatorState): void {
@@ -339,14 +319,14 @@ export class ProductListComponent implements OnInit {
     this.errorMessage.set(null);
 
     const categoryId = this.selectedCategoryId() === 'all' ? null : this.selectedCategoryId();
-    const inStock =
+    const isAvailable =
       this.availabilityFilter() === 'all' ? null : this.availabilityFilter() === 'available';
 
     forkJoin({
       products: this.adminApi.getProducts(this.pageNumber(), this.pageSize(), {
         categoryId,
         search: this.searchQuery().trim() || null,
-        inStock
+        isAvailable
       }),
       categories: this.adminApi.getCategories()
     })

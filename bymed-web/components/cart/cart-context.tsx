@@ -108,7 +108,7 @@ async function enrichProducts(items: CartViewItem[]): Promise<CartViewItem[]> {
             name: product.name,
             imageUrl: product.primaryImageUrl ?? null,
             currency: product.currency,
-            isAvailable: product.isAvailable && product.inventoryCount > 0,
+            isAvailable: product.isAvailable,
           } satisfies CartProductSnapshot,
         ] as const;
       } catch {

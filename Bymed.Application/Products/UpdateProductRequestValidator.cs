@@ -18,9 +18,6 @@ public sealed class UpdateProductRequestValidator : AbstractValidator<UpdateProd
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0).WithMessage("Price cannot be negative.");
 
-        RuleFor(x => x.LowStockThreshold)
-            .GreaterThanOrEqualTo(0).WithMessage("Low stock threshold cannot be negative.");
-
         RuleFor(x => x.Brand)
             .MaximumLength(Product.BrandMaxLength)
             .WithMessage($"Brand must not exceed {Product.BrandMaxLength} characters.");

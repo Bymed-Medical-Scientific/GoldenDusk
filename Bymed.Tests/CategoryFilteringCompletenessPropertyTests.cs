@@ -39,9 +39,9 @@ public class CategoryFilteringCompletenessPropertyTests
 
             var allProducts = new List<Product>
             {
-                new("P1", "p1-slug", "Desc", categoryId, 10m, 5, 1),
-                new("P2", "p2-slug", "Desc", categoryId, 20m, 5, 1),
-                new("Other", "other-slug", "Desc", Guid.NewGuid(), 30m, 5, 1)
+                new("P1", "p1-slug", "Desc", categoryId, 10m),
+                new("P2", "p2-slug", "Desc", categoryId, 20m),
+                new("Other", "other-slug", "Desc", Guid.NewGuid(), 30m)
             };
 
             // Handler relies on Product.Category navigation to build ProductDto.CategoryName.

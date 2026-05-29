@@ -120,7 +120,6 @@ export function ProductDetail({
               productCurrency={product.currency}
               productImageUrl={product.primaryImageUrl}
               disabled={!product.isAvailable}
-              maxQuantity={product.inventoryCount}
             />
           </div>
 

@@ -75,7 +75,6 @@ function toCardProduct(p: {
   price: number;
   currency: string;
   isAvailable: boolean;
-  inventoryCount: number;
   categoryName: string;
 }): ProductCardProduct {
   return {
@@ -87,7 +86,6 @@ function toCardProduct(p: {
     price: p.price,
     currency: p.currency,
     isAvailable: p.isAvailable,
-    inventoryCount: p.inventoryCount,
     categoryName: p.categoryName,
   };
 }
@@ -102,7 +100,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   const { product } = resolved;
   const galleryImages = buildProductGalleryImages(product);
-  const inStock = product.isAvailable && product.inventoryCount > 0;
+  const inStock = product.isAvailable;
 
   let relatedProducts: ProductCardProduct[] = [];
   try {

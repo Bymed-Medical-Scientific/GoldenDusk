@@ -29,11 +29,6 @@ export type {
 } from "./currency";
 export { OrderStatus, PaymentStatus, UserRole } from "./enums";
 export type {
-  AdjustInventoryRequest,
-  InventoryDto,
-  InventoryLogDto,
-} from "./inventory";
-export type {
   CreateOrderRequest,
   OrderAnalyticsResult,
   OrderDto,

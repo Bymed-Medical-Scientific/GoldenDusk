@@ -6,9 +6,6 @@ public sealed record CreateProductRequest
     public required string Description { get; init; }
     public required Guid CategoryId { get; init; }
     public decimal Price { get; init; }
-    public int InventoryCount { get; init; }
-    public int LowStockThreshold { get; init; }
-    public string? Sku { get; init; }
     public string? Brand { get; init; }
     public string? ClientType { get; init; }
     public string? Currency { get; init; }

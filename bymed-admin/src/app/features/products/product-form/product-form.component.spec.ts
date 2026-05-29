@@ -4,7 +4,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { ApiError } from '@core/api/api-error';
 import { CategoryDto, ProductDto, ProductImageDto } from '@shared/models';
@@ -33,8 +32,6 @@ describe('ProductFormComponent', () => {
     categoryName: category.name,
     price: 10,
     currency: 'USD',
-    inventoryCount: 3,
-    lowStockThreshold: 1,
     isAvailable: true
   };
 
@@ -47,8 +44,6 @@ describe('ProductFormComponent', () => {
   };
 
   async function setup(productId: string | null = null): Promise<void> {
-    const lowStockSpy = jasmine.createSpyObj<LowStockAlertsService>('LowStockAlertsService', ['refresh']);
-
     adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', [
       'getCategories',
       'getProductById',
@@ -65,7 +60,6 @@ describe('ProductFormComponent', () => {
       providers: [
         provideRouter([]),
         { provide: AdminApiService, useValue: adminApiSpy },
-        { provide: LowStockAlertsService, useValue: lowStockSpy },
         { provide: API_BASE_URL, useValue: 'http://localhost:5000' },
         {
           provide: ActivatedRoute,
@@ -94,8 +88,6 @@ describe('ProductFormComponent', () => {
       categoryId: '',
       price: -1,
       currency: 'US',
-      inventoryCount: 0,
-      lowStockThreshold: 0,
       sku: ''
     });
 
@@ -118,8 +110,6 @@ describe('ProductFormComponent', () => {
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
 
@@ -130,9 +120,6 @@ describe('ProductFormComponent', () => {
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
-      inventoryCount: 3,
-      lowStockThreshold: 1,
-      sku: undefined,
       currency: 'USD',
       specifications: undefined
     });
@@ -148,8 +135,6 @@ describe('ProductFormComponent', () => {
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
 
@@ -181,8 +166,6 @@ describe('ProductFormComponent', () => {
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
     (component as any).submit();

@@ -28,7 +28,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<PageContent> PageContents => Set<PageContent>();
     public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
-    public DbSet<InventoryLog> InventoryLogs => Set<InventoryLog>();
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
@@ -69,7 +68,6 @@ public class ApplicationDbContext : DbContext
         ApplyAddressConfiguration(modelBuilder);
         ApplyPageContentConfiguration(modelBuilder);
         ApplyContentVersionConfiguration(modelBuilder);
-        ApplyInventoryLogConfiguration(modelBuilder);
         ApplyRefreshTokenConfiguration(modelBuilder);
         ApplyContactMessageConfiguration(modelBuilder);
         ApplyContactNotificationRecipientConfiguration(modelBuilder);
@@ -412,24 +410,6 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.PageContent)
                 .WithMany(p => p.Versions)
                 .HasForeignKey(e => e.PageContentId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-    }
-
-    private static void ApplyInventoryLogConfiguration(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<InventoryLog>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.ProductId);
-            entity.HasIndex(e => e.CreatedAt);
-
-            entity.Property(e => e.Reason).IsRequired().HasMaxLength(InventoryLog.ReasonMaxLength);
-            entity.Property(e => e.ChangedBy).IsRequired().HasMaxLength(InventoryLog.ChangedByMaxLength);
-
-            entity.HasOne(e => e.Product)
-                .WithMany()
-                .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

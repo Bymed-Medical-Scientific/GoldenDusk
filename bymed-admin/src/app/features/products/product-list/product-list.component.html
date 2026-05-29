@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Products</h1>
-      <p class="page-subtitle">Manage catalog products, inventory, and availability.</p>
+      <p class="page-subtitle">Manage catalog products and availability.</p>
     </div>
     <a pButton routerLink="/products/new" label="New product" icon="pi pi-plus"></a>
   </div>
@@ -45,15 +45,6 @@
       placeholder="Availability"
       appendTo="body"
     />
-    <p-select
-      [options]="stockOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="stockFilter()"
-      (ngModelChange)="onStockFilterChange($event)"
-      placeholder="Stock level"
-      appendTo="body"
-    />
   </div>
 
   @if (pageMessage()) {
@@ -82,7 +73,7 @@
 
   <div class="table-wrap">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="10" [rowCount]="pageSize()" ariaLabel="Loading products" />
+      <app-table-skeleton [columnCount]="9" [rowCount]="pageSize()" ariaLabel="Loading products" />
     } @else {
       <p-table [value]="filteredProducts()" styleClass="product-table desktop-table" [rowHover]="true">
         <ng-template pTemplate="header">
@@ -96,7 +87,6 @@
             <th>Brand</th>
             <th>Client type</th>
             <th>Price</th>
-            <th>Stock</th>
             <th>Availability</th>
             <th class="col-actions">Actions</th>
           </tr>
@@ -118,12 +108,6 @@
             <td>{{ row.clientTypeDisplay }}</td>
             <td>{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</td>
             <td>
-              <span>{{ row.inventoryCount }}</span>
-              @if (row.inventoryCount > 0 && row.inventoryCount <= row.lowStockThreshold) {
-                <span class="chip chip-warn">Low</span>
-              }
-            </td>
-            <td>
               <span class="chip" [class.chip-muted]="!row.isAvailable">
                 {{ row.isAvailable ? 'Available' : 'Unavailable' }}
               </span>
@@ -138,7 +122,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="empty-cell" [attr.colspan]="10">No products match your filters.</td>
+            <td class="empty-cell" [attr.colspan]="9">No products match your filters.</td>
           </tr>
         </ng-template>
       </p-table>
@@ -156,7 +140,6 @@
             <p class="card-row"><span>Brand:</span> {{ row.brand ?? '—' }}</p>
             <p class="card-row"><span>Client type:</span> {{ row.clientTypeDisplay }}</p>
             <p class="card-row"><span>Price:</span> {{ row.price | currency: row.currency:'symbol':'1.2-2' }}</p>
-            <p class="card-row"><span>Stock:</span> {{ row.inventoryCount }}</p>
             <p class="card-row"><span>Availability:</span> {{ row.isAvailable ? 'Available' : 'Unavailable' }}</p>
             <div class="action-buttons">
               <a pButton [routerLink]="['/products', row.id, 'edit']" severity="secondary" [outlined]="true" icon="pi pi-pencil" label="Edit"></a>

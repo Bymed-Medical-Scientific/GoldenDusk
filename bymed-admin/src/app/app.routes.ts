@@ -214,27 +214,6 @@ export const routes: Routes = [
           import('@features/clients/client-form/client-form.component').then((m) => m.ClientFormComponent)
       },
       {
-        path: 'inventory/adjust',
-        loadComponent: () =>
-          import('@features/inventory/inventory-adjust/inventory-adjust-page.component').then(
-            (m) => m.InventoryAdjustPageComponent
-          )
-      },
-      {
-        path: 'inventory/history',
-        loadComponent: () =>
-          import('@features/inventory/inventory-history/inventory-history-page.component').then(
-            (m) => m.InventoryHistoryPageComponent
-          )
-      },
-      {
-        path: 'inventory',
-        loadComponent: () =>
-          import('@features/inventory/inventory-list/inventory-list.component').then(
-            (m) => m.InventoryListComponent
-          )
-      },
-      {
         path: 'orders/analytics',
         loadComponent: () =>
           import('@features/orders/order-analytics/order-analytics-page.component').then(

@@ -19,8 +19,6 @@ public sealed record ProductDto
     public IReadOnlyList<ProductImageDto>? Images { get; init; }
     public decimal Price { get; init; }
     public string Currency { get; init; } = string.Empty;
-    public int InventoryCount { get; init; }
-    public int LowStockThreshold { get; init; }
     public bool IsAvailable { get; init; }
     public string? Sku { get; init; }
     public string? Brand { get; init; }

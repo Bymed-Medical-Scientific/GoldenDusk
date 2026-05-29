@@ -96,7 +96,6 @@ export async function ProductsCatalog({
     price: p.price,
     currency: p.currency,
     isAvailable: p.isAvailable,
-    inventoryCount: p.inventoryCount,
     categoryName: p.categoryName,
   }));
 

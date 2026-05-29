@@ -155,7 +155,7 @@ public sealed class DistributedCatalogReadCache : ICatalogReadCache
         var minPricePart = query.MinPrice?.ToString(CultureInfo.InvariantCulture) ?? "none";
         var maxPricePart = query.MaxPrice?.ToString(CultureInfo.InvariantCulture) ?? "none";
         var availablePart = query.IsAvailable?.ToString() ?? "none";
-        return $"bymed:catalog:{v}:products:p{query.PageNumber}:s{query.PageSize}:c{query.CategoryId}:i{query.InStock}:a{availablePart}:q{searchPart}:b{brandPart}:ct{clientTypePart}:min{minPricePart}:max{maxPricePart}";
+        return $"bymed:catalog:{v}:products:p{query.PageNumber}:s{query.PageSize}:c{query.CategoryId}:a{availablePart}:q{searchPart}:b{brandPart}:ct{clientTypePart}:min{minPricePart}:max{maxPricePart}";
     }
 
     private async Task<string> BuildCategoriesKeyAsync(CancellationToken cancellationToken)

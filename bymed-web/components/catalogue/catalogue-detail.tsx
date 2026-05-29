@@ -82,7 +82,6 @@ export function CatalogueDetail({
               productCurrency="USD"
               productImageUrl={item.primaryImageUrl}
               disabled={!item.isPublished}
-              maxQuantity={99}
             />
           </div>
         </div>

@@ -37,8 +37,6 @@ describe('ProductListComponent', () => {
     categoryName: category.name,
     price: 99.5,
     currency: 'USD',
-    inventoryCount: 5,
-    lowStockThreshold: 2,
     isAvailable: true
   };
 
@@ -52,8 +50,6 @@ describe('ProductListComponent', () => {
     categoryName: category.name,
     price: 1200,
     currency: 'USD',
-    inventoryCount: 0,
-    lowStockThreshold: 1,
     isAvailable: false
   };
 

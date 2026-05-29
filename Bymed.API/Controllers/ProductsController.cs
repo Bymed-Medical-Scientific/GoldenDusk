@@ -53,20 +53,18 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] int pageSize = PaginationParams.DefaultPageSize,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? search = null,
-        [FromQuery] bool? inStock = null,
         [FromQuery] bool? isAvailable = null,
         [FromQuery] string? brand = null,
         [FromQuery] string? clientType = null,
         [FromQuery] decimal? minPrice = null,
         [FromQuery] decimal? maxPrice = null)
     {
-        var effectiveIsAvailable = ResolveCatalogAvailabilityFilter(isAvailable, inStock);
+        var effectiveIsAvailable = ResolveCatalogAvailabilityFilter(isAvailable);
         var query = new GetProductsQuery(
             pageNumber,
             pageSize,
             categoryId,
             search,
-            inStock,
             brand,
             clientType,
             minPrice,
@@ -364,17 +362,14 @@ public sealed class ProductsController : ControllerBase
 
     /// <summary>
     /// Storefront and anonymous catalog callers only see available products.
-    /// Admins may filter via <paramref name="isAvailable"/>; legacy admin UI still sends availability via <paramref name="inStock"/>.
+    /// Admins may filter via <paramref name="isAvailable"/>.
     /// </summary>
-    private bool? ResolveCatalogAvailabilityFilter(bool? isAvailable, bool? inStock)
+    private bool? ResolveCatalogAvailabilityFilter(bool? isAvailable)
     {
         if (!User.IsInRole("Admin"))
             return true;
 
-        if (isAvailable.HasValue)
-            return isAvailable;
-
-        return inStock;
+        return isAvailable;
     }
 
     private async Task<bool> CanViewPricesAsync()

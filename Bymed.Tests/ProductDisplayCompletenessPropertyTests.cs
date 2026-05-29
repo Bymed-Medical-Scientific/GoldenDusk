@@ -16,7 +16,7 @@ namespace Bymed.Tests;
 public class ProductDisplayCompletenessPropertyTests
 {
     private static Product CreateProduct(string name, string slug, string description, Guid categoryId, decimal price)
-        => new(name, slug, description, categoryId, price, inventoryCount: 10, lowStockThreshold: 2);
+        => new(name, slug, description, categoryId, price);
 
     private static ProductDto MapToDto(Product product)
         => new()
@@ -29,8 +29,6 @@ public class ProductDisplayCompletenessPropertyTests
             CategoryName = "Category Name",
             Price = product.Price,
             Currency = product.Currency,
-            InventoryCount = product.InventoryCount,
-            LowStockThreshold = product.LowStockThreshold,
             IsAvailable = product.IsAvailable,
             Sku = product.Sku,
             Specifications = product.Specifications
@@ -62,8 +60,6 @@ public class ProductDisplayCompletenessPropertyTests
             dto.CategoryId.Should().Be(product.CategoryId);
             dto.Price.Should().Be(product.Price);
             dto.Currency.Should().Be(product.Currency);
-            dto.InventoryCount.Should().Be(product.InventoryCount);
-            dto.LowStockThreshold.Should().Be(product.LowStockThreshold);
             dto.IsAvailable.Should().Be(product.IsAvailable);
 
             dto.Name.Should().NotBeNullOrWhiteSpace();

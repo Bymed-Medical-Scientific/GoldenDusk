@@ -3,10 +3,9 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { DashboardSkeletonComponent } from '@shared/components/dashboard-skeleton/dashboard-skeleton.component';
-import { InventoryItemDto, OrderSummaryDto, ProductDto } from '@shared/models';
+import { OrderSummaryDto, ProductDto } from '@shared/models';
 import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
 
 interface SalesSummary {
@@ -57,7 +56,6 @@ export class DashboardPageComponent implements OnInit {
     currency: 'USD'
   });
   protected readonly recentOrders = signal<OrderSummaryDto[]>([]);
-  protected readonly lowStockItems = signal<InventoryItemDto[]>([]);
   protected readonly popularProducts = signal<ProductDto[]>([]);
   protected readonly totalOrderCount = signal(0);
   protected readonly totalProductCount = signal(0);
@@ -92,10 +90,15 @@ export class DashboardPageComponent implements OnInit {
         tone: 'green'
       },
       {
-        title: 'LOW STOCK',
-        value: `${this.lowStockItems().length}`,
-        hint: 'Requires replenishment',
-        icon: 'pi pi-exclamation-triangle',
+        title: 'AVG ORDER VALUE',
+        value: this.currencyPipe.transform(
+          this.totalOrderCount() === 0 ? 0 : summary.month / this.totalOrderCount(),
+          summary.currency,
+          'symbol',
+          '1.0-0'
+        ) ?? '$0',
+        hint: 'Based on current order set',
+        icon: 'pi pi-receipt',
         tone: 'blue'
       }
     ];
@@ -103,13 +106,11 @@ export class DashboardPageComponent implements OnInit {
   protected readonly hasDashboardData = computed(
     () =>
       this.recentOrders().length > 0 ||
-      this.lowStockItems().length > 0 ||
       this.popularProducts().length > 0
   );
 
   public constructor(
     private readonly adminApiService: AdminApiService,
-    private readonly lowStockAlerts: LowStockAlertsService,
     private readonly currencyPipe: CurrencyPipe
   ) {}
 
@@ -123,7 +124,6 @@ export class DashboardPageComponent implements OnInit {
 
     forkJoin({
       orders: this.adminApiService.getOrders(1, 12),
-      inventory: this.adminApiService.getLowStockInventory(),
       products: this.adminApiService.getProducts(1, 12)
     })
       .pipe(
@@ -131,12 +131,11 @@ export class DashboardPageComponent implements OnInit {
           this.errorMessage.set('Unable to load dashboard data right now. Please refresh and try again.');
           return of({
             orders: { items: [], pageNumber: 1, pageSize: 12, totalCount: 0, totalPages: 0 },
-            inventory: [],
             products: { items: [], pageNumber: 1, pageSize: 12, totalCount: 0, totalPages: 0 }
           });
         })
       )
-      .subscribe(({ orders, inventory, products }) => {
+      .subscribe(({ orders, products }) => {
         const orderItems = [...orders.items].sort(
           (left, right) =>
             new Date(right.creationTime).getTime() - new Date(left.creationTime).getTime()
@@ -147,14 +146,9 @@ export class DashboardPageComponent implements OnInit {
         this.totalOrderCount.set(orders.totalCount ?? orderItems.length);
         this.totalProductCount.set(products.totalCount ?? products.items.length);
         this.revenueTrend.set(this.buildRevenueTrend(orderItems));
-        const sortedLow = [...inventory].sort(
-          (left, right) => left.inventoryCount - right.inventoryCount
-        );
-        this.lowStockAlerts.items.set(sortedLow);
-        this.lowStockItems.set(sortedLow.slice(0, 5));
         this.popularProducts.set(
           [...products.items]
-            .sort((left, right) => right.inventoryCount - left.inventoryCount)
+            .sort((left, right) => right.price - left.price)
             .slice(0, 5)
         );
         this.isLoading.set(false);

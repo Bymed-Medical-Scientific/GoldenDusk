@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Bymed.Domain.Events;
 using Bymed.Domain.Primitives;
 
 namespace Bymed.Domain.Entities;
@@ -23,8 +22,6 @@ public class Product : FullAuditedEntity
     public Category Category { get; private set; } = null!;
     public decimal Price { get; private set; }
     public string Currency { get; private set; } = DefaultCurrency;
-    public int InventoryCount { get; private set; }
-    public int LowStockThreshold { get; private set; }
     public bool IsAvailable { get; private set; } = true;
     public string? Sku { get; private set; }
     public string? Brand { get; private set; }
@@ -41,8 +38,6 @@ public class Product : FullAuditedEntity
         string description,
         Guid categoryId,
         decimal price,
-        int inventoryCount,
-        int lowStockThreshold,
         string? sku = null,
         string? brand = null,
         string? clientType = null,
@@ -54,8 +49,6 @@ public class Product : FullAuditedEntity
         SetDescription(description);
         SetCategoryId(categoryId);
         SetPrice(price);
-        SetInventoryCount(inventoryCount);
-        SetLowStockThreshold(lowStockThreshold);
         Sku = SetSku(sku);
         Brand = SetBrand(brand);
         ClientType = SetClientType(clientType);
@@ -72,7 +65,6 @@ public class Product : FullAuditedEntity
         string description,
         Guid categoryId,
         decimal price,
-        int lowStockThreshold,
         string? sku = null,
         string? brand = null,
         string? clientType = null,
@@ -83,31 +75,10 @@ public class Product : FullAuditedEntity
         SetDescription(description);
         SetCategoryId(categoryId);
         SetPrice(price);
-        SetLowStockThreshold(lowStockThreshold);
         Sku = SetSku(sku);
         Brand = SetBrand(brand);
         ClientType = SetClientType(clientType);
         Specifications = specifications is null ? null : new Dictionary<string, string>(specifications);
-    }
-
- 
-    public void UpdateInventory(int newCount, string reason, string changedBy)
-    {
-        if (newCount < 0)
-            throw new ArgumentException("Inventory count cannot be negative.", nameof(newCount));
-        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
-        ArgumentException.ThrowIfNullOrWhiteSpace(changedBy);
-
-        var previousCount = InventoryCount;
-        InventoryCount = newCount;
-
-        if (InventoryCount == 0)
-        {
-            MarkAsUnavailable();
-            AddDomainEvent(new ProductOutOfStockEvent(Id, Name, Sku));
-        }
-
-        AddDomainEvent(new InventoryChangedEvent(Id, previousCount, newCount, reason.Trim(), changedBy.Trim()));
     }
 
     public void MarkAsUnavailable()
@@ -166,23 +137,11 @@ public class Product : FullAuditedEntity
         Price = price;
     }
 
-    private void SetInventoryCount(int count)
-    {
-        if (count < 0)
-            throw new ArgumentException("Inventory count cannot be negative.", nameof(count));
-        InventoryCount = count;
-    }
-
-    private void SetLowStockThreshold(int threshold)
-    {
-        if (threshold < 0)
-            throw new ArgumentException("Low stock threshold cannot be negative.", nameof(threshold));
-        LowStockThreshold = threshold;
-    }
-
     private static string? SetSku(string? sku)
     {
-        if (string.IsNullOrWhiteSpace(sku)) return null;
+        if (string.IsNullOrWhiteSpace(sku))
+            return null;
+
         var trimmed = sku.Trim();
         if (trimmed.Length > SkuMaxLength)
             throw new ArgumentException($"SKU must not exceed {SkuMaxLength} characters.", nameof(sku));

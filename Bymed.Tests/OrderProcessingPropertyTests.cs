@@ -230,8 +230,6 @@ public class OrderProcessingPropertyTests
 
             var handler = new UpdateOrderStatusCommandHandler(
                 sp.GetRequiredService<IOrderRepository>(),
-                sp.GetRequiredService<IProductRepository>(),
-                sp.GetRequiredService<IInventoryLogRepository>(),
                 sp.GetRequiredService<IUnitOfWork>(),
                 Substitute.For<IEmailService>());
 

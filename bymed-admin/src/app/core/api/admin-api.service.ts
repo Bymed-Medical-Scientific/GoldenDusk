@@ -19,10 +19,7 @@ import {
   CreateClientRequestDto,
   CreateClientTypeRequestDto,
   CreateProductRequestDto,
-  AdjustInventoryRequestDto,
   ImportProductsResultDto,
-  InventoryItemDto,
-  InventoryLogEntryDto,
   OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
@@ -255,7 +252,7 @@ export class AdminApiService {
     query?: {
       readonly categoryId?: string | null;
       readonly search?: string | null;
-      readonly inStock?: boolean | null;
+      readonly isAvailable?: boolean | null;
       readonly brand?: string | null;
       readonly clientType?: string | null;
       readonly minPrice?: number | null;
@@ -267,7 +264,7 @@ export class AdminApiService {
       pageSize,
       categoryId: query?.categoryId,
       search: query?.search,
-      inStock: query?.inStock,
+      isAvailable: query?.isAvailable,
       brand: query?.brand,
       clientType: query?.clientType,
       minPrice: query?.minPrice,
@@ -401,53 +398,6 @@ export class AdminApiService {
       dateTo: query?.dateTo,
       search: query?.search
     });
-  }
-
-  /** Paged inventory grid (admin). */
-  public getInventory(
-    pageNumber: number,
-    pageSize: number,
-    query?: { readonly lowStockOnly?: boolean; readonly search?: string | null }
-  ): Observable<PagedResultDto<InventoryItemDto>> {
-    return this.apiService.get<PagedResultDto<InventoryItemDto>>('inventory', {
-      pageNumber,
-      pageSize,
-      lowStockOnly: query?.lowStockOnly === true ? true : undefined,
-      search: query?.search?.trim() ? query.search.trim() : undefined
-    });
-  }
-
-  /** All products at or below low-stock threshold (admin). */
-  public getLowStockInventory(): Observable<InventoryItemDto[]> {
-    return this.apiService.get<InventoryItemDto[]>('inventory/low-stock');
-  }
-
-  public adjustInventory(
-    productId: string,
-    request: AdjustInventoryRequestDto
-  ): Observable<InventoryItemDto> {
-    return this.apiService.postWithQuery<AdjustInventoryRequestDto, InventoryItemDto>(
-      'inventory/adjust',
-      request,
-      { productId }
-    );
-  }
-
-  public getInventoryHistory(
-    productId: string,
-    pageNumber: number,
-    pageSize: number,
-    query?: { readonly dateFrom?: string | null; readonly dateTo?: string | null }
-  ): Observable<PagedResultDto<InventoryLogEntryDto>> {
-    return this.apiService.get<PagedResultDto<InventoryLogEntryDto>>(
-      `inventory/history/${productId}`,
-      {
-        pageNumber,
-        pageSize,
-        dateFrom: query?.dateFrom?.trim() ? query.dateFrom.trim() : undefined,
-        dateTo: query?.dateTo?.trim() ? query.dateTo.trim() : undefined
-      }
-    );
   }
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {

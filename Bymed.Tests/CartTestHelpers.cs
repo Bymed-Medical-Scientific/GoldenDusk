@@ -66,8 +66,6 @@ internal static class CartTestHelpers
             description: "Desc",
             categoryId: category.Id,
             price: price,
-            inventoryCount: 100,
-            lowStockThreshold: 1,
             sku: null,
             currency: "USD",
             specifications: null);

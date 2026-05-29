@@ -35,9 +35,6 @@ public class ProductCrudPropertyTests
             Description = "High-precision infusion pump",
             CategoryId = Guid.NewGuid(),
             Price = 1000m,
-            InventoryCount = 10,
-            LowStockThreshold = 2,
-            Sku = "SKU-123",
             Currency = "USD",
             Specifications = new Dictionary<string, string> { ["flow-rate"] = "0.1-1200 ml/h" }
         };
@@ -66,9 +63,7 @@ public class ProductCrudPropertyTests
             "old-slug",
             "Old description",
             Guid.NewGuid(),
-            500m,
-            inventoryCount: 5,
-            lowStockThreshold: 1);
+            500m);
 
         // Handlers rely on the Category navigation when constructing DTOs.
         // Tests create Product instances directly, so we wire the navigation via reflection.
@@ -87,7 +82,6 @@ public class ProductCrudPropertyTests
             Description = "Updated description",
             CategoryId = Guid.NewGuid(),
             Price = 750m,
-            LowStockThreshold = 3,
             Sku = "SKU-456",
             Specifications = new Dictionary<string, string> { ["updated"] = "true" }
         };
@@ -127,9 +121,7 @@ public class ProductCrudPropertyTests
             "to-delete",
             "Desc",
             Guid.NewGuid(),
-            100m,
-            inventoryCount: 1,
-            lowStockThreshold: 0);
+            100m);
 
         var repo = CreateProductRepository();
         repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(product);

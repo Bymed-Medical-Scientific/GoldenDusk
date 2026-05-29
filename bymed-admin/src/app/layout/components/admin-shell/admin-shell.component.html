@@ -25,9 +25,6 @@
             >
               <span class="nav-icon-wrap">
                 <i [class]="item.icon" aria-hidden="true"></i>
-                @if (item.route === '/inventory' && lowStockCount() > 0) {
-                  <span class="inline-badge">{{ lowStockBadge() }}</span>
-                }
               </span>
               <span>{{ item.label }}</span>
             </a>
@@ -86,33 +83,6 @@
 
     @if (isNavigating()) {
       <div class="route-loading" role="status" aria-live="polite"></div>
-    }
-
-    @if (showLowStockBanner()) {
-      <div class="low-stock-banner" role="alert">
-        <i class="pi pi-exclamation-triangle banner-icon" aria-hidden="true"></i>
-        <div class="banner-body">
-          <strong class="banner-title">Low stock: {{ lowStockCount() }} product(s)</strong>
-          <p class="banner-detail">
-            @for (row of lowStockPreview(); track row.productId) {
-              <span class="banner-chip">{{ row.productName }} ({{ row.inventoryCount }})</span>
-            }
-            @if (lowStockOverflow() > 0) {
-              <span class="banner-more">+{{ lowStockOverflow() }} more</span>
-            }
-          </p>
-          <p class="banner-hint">
-            Set per-product thresholds on the product edit screen. Stock can be updated from Inventory.
-          </p>
-        </div>
-        <a
-          class="banner-action"
-          routerLink="/inventory"
-          [queryParams]="{ lowStock: '1' }"
-        >
-          View low stock
-        </a>
-      </div>
     }
 
     <main class="shell-content">

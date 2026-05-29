@@ -12,7 +12,6 @@ type AddToCartButtonProps = {
   productCurrency: string;
   productImageUrl?: string | null;
   disabled: boolean;
-  maxQuantity: number;
 };
 
 export function AddToCartButton({
@@ -22,7 +21,6 @@ export function AddToCartButton({
   productCurrency,
   productImageUrl,
   disabled,
-  maxQuantity,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -30,7 +28,7 @@ export function AddToCartButton({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const cap = Math.max(1, Math.min(maxQuantity, 99));
+  const cap = 99;
 
   const onAdd = useCallback(async () => {
     if (disabled || loading) return;

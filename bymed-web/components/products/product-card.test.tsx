@@ -53,7 +53,6 @@ describe("ProductCard", () => {
     price: 1249.5,
     currency: "USD",
     isAvailable: true,
-    inventoryCount: 3,
     categoryName: "Laboratory equipment",
   };
 

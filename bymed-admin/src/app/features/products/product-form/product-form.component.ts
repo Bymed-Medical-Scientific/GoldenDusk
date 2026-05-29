@@ -12,7 +12,6 @@ import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { catchError, EMPTY, filter, finalize, map, mergeMap, of, tap } from 'rxjs';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { ApiError, ApiValidationErrorItem } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
@@ -56,8 +55,6 @@ function mapServerPropertyToFormKey(propertyName: string): string {
     Description: 'description',
     CategoryId: 'categoryId',
     Price: 'price',
-    InventoryCount: 'inventoryCount',
-    LowStockThreshold: 'lowStockThreshold',
     Sku: 'sku',
     Brand: 'brand',
     ClientType: 'clientType',
@@ -88,7 +85,6 @@ function mapServerPropertyToFormKey(propertyName: string): string {
 export class ProductFormComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly adminApi = inject(AdminApiService);
-  private readonly lowStockAlerts = inject(LowStockAlertsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly apiBaseUrl = inject(API_BASE_URL);
@@ -126,8 +122,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     categoryId: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
     currency: ['USD', [Validators.required, Validators.pattern(CURRENCY_PATTERN)]],
-    inventoryCount: [0, [Validators.required, Validators.min(0)]],
-    lowStockThreshold: [0, [Validators.required, Validators.min(0)]],
     sku: ['', [Validators.maxLength(SKU_MAX_LENGTH)]],
     brand: ['', [Validators.maxLength(BRAND_MAX_LENGTH)]],
     clientType: ['']
@@ -165,7 +159,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         this.patchFormFromProduct(product);
         this.loadedPrimaryUrl = this.resolveMediaUrl(product.primaryImageUrl);
         this.imagePreviewUrl.set(this.loadedPrimaryUrl);
-        this.productForm.controls.inventoryCount.disable();
         this.productForm.controls.currency.disable();
       });
   }
@@ -201,7 +194,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
           finalize(() => this.isSubmitting.set(false))
         )
         .subscribe(() => {
-          this.lowStockAlerts.refresh();
           void this.router.navigate(['/products']);
         });
       return;
@@ -219,7 +211,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
         finalize(() => this.isSubmitting.set(false))
       )
       .subscribe(() => {
-        this.lowStockAlerts.refresh();
         void this.router.navigate(['/products']);
       });
   }
@@ -258,12 +249,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     }
     if (controlName === 'currency' && control.hasError('pattern')) {
       return 'Use a 3-letter currency code (e.g. USD).';
-    }
-    if (controlName === 'inventoryCount' && control.hasError('min')) {
-      return 'Inventory cannot be negative.';
-    }
-    if (controlName === 'lowStockThreshold' && control.hasError('min')) {
-      return 'Low stock threshold cannot be negative.';
     }
     if (controlName === 'sku' && control.hasError('maxlength')) {
       return `SKU must not exceed ${SKU_MAX_LENGTH} characters.`;
@@ -319,8 +304,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       categoryId: product.categoryId,
       price: product.price,
       currency: product.currency,
-      inventoryCount: product.inventoryCount,
-      lowStockThreshold: product.lowStockThreshold,
       sku: product.sku ?? '',
       brand: product.brand ?? '',
       clientType: product.clientType ?? ''
@@ -329,7 +312,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   private buildCreatePayload(): CreateProductRequestDto {
     const raw = this.productForm.getRawValue();
-    const sku = raw.sku.trim();
     const brand = raw.brand.trim();
     const clientType = raw.clientType.trim();
     return {
@@ -337,9 +319,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       description: raw.description,
       categoryId: raw.categoryId,
       price: Number(raw.price),
-      inventoryCount: Math.floor(Number(raw.inventoryCount)),
-      lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
-      sku: sku.length > 0 ? sku : undefined,
       brand: brand.length > 0 ? brand : undefined,
       clientType: clientType.length > 0 ? clientType : undefined,
       currency: raw.currency.trim() || 'USD',
@@ -357,7 +336,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       description: raw.description,
       categoryId: raw.categoryId,
       price: Number(raw.price),
-      lowStockThreshold: Math.floor(Number(raw.lowStockThreshold)),
       sku: sku.length > 0 ? sku : undefined,
       brand: brand.length > 0 ? brand : undefined,
       clientType: clientType.length > 0 ? clientType : undefined,
