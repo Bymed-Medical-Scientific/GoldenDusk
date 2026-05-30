@@ -1,101 +1,137 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">Brands</h1>
-      <p class="page-subtitle">Manage manufacturer brands, logos, and website links for catalogue items.</p>
+      <p class="page-subtitle">Manage manufacturer brands and website links for catalogue items.</p>
     </div>
-    <a pButton routerLink="/brands/new" label="New brand" icon="pi pi-plus"></a>
-  </div>
+    <a class="btn-primary" routerLink="/brands/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Add Brand</span>
+    </a>
+  </header>
 
-  <div class="toolbar-filters">
-    <span class="search-box">
+  <div class="toolbar-row">
+    <label class="search-bar">
       <i class="pi pi-search" aria-hidden="true"></i>
       <input
-        pInputText
         type="search"
         [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        placeholder="Search name or website"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search brands..."
         aria-label="Search brands"
       />
       @if (searchQuery()) {
-        <button pButton type="button" [text]="true" (click)="clearSearch()" aria-label="Clear search">
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       }
-    </span>
+    </label>
   </div>
 
   @if (pageMessage()) {
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <div class="table-wrap">
+  <div class="table-card">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="4" [rowCount]="8" ariaLabel="Loading brands" />
+      <app-table-skeleton [columnCount]="3" [rowCount]="pageSize()" ariaLabel="Loading brands" />
     } @else {
-      <p-table [value]="filteredBrands()" styleClass="brand-table desktop-table" [rowHover]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Brand</th>
-            <th>Website</th>
-            <th>Logo</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td>
-              <div class="cell-strong">{{ row.name }}</div>
-            </td>
-            <td>
-              @if (row.websiteUrl) {
-                <a [href]="row.websiteUrl" target="_blank" rel="noopener noreferrer" class="website-link">
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>
+                Brand
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>Website</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of paginatedBrands(); track row.id) {
+              <tr>
+                <td>
+                  <a class="row-link" [routerLink]="['/brands', row.id, 'edit']">{{ row.name }}</a>
+                </td>
+                <td class="muted-cell">
+                  @if (row.websiteUrl) {
+                    <a [href]="row.websiteUrl" target="_blank" rel="noopener noreferrer" class="row-link">
+                      {{ row.websiteUrl }}
+                    </a>
+                  } @else {
+                    —
+                  }
+                </td>
+                <td class="col-actions">
+                  <div class="action-group">
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/brands', row.id, 'edit']"
+                      [attr.aria-label]="'Edit brand ' + row.name"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="action-btn"
+                      (click)="deleteBrand(row)"
+                      [disabled]="deletingId() === row.id"
+                      [attr.aria-label]="'Delete brand ' + row.name"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="3">No brands match your search.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-cards">
+        @for (row of paginatedBrands(); track row.id) {
+          <article class="list-card">
+            <div class="list-card__top">
+              <a class="row-link" [routerLink]="['/brands', row.id, 'edit']">{{ row.name }}</a>
+            </div>
+            @if (row.websiteUrl) {
+              <p class="list-card__meta">
+                <a [href]="row.websiteUrl" target="_blank" rel="noopener noreferrer" class="row-link">
                   {{ row.websiteUrl }}
                 </a>
-              } @else {
-                —
-              }
-            </td>
-            <td>
-              @if (resolveLogoUrl(row.logoUrl); as logoSrc) {
-                <img [src]="logoSrc" [alt]="row.name + ' logo'" class="logo-thumb" />
-              } @else {
-                <span class="text-muted">No logo</span>
-              }
-            </td>
-            <td class="col-actions">
-              <div class="action-buttons">
-                <a
-                  pButton
-                  [routerLink]="['/brands', row.id, 'edit']"
-                  severity="secondary"
-                  [outlined]="true"
-                  icon="pi pi-pencil"
-                  label="Edit"
-                ></a>
-                <button
-                  pButton
-                  type="button"
-                  severity="danger"
-                  [outlined]="true"
-                  icon="pi pi-trash"
-                  label="Delete"
-                  (click)="deleteBrand(row)"
-                  [disabled]="deletingId() === row.id"
-                ></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="empty-cell" [attr.colspan]="4">No brands match your search.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+              </p>
+            }
+            <div class="list-card__actions">
+              <a class="outline-btn" [routerLink]="['/brands', row.id, 'edit']">Edit</a>
+              <button
+                type="button"
+                class="outline-btn danger"
+                (click)="deleteBrand(row)"
+                [disabled]="deletingId() === row.id"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-cell">No brands match your search.</p>
+        }
+      </div>
+
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="filteredBrands().length"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 }

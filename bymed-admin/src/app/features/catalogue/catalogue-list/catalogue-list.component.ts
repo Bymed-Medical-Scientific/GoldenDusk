@@ -7,27 +7,24 @@ import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { CatalogueItemDto, CategoryDto } from '@shared/models';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { TablePaginationComponent, TablePageChange } from '@shared/components/table-pagination/table-pagination.component';
 
 type PublishedFilter = 'all' | 'published' | 'unpublished';
 type CatalogueRow = CatalogueItemDto & { readonly categoryDisplay: string };
+
+interface StatusTab {
+  readonly label: string;
+  readonly value: PublishedFilter;
+}
 
 @Component({
   selector: 'app-catalogue-list',
   standalone: true,
   imports: [
-    ButtonModule,
     FormsModule,
     GlobalErrorComponent,
-    InputTextModule,
-    PaginatorModule,
+    TablePaginationComponent,
     RouterLink,
-    SelectModule,
-    TableModule,
     TableSkeletonComponent
   ],
   templateUrl: './catalogue-list.component.html',
@@ -42,6 +39,7 @@ export class CatalogueListComponent implements OnInit {
   protected readonly searchQuery = signal('');
   protected readonly selectedCategoryId = signal<string>('all');
   protected readonly publishedFilter = signal<PublishedFilter>('all');
+  protected readonly categoryMenuOpen = signal(false);
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly items = signal<CatalogueItemDto[]>([]);
   protected readonly deletingId = signal<string | null>(null);
@@ -49,18 +47,17 @@ export class CatalogueListComponent implements OnInit {
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);
   protected readonly pageSizeOptions = [10, 25, 50];
-
-  protected readonly categoryOptions = computed(() => [
-    { label: 'All categories', value: 'all' },
-    ...this.categories().map((c) => ({ label: c.name, value: c.id }))
-  ]);
-
-  protected readonly publishedOptions: Array<{ label: string; value: PublishedFilter }> = [
+  protected readonly statusTabs: readonly StatusTab[] = [
     { label: 'All', value: 'all' },
     { label: 'Published', value: 'published' },
     { label: 'Unpublished', value: 'unpublished' }
   ];
-
+  protected readonly selectedCategoryLabel = computed(() => {
+    if (this.selectedCategoryId() === 'all') {
+      return 'Category';
+    }
+    return this.categories().find((category) => category.id === this.selectedCategoryId())?.name ?? 'Category';
+  });
   protected readonly displayItems = computed<CatalogueRow[]>(() =>
     this.items().map((row) => ({
       ...row,
@@ -83,26 +80,29 @@ export class CatalogueListComponent implements OnInit {
   }
 
   protected clearSearch(): void {
-    this.searchQuery.set('');
-    this.pageNumber.set(1);
-    this.loadPage();
+    this.onSearchChange('');
   }
 
-  protected onCategoryChange(value: string): void {
-    this.selectedCategoryId.set(value);
-    this.pageNumber.set(1);
-    this.loadPage();
-  }
-
-  protected onPublishedChange(value: PublishedFilter): void {
+  protected onStatusTabChange(value: PublishedFilter): void {
     this.publishedFilter.set(value);
     this.pageNumber.set(1);
     this.loadPage();
   }
 
-  protected onPageChange(event: PaginatorState): void {
-    this.pageNumber.set((event.page ?? 0) + 1);
-    this.pageSize.set(event.rows ?? this.pageSize());
+  protected toggleCategoryMenu(): void {
+    this.categoryMenuOpen.update((open) => !open);
+  }
+
+  protected onCategoryChange(value: string): void {
+    this.selectedCategoryId.set(value);
+    this.categoryMenuOpen.set(false);
+    this.pageNumber.set(1);
+    this.loadPage();
+  }
+
+  protected onPageChange(event: TablePageChange): void {
+    this.pageNumber.set(event.pageNumber);
+    this.pageSize.set(event.pageSize);
     this.loadPage();
   }
 

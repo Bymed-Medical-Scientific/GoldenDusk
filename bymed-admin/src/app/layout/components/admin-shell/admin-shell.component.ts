@@ -22,6 +22,7 @@ interface NavItem {
   readonly icon: string;
   readonly route: string;
   readonly exact?: boolean;
+  readonly badge?: string;
 }
 
 interface NavSection {

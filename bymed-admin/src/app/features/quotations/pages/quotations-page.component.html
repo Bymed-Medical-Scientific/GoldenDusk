@@ -106,12 +106,12 @@
       </ng-template>
     </p-table>
 
-    <p-paginator
-      [first]="(pageNumber() - 1) * pageSize()"
-      [rows]="pageSize()"
-      [totalRecords]="totalCount()"
-      [rowsPerPageOptions]="pageSizeOptions"
-      (onPageChange)="onPageChange($event)"
-    ></p-paginator>
+    <app-table-pagination
+      [pageNumber]="pageNumber()"
+      [pageSize]="pageSize()"
+      [totalCount]="totalCount()"
+      [pageSizeOptions]="pageSizeOptions"
+      (pageChange)="onPageChange($event)"
+    />
   </div>
 }

@@ -25,7 +25,6 @@ import { FileUpload } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 
 /** Matches defaults in Bymed.Application.Marketing.MarketingOptions (server still enforces). */
@@ -45,7 +44,6 @@ const MAX_TOTAL_ATTACHMENT_MB = 25;
     InputTextModule,
     Message,
     MultiSelectModule,
-    TableModule,
     TextareaModule
   ],
   templateUrl: './marketing-campaigns-page.component.html',

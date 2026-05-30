@@ -1,35 +1,30 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { BrandDto } from '@shared/models';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
+import { TablePaginationComponent, TablePageChange } from '@shared/components/table-pagination/table-pagination.component';
+import { paginateItems } from '@shared/utils/client-pagination';
 
 @Component({
   selector: 'app-brand-list',
   standalone: true,
   imports: [
-    ButtonModule,
     FormsModule,
     GlobalErrorComponent,
-    InputTextModule,
-    RouterLink,
-    TableModule,
-    TableSkeletonComponent
+    TablePaginationComponent,
+    TableSkeletonComponent,
+    RouterLink
   ],
   templateUrl: './brand-list.component.html',
   styleUrl: './brand-list.component.scss'
 })
 export class BrandListComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
-  private readonly apiBaseUrl = inject(API_BASE_URL);
 
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
@@ -37,41 +32,50 @@ export class BrandListComponent implements OnInit {
   protected readonly searchQuery = signal('');
   protected readonly brands = signal<BrandDto[]>([]);
   protected readonly deletingId = signal<string | null>(null);
+  protected readonly pageNumber = signal(1);
+  protected readonly pageSize = signal(10);
+  protected readonly pageSizeOptions = [10, 25, 50];
+  protected readonly filteredBrands = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) {
+      return this.brands();
+    }
+
+    return this.brands().filter(
+      (brand) =>
+        brand.name.toLowerCase().includes(q) ||
+        (brand.websiteUrl?.toLowerCase().includes(q) ?? false)
+    );
+  });
+  protected readonly paginatedBrands = computed(() =>
+    paginateItems(this.filteredBrands(), this.pageNumber(), this.pageSize())
+  );
 
   public ngOnInit(): void {
     this.loadBrands();
   }
 
-  protected filteredBrands(): BrandDto[] {
-    const q = this.searchQuery().trim().toLowerCase();
-    if (!q) return this.brands();
-    return this.brands().filter(
-      (b) =>
-        b.name.toLowerCase().includes(q) ||
-        (b.websiteUrl?.toLowerCase().includes(q) ?? false)
-    );
+  protected onSearchChange(value: string): void {
+    this.searchQuery.set(value);
+    this.pageNumber.set(1);
   }
 
   protected clearSearch(): void {
-    this.searchQuery.set('');
+    this.onSearchChange('');
   }
 
-  protected resolveLogoUrl(url?: string | null): string | null {
-    if (!url?.trim()) return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    try {
-      const origin = new URL(this.apiBaseUrl).origin;
-      return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
-    } catch {
-      return url;
-    }
+  protected onPageChange(event: TablePageChange): void {
+    this.pageNumber.set(event.pageNumber);
+    this.pageSize.set(event.pageSize);
   }
 
   protected deleteBrand(brand: BrandDto): void {
     const confirmed = window.confirm(
       `Delete "${brand.name}"?\n\nYou cannot delete brands that are assigned to catalogue items.`
     );
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     this.deletingId.set(brand.id);
     this.pageMessage.set(null);

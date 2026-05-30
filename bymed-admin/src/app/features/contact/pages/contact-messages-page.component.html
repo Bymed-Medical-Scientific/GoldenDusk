@@ -1,15 +1,26 @@
-<section class="contact-page">
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
   <header class="page-header">
     <div>
-      <h2>Contact messages</h2>
-      <p>Messages submitted from the website contact page.</p>
+      <h1 class="page-title">Contact Messages</h1>
+      <p class="page-subtitle">Messages submitted from the website contact page.</p>
     </div>
-    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+    <button type="button" class="outline-btn" (click)="refresh()" aria-label="Refresh messages">
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+      <span>Refresh</span>
+    </button>
   </header>
 
-  <div class="filters-box">
-    <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
-    <input type="text" [(ngModel)]="subjectFilter" placeholder="Filter by subject" />
+  <div class="filter-panel">
+    <label>
+      <span>Email</span>
+      <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
+    </label>
+    <label>
+      <span>Subject</span>
+      <input type="text" [(ngModel)]="subjectFilter" placeholder="Filter by subject" />
+    </label>
     <label>
       <span>From</span>
       <input type="date" [(ngModel)]="dateFromFilter" />
@@ -18,52 +29,54 @@
       <span>To</span>
       <input type="date" [(ngModel)]="dateToFilter" />
     </label>
-    <div class="filters-actions">
-      <button pButton type="button" label="Apply" (click)="applyFilters()"></button>
-      <button pButton type="button" class="p-button-outlined" label="Clear" (click)="clearFilters()"></button>
+    <div class="filter-actions">
+      <button type="button" class="outline-btn" (click)="applyFilters()">Apply</button>
+      <button type="button" class="outline-btn" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
-  @if (isLoading()) {
-    <div class="state-box">
-      <p-progressSpinner ariaLabel="Loading contact messages" strokeWidth="4"></p-progressSpinner>
-    </div>
-  } @else if (errorMessage()) {
-    <div class="state-box error">{{ errorMessage() }}</div>
-  } @else if (rows().length === 0) {
-    <div class="state-box">No messages yet.</div>
-  } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Submitted</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Organization</th>
-            <th>Subject</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of rows(); track row.id) {
+  <div class="table-card">
+    @if (isLoading()) {
+      <app-table-skeleton [columnCount]="6" [rowCount]="pageSize()" ariaLabel="Loading contact messages" />
+    } @else {
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>{{ row.submittedAtUtc | date: 'medium' }}</td>
-              <td>{{ row.name }}</td>
-              <td>{{ row.email }}</td>
-              <td>{{ row.organization || '-' }}</td>
-              <td>{{ row.subject }}</td>
-              <td class="message-cell">{{ row.message }}</td>
+              <th>Submitted</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Organization</th>
+              <th>Subject</th>
+              <th>Message</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.id) {
+              <tr>
+                <td class="date-cell">{{ row.submittedAtUtc | date: 'medium' }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.email }}</td>
+                <td class="muted-cell">{{ row.organization || '—' }}</td>
+                <td>{{ row.subject }}</td>
+                <td class="message-cell">{{ row.message }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="6">No messages match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-    <div class="pager">
-      <button pButton type="button" class="p-button-text" icon="pi pi-chevron-left" label="Previous" [disabled]="!hasPrevious()" (click)="previousPage()"></button>
-      <span>Page {{ pageNumber() }} of {{ totalPages() }}</span>
-      <button pButton type="button" class="p-button-text" iconPos="right" icon="pi pi-chevron-right" label="Next" [disabled]="!hasNext()" (click)="nextPage()"></button>
-    </div>
-  }
-</section>
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="totalCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
+    }
+  </div>
+}

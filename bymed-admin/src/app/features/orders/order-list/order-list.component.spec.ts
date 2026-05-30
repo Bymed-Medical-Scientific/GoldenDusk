@@ -1,7 +1,6 @@
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
@@ -12,8 +11,6 @@ describe('OrderListComponent', () => {
   let fixture: ComponentFixture<OrderListComponent>;
   let component: OrderListComponent;
   let adminApiSpy: jasmine.SpyObj<AdminApiService>;
-  let snackBar: MatSnackBar;
-  let snackBarOpenSpy: jasmine.Spy;
 
   const shipping = {
     name: 'Alice',
@@ -65,9 +62,6 @@ describe('OrderListComponent', () => {
 
     fixture = TestBed.createComponent(OrderListComponent);
     component = fixture.componentInstance;
-    snackBar = TestBed.inject(MatSnackBar);
-    snackBarOpenSpy = spyOn(snackBar, 'open');
-    (component as any).snackBar = snackBar;
     fixture.detectChanges();
   });
 
@@ -79,7 +73,7 @@ describe('OrderListComponent', () => {
       search: null
     });
     expect((component as any).isLoading()).toBeFalse();
-    expect((component as any).dataSource.data.length).toBe(1);
+    expect((component as any).items().length).toBe(1);
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('BYM-1001');
@@ -88,7 +82,7 @@ describe('OrderListComponent', () => {
 
   it('applies status filter and reloads', () => {
     adminApiSpy.getOrders.calls.reset();
-    (component as any).onStatusChange('1');
+    (component as any).onStatusTabChange('1');
     fixture.detectChanges();
 
     expect(adminApiSpy.getOrders).toHaveBeenCalledWith(1, 10, {
@@ -99,11 +93,9 @@ describe('OrderListComponent', () => {
     });
   });
 
-  it('applies search and date filters', () => {
+  it('applies search filter', () => {
     adminApiSpy.getOrders.calls.reset();
     (component as any).onSearchChange('BYM');
-    (component as any).onDateFromChange('2024-01-01');
-    (component as any).onDateToChange('2024-01-31');
     fixture.detectChanges();
 
     expect(adminApiSpy.getOrders.calls.mostRecent().args).toEqual([
@@ -111,34 +103,18 @@ describe('OrderListComponent', () => {
       10,
       {
         status: null,
-        dateFrom: '2024-01-01',
-        dateTo: '2024-01-31',
+        dateFrom: null,
+        dateTo: null,
         search: 'BYM'
       }
     ]);
-  });
-
-  it('clears filters and reloads with empty query', () => {
-    (component as any).onSearchChange('x');
-    (component as any).onStatusChange('2');
-    adminApiSpy.getOrders.calls.reset();
-
-    (component as any).clearFilters();
-    fixture.detectChanges();
-
-    expect(adminApiSpy.getOrders).toHaveBeenCalledWith(1, 10, {
-      status: null,
-      dateFrom: null,
-      dateTo: null,
-      search: null
-    });
   });
 
   it('exports CSV using current filters', () => {
     spyOn(URL, 'createObjectURL').and.returnValue('blob:mock');
     spyOn(URL, 'revokeObjectURL');
 
-    (component as any).onStatusChange('3');
+    (component as any).onStatusTabChange('3');
     (component as any).onSearchChange('test');
     adminApiSpy.exportOrders.calls.reset();
 
@@ -150,16 +126,16 @@ describe('OrderListComponent', () => {
       dateTo: null,
       search: 'test'
     });
-    expect(snackBarOpenSpy).toHaveBeenCalledWith('Export completed.', 'Dismiss', { duration: 3500 });
+    expect((component as any).pageMessage()).toBe('Export completed.');
   });
 
-  it('shows snackbar when export fails', () => {
+  it('shows message when export fails', () => {
     adminApiSpy.exportOrders.and.returnValue(throwError(() => new ApiError(500, 'Server error')));
     spyOn(URL, 'createObjectURL');
 
     (component as any).exportToCsv();
 
-    expect(snackBarOpenSpy).toHaveBeenCalledWith('Server error', 'Dismiss', { duration: 8000 });
+    expect((component as any).pageMessage()).toBe('Server error');
     expect((component as any).isExporting()).toBeFalse();
   });
 

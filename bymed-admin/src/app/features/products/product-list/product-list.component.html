@@ -1,50 +1,85 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">Products</h1>
-      <p class="page-subtitle">Manage catalog products and availability.</p>
+      <p class="page-subtitle">Browse and manage your product catalog.</p>
     </div>
-    <a pButton routerLink="/products/new" label="New product" icon="pi pi-plus"></a>
+    <a class="btn-primary" routerLink="/products/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Add Product</span>
+    </a>
+  </header>
+
+  <div class="status-tabs" role="tablist" aria-label="Filter by status">
+    @for (tab of statusTabs; track tab.value) {
+      <button
+        type="button"
+        class="status-tab"
+        role="tab"
+        [class.active]="availabilityFilter() === tab.value"
+        [attr.aria-selected]="availabilityFilter() === tab.value"
+        (click)="onStatusTabChange(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    }
   </div>
 
-  <div class="toolbar-filters">
-    <span class="search-box">
+  <div class="toolbar-row">
+    <label class="search-bar">
       <i class="pi pi-search" aria-hidden="true"></i>
       <input
-        pInputText
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
-        placeholder="Search name, SKU, or category"
+        placeholder="Search products..."
         aria-label="Search products"
       />
       @if (searchQuery()) {
-        <button pButton type="button" [text]="true" (click)="clearSearch()" aria-label="Clear search">
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       }
-    </span>
+    </label>
 
-    <p-select
-      [options]="categoryOptions()"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="selectedCategoryId()"
-      (ngModelChange)="onCategoryChange($event)"
-      placeholder="Category"
-      appendTo="body"
-    />
-    <p-select
-      [options]="availabilityOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="availabilityFilter()"
-      (ngModelChange)="onAvailabilityChange($event)"
-      placeholder="Availability"
-      appendTo="body"
-    />
+    <div class="category-wrap">
+      <button type="button" class="outline-btn category-btn" (click)="toggleCategoryMenu()">
+        <i class="pi pi-plus-circle" aria-hidden="true"></i>
+        <span>{{ selectedCategoryLabel() }}</span>
+      </button>
+      @if (categoryMenuOpen()) {
+        <div class="category-menu">
+          <button type="button" (click)="onCategoryChange('all')">All categories</button>
+          @for (category of categories(); track category.id) {
+            <button type="button" (click)="onCategoryChange(category.id)">{{ category.name }}</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button" class="outline-btn" aria-label="Column settings">
+        <i class="pi pi-sliders-h" aria-hidden="true"></i>
+        <span>Columns</span>
+      </button>
+      <button
+        type="button"
+        class="outline-btn"
+        (click)="exportProducts()"
+        [disabled]="isExporting()"
+        aria-label="Export products"
+      >
+        <i class="pi pi-download" aria-hidden="true"></i>
+        <span>{{ isExporting() ? 'Exporting...' : 'Export' }}</span>
+      </button>
+      <button type="button" class="outline-btn" (click)="importFileInput.click()" [disabled]="isBulkProcessing()">
+        <i class="pi pi-upload" aria-hidden="true"></i>
+        <span>Import</span>
+      </button>
+      <input #importFileInput class="import-input" type="file" accept=".csv,text/csv" (change)="importProducts($event)" />
+    </div>
   </div>
 
   @if (pageMessage()) {
@@ -58,92 +93,129 @@
     </div>
   }
 
-  <div class="bulk-actions">
-    <div class="bulk-meta">{{ selectedProductIds().size }} selected</div>
-    <div class="bulk-buttons">
-      <button pButton type="button" label="Mark available" severity="secondary" [outlined]="true" (click)="bulkSetAvailability(true)" [disabled]="isBulkProcessing()"></button>
-      <button pButton type="button" label="Mark unavailable" severity="secondary" [outlined]="true" (click)="bulkSetAvailability(false)" [disabled]="isBulkProcessing()"></button>
-      <button pButton type="button" label="Bulk delete" severity="danger" [outlined]="true" (click)="bulkDeleteSelected()" [disabled]="isBulkProcessing()"></button>
-      <button pButton type="button" label="Export CSV" severity="secondary" [outlined]="true" (click)="exportSelected()"></button>
-      <button pButton type="button" label="Import CSV" severity="secondary" [outlined]="true" (click)="importFileInput.click()" [disabled]="isBulkProcessing()"></button>
-      <input #importFileInput class="import-input" type="file" accept=".csv,text/csv" (change)="importProducts($event)" />
-      <button pButton type="button" label="Clear" severity="contrast" [text]="true" (click)="clearSelection()" [disabled]="selectedProductIds().size === 0"></button>
+  @if (selectedProductIds().size > 0) {
+    <div class="bulk-bar">
+      <span>{{ selectedProductIds().size }} selected</span>
+      <div class="bulk-actions">
+        <button type="button" class="outline-btn" (click)="bulkSetAvailability(true)" [disabled]="isBulkProcessing()">
+          Mark active
+        </button>
+        <button type="button" class="outline-btn" (click)="bulkSetAvailability(false)" [disabled]="isBulkProcessing()">
+          Mark draft
+        </button>
+        <button type="button" class="outline-btn danger" (click)="bulkDeleteSelected()" [disabled]="isBulkProcessing()">
+          Delete
+        </button>
+        <button type="button" class="text-btn" (click)="clearSelection()">Clear</button>
+      </div>
     </div>
-  </div>
+  }
 
-  <div class="table-wrap">
+  <div class="table-card">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="9" [rowCount]="pageSize()" ariaLabel="Loading products" />
+      <app-table-skeleton [columnCount]="8" [rowCount]="pageSize()" ariaLabel="Loading products" />
     } @else {
-      <p-table [value]="filteredProducts()" styleClass="product-table desktop-table" [rowHover]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th class="col-check">
-              <p-checkbox [binary]="true" [ngModel]="isAllRowsSelected()" (onChange)="toggleAllRowsSelection($event.checked === true)" inputId="select-all-products"></p-checkbox>
-            </th>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Category</th>
-            <th>Brand</th>
-            <th>Client type</th>
-            <th>Price</th>
-            <th>Availability</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="col-check">
-              <p-checkbox [binary]="true" [ngModel]="isSelected(row.id)" (onChange)="toggleRowSelection(row.id, $event.checked === true)"></p-checkbox>
-            </td>
-            <td>
-              <div class="cell-strong">{{ row.name }}</div>
-              @if (row.slug) {
-                <div class="cell-subtext">/{{ row.slug }}</div>
-              }
-            </td>
-            <td>{{ row.sku ?? '—' }}</td>
-            <td>{{ row.categoryDisplay }}</td>
-            <td>{{ row.brand ?? '—' }}</td>
-            <td>{{ row.clientTypeDisplay }}</td>
-            <td>{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</td>
-            <td>
-              <span class="chip" [class.chip-muted]="!row.isAvailable">
-                {{ row.isAvailable ? 'Available' : 'Unavailable' }}
-              </span>
-            </td>
-            <td class="col-actions">
-              <div class="action-buttons">
-                <a pButton [routerLink]="['/products', row.id, 'edit']" severity="secondary" [outlined]="true" icon="pi pi-pencil" label="Edit"></a>
-                <button pButton type="button" severity="danger" [outlined]="true" icon="pi pi-trash" label="Delete" (click)="deleteProduct(row)" [disabled]="deletingId() === row.id"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="empty-cell" [attr.colspan]="9">No products match your filters.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+      <div class="table-scroll">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input
+                  type="checkbox"
+                  [checked]="allSelected()"
+                  (change)="toggleSelectAll($any($event.target).checked)"
+                  aria-label="Select all products"
+                />
+              </th>
+              <th>
+                Product
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Category
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Status
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Stock
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Price
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Created
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of productRows(); track row.id) {
+              <tr>
+                <td class="col-check">
+                  <input
+                    type="checkbox"
+                    [checked]="isRowSelected(row.id)"
+                    (change)="toggleRowSelection(row.id, $any($event.target).checked)"
+                    [attr.aria-label]="'Select product ' + row.name"
+                  />
+                </td>
+                <td>
+                  <a class="product-name" [routerLink]="['/products', row.id, 'edit']">{{ row.name }}</a>
+                </td>
+                <td>
+                  <span class="category-badge">{{ row.categoryDisplay }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="statusBadgeClass(row)">{{ statusLabel(row) }}</span>
+                </td>
+                <td class="stock-cell">{{ stockLabel(row) }}</td>
+                <td class="price-cell">{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</td>
+                <td class="date-cell">—</td>
+                <td class="col-actions">
+                  <div class="action-menu">
+                    <a class="action-btn" [routerLink]="['/products', row.id, 'edit']" [attr.aria-label]="'Edit ' + row.name">
+                      <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="8">No products match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-      <div class="mobile-cards" aria-label="Products list">
-        @for (row of filteredProducts(); track row.id) {
+      <div class="mobile-cards">
+        @for (row of productRows(); track row.id) {
           <article class="product-card">
             <div class="card-top">
-              <p-checkbox [binary]="true" [ngModel]="isSelected(row.id)" (onChange)="toggleRowSelection(row.id, $event.checked === true)"></p-checkbox>
-              <h3 class="card-title">{{ row.name }}</h3>
+              <input
+                type="checkbox"
+                [checked]="isRowSelected(row.id)"
+                (change)="toggleRowSelection(row.id, $any($event.target).checked)"
+                [attr.aria-label]="'Select product ' + row.name"
+              />
+              <a class="product-name" [routerLink]="['/products', row.id, 'edit']">{{ row.name }}</a>
+              <span class="status-badge" [class]="statusBadgeClass(row)">{{ statusLabel(row) }}</span>
             </div>
-            @if (row.slug) { <p class="card-row"><span>Slug:</span> /{{ row.slug }}</p> }
-            <p class="card-row"><span>SKU:</span> {{ row.sku ?? '—' }}</p>
-            <p class="card-row"><span>Category:</span> {{ row.categoryDisplay }}</p>
-            <p class="card-row"><span>Brand:</span> {{ row.brand ?? '—' }}</p>
-            <p class="card-row"><span>Client type:</span> {{ row.clientTypeDisplay }}</p>
-            <p class="card-row"><span>Price:</span> {{ row.price | currency: row.currency:'symbol':'1.2-2' }}</p>
-            <p class="card-row"><span>Availability:</span> {{ row.isAvailable ? 'Available' : 'Unavailable' }}</p>
-            <div class="action-buttons">
-              <a pButton [routerLink]="['/products', row.id, 'edit']" severity="secondary" [outlined]="true" icon="pi pi-pencil" label="Edit"></a>
-              <button pButton type="button" severity="danger" [outlined]="true" icon="pi pi-trash" label="Delete" (click)="deleteProduct(row)" [disabled]="deletingId() === row.id"></button>
+            <div class="card-bottom">
+              <span class="category-badge">{{ row.categoryDisplay }}</span>
+              <strong>{{ row.price | currency: row.currency:'symbol':'1.2-2' }}</strong>
+            </div>
+            <div class="card-actions">
+              <a class="outline-btn" [routerLink]="['/products', row.id, 'edit']">Edit</a>
+              <button type="button" class="outline-btn danger" (click)="deleteProduct(row)" [disabled]="deletingId() === row.id">
+                Delete
+              </button>
             </div>
           </article>
         } @empty {
@@ -151,13 +223,13 @@
         }
       </div>
 
-      <p-paginator
-        [first]="(pageNumber() - 1) * pageSize()"
-        [rows]="pageSize()"
-        [totalRecords]="totalCount()"
-        [rowsPerPageOptions]="pageSizeOptions"
-        (onPageChange)="onPageChange($event)"
-      ></p-paginator>
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="totalCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 }

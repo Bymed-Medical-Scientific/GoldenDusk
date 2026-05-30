@@ -1,9 +1,11 @@
 <section class="marketing-page">
-  <header class="marketing-page__intro">
-    <h1>Marketing campaigns</h1>
-    <p class="marketing-page__lede">
-      Compose a broadcast email, attach brochures or images, preview matching recipients, then start sending when you are ready.
-    </p>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Marketing</h1>
+      <p class="page-subtitle">
+        Compose a broadcast email, attach brochures or images, preview matching recipients, then start sending when you are ready.
+      </p>
+    </div>
   </header>
 
   @if (errorMessage(); as err) {
@@ -176,22 +178,26 @@
             Matching clients: <strong>{{ p.matchingClientCount }}</strong> — Recipients:
             <strong>{{ p.recipientCount }}</strong>
           </p>
-          <p-table [value]="[...p.sampleRecipients]" [paginator]="false" styleClass="marketing-preview-table">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Institution</th>
-                <th>Email</th>
-                <th>Source</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-row>
-              <tr>
-                <td>{{ row.institutionName }}</td>
-                <td>{{ row.email }}</td>
-                <td>{{ row.source }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
+          <div class="table-scroll">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Institution</th>
+                  <th>Email</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.sampleRecipients; track row.email) {
+                  <tr>
+                    <td>{{ row.institutionName }}</td>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.source }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
       }
     </article>

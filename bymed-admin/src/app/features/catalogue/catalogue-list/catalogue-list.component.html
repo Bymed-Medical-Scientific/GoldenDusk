@@ -1,147 +1,182 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">Catalogue</h1>
       <p class="page-subtitle">Manage quotation catalogue items shown on the storefront (no online pricing).</p>
     </div>
-    <a pButton routerLink="/catalogue/new" label="New item" icon="pi pi-plus"></a>
+    <a class="btn-primary" routerLink="/catalogue/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Add Item</span>
+    </a>
+  </header>
+
+  <div class="status-tabs" role="tablist" aria-label="Filter by status">
+    @for (tab of statusTabs; track tab.value) {
+      <button
+        type="button"
+        class="status-tab"
+        role="tab"
+        [class.active]="publishedFilter() === tab.value"
+        [attr.aria-selected]="publishedFilter() === tab.value"
+        (click)="onStatusTabChange(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    }
   </div>
 
-  <div class="toolbar-filters">
-    <span class="search-box">
+  <div class="toolbar-row">
+    <label class="search-bar">
       <i class="pi pi-search" aria-hidden="true"></i>
       <input
-        pInputText
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
-        placeholder="Search name or category"
+        placeholder="Search catalogue..."
         aria-label="Search catalogue"
       />
       @if (searchQuery()) {
-        <button pButton type="button" [text]="true" (click)="clearSearch()" aria-label="Clear search">
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       }
-    </span>
+    </label>
 
-    <p-select
-      [options]="categoryOptions()"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="selectedCategoryId()"
-      (ngModelChange)="onCategoryChange($event)"
-      placeholder="Category"
-      appendTo="body"
-    />
-    <p-select
-      [options]="publishedOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="publishedFilter()"
-      (ngModelChange)="onPublishedChange($event)"
-      placeholder="Status"
-      appendTo="body"
-    />
+    <div class="category-wrap">
+      <button type="button" class="outline-btn category-btn" (click)="toggleCategoryMenu()">
+        <i class="pi pi-plus-circle" aria-hidden="true"></i>
+        <span>{{ selectedCategoryLabel() }}</span>
+      </button>
+      @if (categoryMenuOpen()) {
+        <div class="category-menu">
+          <button type="button" (click)="onCategoryChange('all')">All categories</button>
+          @for (category of categories(); track category.id) {
+            <button type="button" (click)="onCategoryChange(category.id)">{{ category.name }}</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button" class="outline-btn" aria-label="Column settings">
+        <i class="pi pi-sliders-h" aria-hidden="true"></i>
+        <span>Columns</span>
+      </button>
+    </div>
   </div>
 
   @if (pageMessage()) {
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <div class="table-wrap">
+  <div class="table-card">
     @if (isLoading()) {
       <app-table-skeleton [columnCount]="5" [rowCount]="pageSize()" ariaLabel="Loading catalogue" />
     } @else {
-      <p-table [value]="displayItems()" styleClass="catalogue-table desktop-table" [rowHover]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Item</th>
-            <th>Category</th>
-            <th>Brand</th>
-            <th>Status</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td>
-              <div class="cell-strong">{{ row.name }}</div>
-              @if (row.slug) {
-                <div class="cell-subtext">/{{ row.slug }}</div>
-              }
-            </td>
-            <td>{{ row.categoryDisplay }}</td>
-            <td>{{ row.brandName ?? '—' }}</td>
-            <td>
-              <span class="chip" [class.chip-muted]="!row.isPublished">
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>
+                Item
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Category
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>Brand</th>
+              <th>
+                Status
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of displayItems(); track row.id) {
+              <tr>
+                <td>
+                  <a class="row-link" [routerLink]="['/catalogue', row.id, 'edit']">{{ row.name }}</a>
+                  @if (row.slug) {
+                    <div class="code-chip">/{{ row.slug }}</div>
+                  }
+                </td>
+                <td>
+                  <span class="category-badge">{{ row.categoryDisplay }}</span>
+                </td>
+                <td class="muted-cell">{{ row.brandName ?? '—' }}</td>
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.status-published]="row.isPublished"
+                    [class.status-unpublished]="!row.isPublished"
+                  >
+                    {{ row.isPublished ? 'Published' : 'Unpublished' }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  <div class="action-group">
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/catalogue', row.id, 'edit']"
+                      [attr.aria-label]="'Edit ' + row.name"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="action-btn"
+                      (click)="deleteItem(row)"
+                      [disabled]="deletingId() === row.id"
+                      [attr.aria-label]="'Unpublish ' + row.name"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="5">No catalogue items match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-cards">
+        @for (row of displayItems(); track row.id) {
+          <article class="list-card">
+            <div class="list-card__top">
+              <a class="row-link" [routerLink]="['/catalogue', row.id, 'edit']">{{ row.name }}</a>
+              <span
+                class="status-badge"
+                [class.status-published]="row.isPublished"
+                [class.status-unpublished]="!row.isPublished"
+              >
                 {{ row.isPublished ? 'Published' : 'Unpublished' }}
               </span>
-            </td>
-            <td class="col-actions">
-              <div class="action-buttons">
-                <a
-                  pButton
-                  [routerLink]="['/catalogue', row.id, 'edit']"
-                  severity="secondary"
-                  [outlined]="true"
-                  icon="pi pi-pencil"
-                  label="Edit"
-                ></a>
-                <button
-                  pButton
-                  type="button"
-                  severity="danger"
-                  [outlined]="true"
-                  icon="pi pi-trash"
-                  label="Unpublish"
-                  (click)="deleteItem(row)"
-                  [disabled]="deletingId() === row.id"
-                ></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="empty-cell" [attr.colspan]="5">No catalogue items match your filters.</td>
-          </tr>
-        </ng-template>
-      </p-table>
-
-      <div class="mobile-cards" aria-label="Catalogue items list">
-        @for (row of displayItems(); track row.id) {
-          <article class="catalogue-card">
-            <h3 class="card-title">{{ row.name }}</h3>
+            </div>
             @if (row.slug) {
-              <p class="card-row"><span>Slug:</span> /{{ row.slug }}</p>
+              <p class="list-card__meta code-chip">/{{ row.slug }}</p>
             }
-            <p class="card-row"><span>Category:</span> {{ row.categoryDisplay }}</p>
-            <p class="card-row"><span>Brand:</span> {{ row.brandName ?? '—' }}</p>
-            <p class="card-row">
-              <span>Status:</span> {{ row.isPublished ? 'Published' : 'Unpublished' }}
+            <p class="list-card__meta">
+              <span class="category-badge">{{ row.categoryDisplay }}</span>
+              · {{ row.brandName ?? '—' }}
             </p>
-            <div class="action-buttons">
-              <a
-                pButton
-                [routerLink]="['/catalogue', row.id, 'edit']"
-                severity="secondary"
-                [outlined]="true"
-                icon="pi pi-pencil"
-                label="Edit"
-              ></a>
+            <div class="list-card__actions">
+              <a class="outline-btn" [routerLink]="['/catalogue', row.id, 'edit']">Edit</a>
               <button
-                pButton
                 type="button"
-                severity="danger"
-                [outlined]="true"
-                icon="pi pi-trash"
-                label="Unpublish"
+                class="outline-btn danger"
                 (click)="deleteItem(row)"
                 [disabled]="deletingId() === row.id"
-              ></button>
+              >
+                Unpublish
+              </button>
             </div>
           </article>
         } @empty {
@@ -149,13 +184,13 @@
         }
       </div>
 
-      <p-paginator
-        [first]="(pageNumber() - 1) * pageSize()"
-        [rows]="pageSize()"
-        [totalRecords]="totalCount()"
-        [rowsPerPageOptions]="pageSizeOptions"
-        (onPageChange)="onPageChange($event)"
-      ></p-paginator>
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="totalCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 }

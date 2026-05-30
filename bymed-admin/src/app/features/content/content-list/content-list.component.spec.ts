@@ -6,9 +6,19 @@ import { AdminApiService } from '@core/api/admin-api.service';
 import { PageContentSummaryDto, PagedResultDto } from '@shared/models';
 import { ContentListComponent } from './content-list.component';
 
+type ContentListHarness = ContentListComponent & {
+  isLoading: () => boolean;
+  filteredPages: () => unknown[];
+  onSearchChange: (v: string) => void;
+  clearSearch: () => void;
+  onStatusTabChange: (v: 'all' | 'published' | 'draft') => void;
+  errorMessage: () => string | null;
+  lastActivityIso: (r: PageContentSummaryDto) => string;
+};
+
 describe('ContentListComponent', () => {
   let fixture: ComponentFixture<ContentListComponent>;
-  let component: ContentListComponent;
+  let component: ContentListHarness;
   let adminApiSpy: jasmine.SpyObj<AdminApiService>;
 
   const pageRow: PageContentSummaryDto = {
@@ -43,14 +53,14 @@ describe('ContentListComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ContentListComponent);
-    component = fixture.componentInstance;
+    component = fixture.componentInstance as ContentListHarness;
     fixture.detectChanges();
   });
 
   it('loads content pages and renders title, slug, and status', () => {
     expect(adminApiSpy.getContentPages).toHaveBeenCalledWith(1, 100);
-    expect((component as unknown as { isLoading: () => boolean }).isLoading()).toBeFalse();
-    expect((component as unknown as { dataSource: { data: unknown[] } }).dataSource.data.length).toBe(1);
+    expect(component.isLoading()).toBeFalse();
+    expect(component.filteredPages().length).toBe(1);
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('About Us');
@@ -59,41 +69,40 @@ describe('ContentListComponent', () => {
   });
 
   it('filters rows by search query', () => {
-    (component as unknown as { onSearchChange: (v: string) => void }).onSearchChange('services');
+    component.onSearchChange('services');
     fixture.detectChanges();
-    expect((component as unknown as { dataSource: { filteredData: unknown[] } }).dataSource.filteredData.length).toBe(
-      0
-    );
+    expect(component.filteredPages().length).toBe(0);
 
-    (component as unknown as { onSearchChange: (v: string) => void }).onSearchChange('about');
+    component.onSearchChange('about');
     fixture.detectChanges();
-    expect((component as unknown as { dataSource: { filteredData: unknown[] } }).dataSource.filteredData.length).toBe(
-      1
-    );
+    expect(component.filteredPages().length).toBe(1);
 
-    (component as unknown as { clearSearch: () => void }).clearSearch();
+    component.clearSearch();
     fixture.detectChanges();
-    expect((component as unknown as { dataSource: { filteredData: unknown[] } }).dataSource.filteredData.length).toBe(
-      1
-    );
+    expect(component.filteredPages().length).toBe(1);
+  });
+
+  it('filters rows by publish status tab', () => {
+    component.onStatusTabChange('draft');
+    fixture.detectChanges();
+    expect(component.filteredPages().length).toBe(0);
+
+    component.onStatusTabChange('published');
+    fixture.detectChanges();
+    expect(component.filteredPages().length).toBe(1);
   });
 
   it('shows error when the API fails', () => {
     adminApiSpy.getContentPages.and.returnValue(throwError(() => new Error('network')));
 
     fixture = TestBed.createComponent(ContentListComponent);
-    component = fixture.componentInstance;
+    component = fixture.componentInstance as ContentListHarness;
     fixture.detectChanges();
 
-    expect(
-      (component as unknown as { errorMessage: () => string | null }).errorMessage()
-    ).toBe('Content pages could not be loaded. Please try again.');
+    expect(component.errorMessage()).toBe('Content pages could not be loaded. Please try again.');
   });
 
   it('lastActivityIso prefers publishedAt over creationTime', () => {
-    const iso = (component as unknown as { lastActivityIso: (r: PageContentSummaryDto) => string }).lastActivityIso(
-      pageRow
-    );
-    expect(iso).toBe(pageRow.publishedAt as string);
+    expect(component.lastActivityIso(pageRow)).toBe(pageRow.publishedAt as string);
   });
 });

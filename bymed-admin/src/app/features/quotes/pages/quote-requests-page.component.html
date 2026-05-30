@@ -1,17 +1,34 @@
-<section class="quote-page">
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
   <header class="page-header">
     <div>
-      <h2>Quote requests</h2>
-      <p>Review customer RFQ submissions from the storefront.</p>
+      <h1 class="page-title">Quote Requests</h1>
+      <p class="page-subtitle">Review customer RFQ submissions.</p>
     </div>
-    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+    <button type="button" class="outline-btn" (click)="refresh()" aria-label="Refresh quote requests">
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+      <span>Refresh</span>
+    </button>
   </header>
 
-  <div class="filters-box">
-    <input type="text" [(ngModel)]="fullNameFilter" placeholder="Filter by customer name" />
-    <input type="text" [(ngModel)]="institutionFilter" placeholder="Filter by institution" />
-    <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
-    <input type="text" [(ngModel)]="phoneFilter" placeholder="Filter by phone number" />
+  <div class="filter-panel">
+    <label>
+      <span>Name</span>
+      <input type="text" [(ngModel)]="fullNameFilter" placeholder="Filter by name" />
+    </label>
+    <label>
+      <span>Institution</span>
+      <input type="text" [(ngModel)]="institutionFilter" placeholder="Filter by institution" />
+    </label>
+    <label>
+      <span>Email</span>
+      <input type="email" [(ngModel)]="emailFilter" placeholder="Filter by email" />
+    </label>
+    <label>
+      <span>Phone</span>
+      <input type="text" [(ngModel)]="phoneFilter" placeholder="Filter by phone" />
+    </label>
     <label>
       <span>From</span>
       <input type="date" [(ngModel)]="dateFromFilter" />
@@ -20,56 +37,58 @@
       <span>To</span>
       <input type="date" [(ngModel)]="dateToFilter" />
     </label>
-    <div class="filters-actions">
-      <button pButton type="button" label="Apply" (click)="applyFilters()"></button>
-      <button pButton type="button" class="p-button-outlined" label="Clear" (click)="clearFilters()"></button>
+    <div class="filter-actions">
+      <button type="button" class="outline-btn" (click)="applyFilters()">Apply</button>
+      <button type="button" class="outline-btn" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
-  @if (isLoading()) {
-    <div class="state-box">
-      <p-progressSpinner ariaLabel="Loading quote requests" strokeWidth="4"></p-progressSpinner>
-    </div>
-  } @else if (errorMessage()) {
-    <div class="state-box error">{{ errorMessage() }}</div>
-  } @else if (rows().length === 0) {
-    <div class="state-box">No quote requests submitted yet.</div>
-  } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Submitted</th>
-            <th>Name</th>
-            <th>Institution</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Items</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of rows(); track row.id) {
+  <div class="table-card">
+    @if (isLoading()) {
+      <app-table-skeleton [columnCount]="7" [rowCount]="pageSize()" ariaLabel="Loading quote requests" />
+    } @else {
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>{{ row.submittedAtUtc | date: 'EEEE d MMMM y, h:mm a' }}</td>
-              <td>{{ row.fullName }}</td>
-              <td>{{ row.institution }}</td>
-              <td>{{ row.email }}</td>
-              <td>{{ row.phoneNumber }}</td>
-              <td>{{ row.itemCount }}</td>
-              <td class="actions">
-                <button pButton type="button" class="p-button-sm p-button-outlined" label="View" (click)="openDetails(row)"></button>
-              </td>
+              <th>Submitted</th>
+              <th>Name</th>
+              <th>Institution</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Items</th>
+              <th class="col-actions">Actions</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.id) {
+              <tr>
+                <td class="date-cell">{{ row.submittedAtUtc | date: 'MMM d, y, h:mm a' }}</td>
+                <td>{{ row.fullName }}</td>
+                <td>{{ row.institution }}</td>
+                <td>{{ row.email }}</td>
+                <td class="muted-cell">{{ row.phoneNumber }}</td>
+                <td>{{ row.itemCount }}</td>
+                <td class="col-actions">
+                  <button type="button" class="outline-btn" (click)="openDetails(row)">View</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="7">No quote requests match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-    <div class="pager">
-      <button pButton type="button" class="p-button-text" icon="pi pi-chevron-left" label="Previous" [disabled]="!hasPrevious()" (click)="previousPage()"></button>
-      <span>Page {{ pageNumber() }} of {{ totalPages() }}</span>
-      <button pButton type="button" class="p-button-text" iconPos="right" icon="pi pi-chevron-right" label="Next" [disabled]="!hasNext()" (click)="nextPage()"></button>
-    </div>
-  }
-</section>
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="totalCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
+    }
+  </div>
+}
