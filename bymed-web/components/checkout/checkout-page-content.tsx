@@ -83,11 +83,15 @@ export function CheckoutPageContent() {
 
   useEffect(() => {
     if (!user) return;
-    setContact((c) => ({
-      customerEmail: c.customerEmail || user.email,
-      customerName: c.customerName || user.name,
-    }));
-  }, [user]);
+    setContact((c) => {
+      const customerEmail = c.customerEmail || user.email;
+      const customerName = c.customerName || user.name;
+      if (c.customerEmail === customerEmail && c.customerName === customerName) {
+        return c;
+      }
+      return { customerEmail, customerName };
+    });
+  }, [user?.email, user?.name]);
 
   const currency = useMemo(
     () => items.find((i) => i.product?.currency)?.product?.currency ?? FALLBACK_CURRENCY,
