@@ -107,9 +107,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     { label: 'Hospital/Clinic', value: 'hospital-clinic' },
     { label: 'Nursing School', value: 'nursing-school' }
   ];
-  /** 0–100 while primary image is uploading after save; null when idle. */
   protected readonly primaryImageUploadProgress = signal<number | null>(null);
-  /** Set in edit mode after load — used for read-only availability. */
   protected readonly loadedProduct = signal<ProductDto | null>(null);
 
   private pendingImageFile: File | null = null;

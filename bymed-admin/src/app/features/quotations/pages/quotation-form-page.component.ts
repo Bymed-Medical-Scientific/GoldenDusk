@@ -26,6 +26,8 @@ import {
   QuotationDetailDto,
   UpsertQuotationItemRequestDto
 } from '@shared/models';
+import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
+import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -71,8 +73,10 @@ interface QuotationDraftForm {
     CheckboxModule,
     CurrencyPipe,
     FormsModule,
+    GlobalErrorComponent,
     InputNumberModule,
     InputTextModule,
+    PageLoadingComponent,
     RouterLink,
     SelectModule,
     TableModule,

@@ -4,13 +4,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
+import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
+import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-client-type-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule, GlobalErrorComponent, PageLoadingComponent],
   templateUrl: './client-type-form.component.html',
   styleUrl: './client-type-form.component.scss'
 })

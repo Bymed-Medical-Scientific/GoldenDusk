@@ -1,9 +1,9 @@
 @if (isInitializing()) {
-  <section class="state">Loading quotation builder...</section>
+  <app-page-loading label="Loading quotation builder..." />
 } @else if (errorMessage()) {
-  <section class="state error">{{ errorMessage() }}</section>
+  <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">{{ isEditMode ? 'Edit quotation' : 'New quotation' }}</h1>
       <p class="page-subtitle">
@@ -13,196 +13,209 @@
         <p class="meta">Quotation {{ quotation()!.quotationNumber }} · {{ statusLabel() }}</p>
       }
     </div>
-    <div class="header-actions">
-      <a pButton routerLink="/quotations" severity="secondary" [outlined]="true" label="Back"></a>
-      <button pButton type="button" label="Save draft" (click)="saveDraft()" [disabled]="isSubmitting()"></button>
-      <button pButton type="button" severity="success" label="Finalize" (click)="finalizeQuotation()" [disabled]="isSubmitting()"></button>
-    </div>
-  </div>
+  </header>
 
   @if (pageMessage()) {
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <section class="card form-grid">
-    <h2>Customer and quotation details</h2>
-    <label>Customer name <input pInputText [ngModel]="form().customerName" (ngModelChange)="updateForm('customerName', $event)" /></label>
-    <label>Institution <input pInputText [ngModel]="form().customerInstitution" (ngModelChange)="updateForm('customerInstitution', $event)" /></label>
-    <label>Email <input pInputText type="email" [ngModel]="form().customerEmail" (ngModelChange)="updateForm('customerEmail', $event)" /></label>
-    <label>Phone <input pInputText [ngModel]="form().customerPhone" (ngModelChange)="updateForm('customerPhone', $event)" /></label>
-    <label>Address <input pInputText [ngModel]="form().customerAddress" (ngModelChange)="updateForm('customerAddress', $event)" /></label>
-    <label>Subject <input pInputText [ngModel]="form().subject" (ngModelChange)="updateForm('subject', $event)" /></label>
-    <label>
-      Target currency
-      <p-select
-        [options]="currencies()"
-        optionLabel="code"
-        optionValue="code"
-        [ngModel]="form().targetCurrencyCode"
-        (ngModelChange)="updateForm('targetCurrencyCode', $event)"
-        appendTo="body"
-      />
-    </label>
-    <label>
-      VAT %
-      <p-inputNumber [ngModel]="form().vatPercent" (ngModelChange)="updateForm('vatPercent', $event ?? 0)" [min]="0" [max]="100" [minFractionDigits]="1" [maxFractionDigits]="2" />
-    </label>
-    <label class="checkbox-row">
-      <p-checkbox [binary]="true" [ngModel]="form().showVatOnDocument" (ngModelChange)="updateForm('showVatOnDocument', !!$event)" inputId="showVat" />
-      <span>Show VAT on document</span>
-    </label>
-    <label class="full">
-      Notes
-      <textarea pTextarea [ngModel]="form().notes" (ngModelChange)="updateForm('notes', $event)" rows="3"></textarea>
-    </label>
-    <label class="full">
-      Terms and conditions
-      <textarea pTextarea [ngModel]="form().termsAndConditions" (ngModelChange)="updateForm('termsAndConditions', $event)" rows="4"></textarea>
-    </label>
-  </section>
-
-  <section class="card">
-    <h2>Add products</h2>
-    <div class="product-filters">
-      <p-select
-        [options]="[{ label: 'All categories', value: 'all' }, ...categories().map(x => ({ label: x.name, value: x.id }))]"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="selectedCategoryId()"
-        (ngModelChange)="selectedCategoryId.set($event)"
-        appendTo="body"
-      />
-      <input pInputText [ngModel]="productSearch()" (ngModelChange)="productSearch.set($event)" placeholder="Search catalogue items" />
-    </div>
-    <div class="product-list">
-      @for (product of productRows().slice(0, 50); track product.id) {
-        <div class="product-row">
-          <div>
-            <div class="cell-strong">{{ product.name }}</div>
-            <div class="cell-subtext">{{ product.categoryName || 'Uncategorised' }}</div>
-          </div>
-          <button pButton type="button" size="small" label="Add" (click)="addProduct(product)"></button>
+  <div class="entity-form-layout quotation-builder-layout">
+    <div class="quotation-main">
+      <section class="form-panel form-grid">
+        <div class="form-panel__head form-grid__full">
+          <h2 class="form-panel__title">Customer and quotation details</h2>
         </div>
-      } @empty {
-        <p class="cell-subtext">No matching products.</p>
-      }
-    </div>
-  </section>
+        <label>Customer name <input pInputText [ngModel]="form().customerName" (ngModelChange)="updateForm('customerName', $event)" /></label>
+        <label>Institution <input pInputText [ngModel]="form().customerInstitution" (ngModelChange)="updateForm('customerInstitution', $event)" /></label>
+        <label>Email <input pInputText type="email" [ngModel]="form().customerEmail" (ngModelChange)="updateForm('customerEmail', $event)" /></label>
+        <label>Phone <input pInputText [ngModel]="form().customerPhone" (ngModelChange)="updateForm('customerPhone', $event)" /></label>
+        <label>Address <input pInputText [ngModel]="form().customerAddress" (ngModelChange)="updateForm('customerAddress', $event)" /></label>
+        <label>Subject <input pInputText [ngModel]="form().subject" (ngModelChange)="updateForm('subject', $event)" /></label>
+        <label>
+          Target currency
+          <p-select
+            [options]="currencies()"
+            optionLabel="code"
+            optionValue="code"
+            [ngModel]="form().targetCurrencyCode"
+            (ngModelChange)="updateForm('targetCurrencyCode', $event)"
+            appendTo="body"
+          />
+        </label>
+        <label>
+          VAT %
+          <p-inputNumber [ngModel]="form().vatPercent" (ngModelChange)="updateForm('vatPercent', $event ?? 0)" [min]="0" [max]="100" [minFractionDigits]="1" [maxFractionDigits]="2" />
+        </label>
+        <label class="checkbox-row">
+          <p-checkbox [binary]="true" [ngModel]="form().showVatOnDocument" (ngModelChange)="updateForm('showVatOnDocument', !!$event)" inputId="showVat" />
+          <span>Show VAT on document</span>
+        </label>
+        <label class="full">
+          Notes
+          <textarea pTextarea [ngModel]="form().notes" (ngModelChange)="updateForm('notes', $event)" rows="3"></textarea>
+        </label>
+        <label class="full">
+          Terms and conditions
+          <textarea pTextarea [ngModel]="form().termsAndConditions" (ngModelChange)="updateForm('termsAndConditions', $event)" rows="4"></textarea>
+        </label>
+      </section>
 
-  <section class="card">
-    <h2>Quotation lines</h2>
-    <p-table [value]="lines()">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Product</th>
-          <th>Qty</th>
-          <th>Cost</th>
-          <th>Source</th>
-          <th>Rate</th>
-          <th>Markup</th>
-          <th>Include image</th>
-          <th>Total</th>
-          <th></th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-line>
-        <tr>
-          <td>
-            <div class="cell-strong">{{ line.productName }}</div>
-            @if (line.productSku) {
-              <div class="cell-subtext">{{ line.productSku }}</div>
-            }
-          </td>
-          <td>
-            <div class="number-edit">
-              <input
-                pInputText
-                class="line-number-input"
-                type="number"
-                min="1"
-                step="1"
-                [ngModel]="line.quantity"
-                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
-                (focus)="($any($event.target)).select()"
-                (keydown.enter)="$any($event.target).blur()"
-                (ngModelChange)="updateLineNumber(line.localId, 'quantity', $event, line.quantity)"
-              />
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Add products</h2>
+        </div>
+        <div class="product-filters">
+          <p-select
+            [options]="[{ label: 'All categories', value: 'all' }, ...categories().map(x => ({ label: x.name, value: x.id }))]"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="selectedCategoryId()"
+            (ngModelChange)="selectedCategoryId.set($event)"
+            appendTo="body"
+          />
+          <input pInputText [ngModel]="productSearch()" (ngModelChange)="productSearch.set($event)" placeholder="Search catalogue items" />
+        </div>
+        <div class="product-list">
+          @for (product of productRows().slice(0, 50); track product.id) {
+            <div class="product-row">
+              <div>
+                <div class="cell-strong">{{ product.name }}</div>
+                <div class="cell-subtext">{{ product.categoryName || 'Uncategorised' }}</div>
+              </div>
+              <button pButton type="button" size="small" label="Add" (click)="addProduct(product)"></button>
             </div>
-          </td>
-          <td>
-            <div class="number-edit">
-              <input
-                pInputText
-                class="line-number-input"
-                type="number"
-                min="0"
-                step="0.0001"
-                [ngModel]="line.supplierUnitCost"
-                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
-                (focus)="($any($event.target)).select()"
-                (keydown.enter)="$any($event.target).blur()"
-                (ngModelChange)="updateLineNumber(line.localId, 'supplierUnitCost', $event, line.supplierUnitCost)"
-              />
-            </div>
-          </td>
-          <td>
-            <p-select
-              [options]="currencies()"
-              optionLabel="code"
-              optionValue="code"
-              [ngModel]="line.sourceCurrencyCode"
-              (ngModelChange)="updateLine(line.localId, { sourceCurrencyCode: $event })"
-              appendTo="body"
-            />
-          </td>
-          <td>
-            <div class="number-edit">
-              <input
-                pInputText
-                class="line-number-input"
-                type="number"
-                min="0.000001"
-                step="0.000001"
-                [ngModel]="line.exchangeRateToTarget"
-                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
-                (focus)="($any($event.target)).select()"
-                (keydown.enter)="$any($event.target).blur()"
-                (ngModelChange)="updateLineNumber(line.localId, 'exchangeRateToTarget', $event, line.exchangeRateToTarget)"
-              />
-            </div>
-          </td>
-          <td>
-            <div class="number-edit">
-              <input
-                pInputText
-                class="line-number-input"
-                type="number"
-                min="0.01"
-                step="0.01"
-                [ngModel]="line.markupMultiplier"
-                [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
-                (focus)="($any($event.target)).select()"
-                (keydown.enter)="$any($event.target).blur()"
-                (ngModelChange)="updateLineNumber(line.localId, 'markupMultiplier', $event, line.markupMultiplier)"
-              />
-            </div>
-          </td>
-          <td>
-            <p-checkbox [binary]="true" [ngModel]="line.includeImage" (ngModelChange)="updateLine(line.localId, { includeImage: !!$event })" />
-          </td>
-          <td>{{ computeLineIncVat(line) | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</td>
-          <td><button pButton type="button" severity="danger" [outlined]="true" size="small" label="Remove" (click)="removeLine(line)"></button></td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td [attr.colspan]="9">No products added yet.</td></tr>
-      </ng-template>
-    </p-table>
+          } @empty {
+            <p class="cell-subtext">No matching products.</p>
+          }
+        </div>
+      </section>
 
-    <div class="totals">
-      <div>Sub total (ex VAT): {{ lineSubtotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
-      <div>VAT: {{ lineVat() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
-      <div class="grand">Total: {{ lineTotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Quotation lines</h2>
+        </div>
+        <p-table [value]="lines()">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Cost</th>
+              <th>Source</th>
+              <th>Rate</th>
+              <th>Markup</th>
+              <th>Include image</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-line>
+            <tr>
+              <td>
+                <div class="cell-strong">{{ line.productName }}</div>
+                @if (line.productSku) {
+                  <div class="cell-subtext">{{ line.productSku }}</div>
+                }
+              </td>
+              <td>
+                <div class="number-edit">
+                  <input
+                    pInputText
+                    class="line-number-input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    [ngModel]="line.quantity"
+                    [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                    (focus)="($any($event.target)).select()"
+                    (keydown.enter)="$any($event.target).blur()"
+                    (ngModelChange)="updateLineNumber(line.localId, 'quantity', $event, line.quantity)"
+                  />
+                </div>
+              </td>
+              <td>
+                <div class="number-edit">
+                  <input
+                    pInputText
+                    class="line-number-input"
+                    type="number"
+                    min="0"
+                    step="0.0001"
+                    [ngModel]="line.supplierUnitCost"
+                    [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                    (focus)="($any($event.target)).select()"
+                    (keydown.enter)="$any($event.target).blur()"
+                    (ngModelChange)="updateLineNumber(line.localId, 'supplierUnitCost', $event, line.supplierUnitCost)"
+                  />
+                </div>
+              </td>
+              <td>
+                <p-select
+                  [options]="currencies()"
+                  optionLabel="code"
+                  optionValue="code"
+                  [ngModel]="line.sourceCurrencyCode"
+                  (ngModelChange)="updateLine(line.localId, { sourceCurrencyCode: $event })"
+                  appendTo="body"
+                />
+              </td>
+              <td>
+                <div class="number-edit">
+                  <input
+                    pInputText
+                    class="line-number-input"
+                    type="number"
+                    min="0.000001"
+                    step="0.000001"
+                    [ngModel]="line.exchangeRateToTarget"
+                    [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                    (focus)="($any($event.target)).select()"
+                    (keydown.enter)="$any($event.target).blur()"
+                    (ngModelChange)="updateLineNumber(line.localId, 'exchangeRateToTarget', $event, line.exchangeRateToTarget)"
+                  />
+                </div>
+              </td>
+              <td>
+                <div class="number-edit">
+                  <input
+                    pInputText
+                    class="line-number-input"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    [ngModel]="line.markupMultiplier"
+                    [ngModelOptions]="{ standalone: true, updateOn: 'blur' }"
+                    (focus)="($any($event.target)).select()"
+                    (keydown.enter)="$any($event.target).blur()"
+                    (ngModelChange)="updateLineNumber(line.localId, 'markupMultiplier', $event, line.markupMultiplier)"
+                  />
+                </div>
+              </td>
+              <td>
+                <p-checkbox [binary]="true" [ngModel]="line.includeImage" (ngModelChange)="updateLine(line.localId, { includeImage: !!$event })" />
+              </td>
+              <td>{{ computeLineIncVat(line) | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</td>
+              <td><button pButton type="button" severity="danger" [outlined]="true" size="small" label="Remove" (click)="removeLine(line)"></button></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td [attr.colspan]="9">No products added yet.</td></tr>
+          </ng-template>
+        </p-table>
+
+        <div class="totals">
+          <div>Sub total (ex VAT): {{ lineSubtotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+          <div>VAT: {{ lineVat() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+          <div class="grand">Total: {{ lineTotal() | currency: form().targetCurrencyCode:'symbol':'1.2-2' }}</div>
+        </div>
+      </section>
     </div>
-  </section>
+
+    <aside class="form-sidebar">
+      <div class="sidebar-actions">
+        <a class="outline-btn btn-block" routerLink="/quotations">Back</a>
+        <button type="button" class="btn-primary btn-block" (click)="saveDraft()" [disabled]="isSubmitting()">Save draft</button>
+        <button pButton type="button" severity="success" class="btn-block finalize-btn" label="Finalize" (click)="finalizeQuotation()" [disabled]="isSubmitting()"></button>
+      </div>
+    </aside>
+  </div>
 }

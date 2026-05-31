@@ -3,16 +3,15 @@
 } @else if (initError()) {
   <app-global-error [message]="initError() ?? ''" />
   <p class="actions-row">
-    <a pButton routerLink="/brands" label="Back to brands" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
+    <a class="outline-btn" routerLink="/brands">Back to brands</a>
   </p>
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">{{ isEditMode ? 'Edit brand' : 'New brand' }}</h1>
       <p class="page-subtitle">Set the brand name, website, and logo shown on catalogue items.</p>
     </div>
-    <a pButton routerLink="/brands" label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true"></a>
-  </div>
+  </header>
 
   @if (generalError()) {
     <app-global-error [message]="generalError() ?? ''" />
@@ -21,8 +20,13 @@
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <section class="form-card">
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <form class="entity-form-layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="form-panel">
+      <div class="form-panel__head">
+        <h2 class="form-panel__title">Brand Information</h2>
+        <p class="form-panel__subtitle">The brand name and website link shown on catalogue pages.</p>
+      </div>
+
       <div class="field-group">
         <label for="name">Brand name</label>
         <input id="name" pInputText formControlName="name" class="full-width" [maxlength]="120" />
@@ -39,35 +43,39 @@
           <small class="field-error">{{ fieldError('websiteUrl') }}</small>
         }
       </div>
+    </section>
 
-      <div class="section-divider"></div>
+    <aside class="form-sidebar">
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Logo</h2>
+          <p class="form-panel__subtitle">Upload a JPEG or PNG shown on catalogue listings and detail pages.</p>
+        </div>
 
-      <h2 class="section-title">Logo</h2>
-      <p class="section-hint">Upload a JPEG or PNG. Shown on catalogue listings and detail pages.</p>
+        <div class="image-row">
+          <input #logoInput type="file" accept="image/*" hidden (change)="onLogoSelected($event)" />
+          <button pButton type="button" (click)="logoInput.click()" label="Choose logo" icon="pi pi-upload" severity="secondary" [outlined]="true"></button>
+          @if (logoPreviewUrl()) {
+            <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearLogoSelection()"></button>
+          }
+        </div>
 
-      <div class="image-row">
-        <input #logoInput type="file" accept="image/*" hidden (change)="onLogoSelected($event)" />
-        <button pButton type="button" (click)="logoInput.click()" label="Choose logo" icon="pi pi-upload" severity="secondary" [outlined]="true"></button>
         @if (logoPreviewUrl()) {
-          <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearLogoSelection()"></button>
+          <div class="image-preview brand-logo-preview">
+            <img [src]="logoPreviewUrl()!" [alt]="form.get('name')?.value || 'Brand logo preview'" />
+          </div>
         }
-      </div>
 
-      @if (logoPreviewUrl()) {
-        <div class="image-preview">
-          <img [src]="logoPreviewUrl()!" [alt]="form.get('name')?.value || 'Brand logo preview'" />
-        </div>
-      }
+        @if (uploadProgress() !== null) {
+          <div class="upload-progress">
+            <span class="upload-progress-label">Uploading logo...</span>
+            <p-progressBar [value]="uploadProgress() ?? 0" />
+          </div>
+        }
+      </section>
 
-      @if (uploadProgress() !== null) {
-        <div class="upload-progress">
-          <span class="upload-progress-label">Uploading logo...</span>
-          <p-progressBar [value]="uploadProgress() ?? 0" />
-        </div>
-      }
-
-      <div class="form-actions">
-        <button pButton type="submit" [disabled]="isSubmitting()">
+      <div class="sidebar-actions">
+        <button type="submit" class="btn-primary btn-block" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
             <span>Saving...</span>
@@ -75,7 +83,8 @@
             <span>{{ isEditMode ? 'Save changes' : 'Create brand' }}</span>
           }
         </button>
+        <a class="outline-btn btn-block" routerLink="/brands">Cancel</a>
       </div>
-    </form>
-  </section>
+    </aside>
+  </form>
 }

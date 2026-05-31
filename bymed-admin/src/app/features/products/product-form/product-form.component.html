@@ -3,12 +3,12 @@
 } @else if (initError()) {
   <app-global-error [message]="initError() ?? ''" />
   <p class="actions-row">
-    <a pButton routerLink="/products" label="Back to products" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
+    <a class="outline-btn" routerLink="/products">Back to products</a>
   </p>
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
-      <h1 class="page-title">{{ isEditMode ? 'Edit product' : 'New product' }}</h1>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Product' : 'New Product' }}</h1>
       <p class="page-subtitle">
         {{
           isEditMode
@@ -17,8 +17,7 @@
         }}
       </p>
     </div>
-    <a pButton routerLink="/products" label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true"></a>
-  </div>
+  </header>
 
   @if (generalError()) {
     <app-global-error [message]="generalError() ?? ''" />
@@ -27,9 +26,12 @@
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <section class="form-card">
-    <form [formGroup]="productForm" (ngSubmit)="submit()" novalidate>
-      <h2 class="section-title">Basics</h2>
+  <form class="product-form-layout" [formGroup]="productForm" (ngSubmit)="submit()" novalidate>
+    <section class="form-panel">
+      <div class="form-panel__head">
+        <h2 class="form-panel__title">Product Information</h2>
+        <p class="form-panel__subtitle">Enter the basic details for the {{ isEditMode ? 'product' : 'new product' }}.</p>
+      </div>
 
       <div class="field-group">
         <label for="name">Name</label>
@@ -50,159 +52,156 @@
       }
 
       <div class="field-group">
-        <label for="categoryId">Category</label>
-        <p-select
-          inputId="categoryId"
-          [options]="categoryOptions()"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="categoryId"
-          placeholder="Select a category"
-          appendTo="body"
-          styleClass="full-width"
-        />
-        @if (fieldError('categoryId')) {
-          <small class="field-error">{{ fieldError('categoryId') }}</small>
+        <label for="description">Description</label>
+        <p class="section-hint">Use the toolbar for headings, lists, and links.</p>
+        <div class="quill-wrap">
+          <quill-editor formControlName="description" [theme]="'snow'" />
+        </div>
+        @if (fieldError('description')) {
+          <p class="field-error">{{ fieldError('description') }}</p>
         }
       </div>
 
-      @if (isEditMode && loadedProduct()) {
-        <div class="read-only-row">
-          <span class="read-only-label">Availability</span>
-          <span class="chip" [class.chip-muted]="!loadedProduct()!.isAvailable">
-            {{ loadedProduct()!.isAvailable ? 'Available' : 'Unavailable' }}
-          </span>
-          <span class="read-only-hint">Controlled by product publishing rules on the server.</span>
-        </div>
-      }
-
-      <div class="section-divider"></div>
-
-      <h2 class="section-title">Description</h2>
-      <p class="section-hint">Use the toolbar for headings, lists, and links.</p>
-
-      <div class="quill-wrap">
-        <quill-editor formControlName="description" [theme]="'snow'" />
-      </div>
-      @if (fieldError('description')) {
-        <p class="field-error">{{ fieldError('description') }}</p>
-      }
-
-      <div class="section-divider"></div>
-
-      <h2 class="section-title">Pricing</h2>
-
-      <div class="form-grid">
-        <div class="field-group grid-span-2">
-          <label for="price">Price</label>
-          <p-inputNumber
-            inputId="price"
-            formControlName="price"
-            mode="decimal"
-            [min]="0"
-            [minFractionDigits]="2"
-            [maxFractionDigits]="2"
-            styleClass="full-width"
-          />
-          @if (fieldError('price')) {
-            <small class="field-error">{{ fieldError('price') }}</small>
+      <div class="field-group">
+        <label>Primary image</label>
+        <p class="section-hint">Upload a JPEG or PNG. Shown as the main image on listings and detail pages.</p>
+        <div class="image-row">
+          <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+          <button pButton type="button" (click)="fileInput.click()" label="Choose image" icon="pi pi-upload" severity="secondary" [outlined]="true"></button>
+          @if (imagePreviewUrl()) {
+            <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearImageSelection()"></button>
           }
         </div>
-
-        <div class="field-group">
-          <label for="currency">Currency</label>
-          <input
-            id="currency"
-            pInputText
-            formControlName="currency"
-            maxlength="3"
-            (blur)="onCurrencyBlur()"
-            [readonly]="isEditMode"
-            class="full-width"
-          />
-          <small class="field-hint">ISO 4217 (e.g. USD)</small>
-          @if (fieldError('currency')) {
-            <small class="field-error">{{ fieldError('currency') }}</small>
-          }
-        </div>
-
-        @if (isEditMode) {
-          <div class="field-group grid-span-2">
-            <label for="sku">SKU</label>
-            <input id="sku" pInputText formControlName="sku" autocomplete="off" [maxlength]="100" class="full-width" />
-            <small class="field-hint">Optional</small>
-            @if (fieldError('sku')) {
-              <small class="field-error">{{ fieldError('sku') }}</small>
-            }
+        @if (imagePreviewUrl()) {
+          <div class="image-preview">
+            <img [src]="imagePreviewUrl()!" [alt]="productForm.get('name')?.value || 'Product preview'" />
           </div>
         }
+        @if (primaryImageUploadProgress() !== null) {
+          <div class="upload-progress">
+            <span class="upload-progress-label">Uploading image...</span>
+            <p-progressBar [value]="primaryImageUploadProgress() ?? 0" />
+          </div>
+        }
+      </div>
+    </section>
 
-        <div class="field-group">
-          <label for="brand">Brand</label>
-          <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
-          <small class="field-hint">Optional</small>
-          @if (fieldError('brand')) {
-            <small class="field-error">{{ fieldError('brand') }}</small>
-          }
+    <aside class="form-sidebar">
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Organization</h2>
         </div>
 
         <div class="field-group">
-          <label for="clientType">Client type</label>
+          <label for="categoryId">Category</label>
           <p-select
-            inputId="clientType"
-            [options]="clientTypeOptions"
+            inputId="categoryId"
+            [options]="categoryOptions()"
             optionLabel="label"
             optionValue="value"
-            formControlName="clientType"
-            placeholder="Optional"
+            formControlName="categoryId"
+            placeholder="Select a category"
             appendTo="body"
             styleClass="full-width"
           />
+          @if (fieldError('categoryId')) {
+            <small class="field-error">{{ fieldError('categoryId') }}</small>
+          }
         </div>
-      </div>
 
-      <div class="section-divider"></div>
-
-      <h2 class="section-title">Primary image</h2>
-      <p class="section-hint">Upload a JPEG or PNG. Shown as the main image on listings and detail pages.</p>
-
-      <div class="image-row">
-        <input
-          #fileInput
-          type="file"
-          accept="image/*"
-          hidden
-          (change)="onImageSelected($event)"
-        />
-        <button pButton type="button" (click)="fileInput.click()" label="Choose image" icon="pi pi-upload" severity="secondary" [outlined]="true"></button>
-        @if (imagePreviewUrl()) {
-          <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearImageSelection()"></button>
+        @if (isEditMode && loadedProduct()) {
+          <div class="read-only-row">
+            <span class="read-only-label">Availability</span>
+            <span class="chip" [class.chip-muted]="!loadedProduct()!.isAvailable">
+              {{ loadedProduct()!.isAvailable ? 'Available' : 'Unavailable' }}
+            </span>
+            <span class="read-only-hint">Controlled by product publishing rules on the server.</span>
+          </div>
         }
-      </div>
 
-      @if (imagePreviewUrl()) {
-        <div class="image-preview">
-          <img [src]="imagePreviewUrl()!" [alt]="productForm.get('name')?.value || 'Product preview'" />
+        <div class="sidebar-section">
+          <h3 class="sidebar-section__title">Pricing</h3>
+
+          <div class="field-group">
+            <label for="price">Price</label>
+            <p-inputNumber
+              inputId="price"
+              formControlName="price"
+              mode="decimal"
+              [min]="0"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              styleClass="full-width"
+            />
+            @if (fieldError('price')) {
+              <small class="field-error">{{ fieldError('price') }}</small>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="currency">Currency</label>
+            <input
+              id="currency"
+              pInputText
+              formControlName="currency"
+              maxlength="3"
+              (blur)="onCurrencyBlur()"
+              [readonly]="isEditMode"
+              class="full-width"
+            />
+            <small class="field-hint">ISO 4217 (e.g. USD)</small>
+            @if (fieldError('currency')) {
+              <small class="field-error">{{ fieldError('currency') }}</small>
+            }
+          </div>
+
+          @if (isEditMode) {
+            <div class="field-group">
+              <label for="sku">SKU</label>
+              <input id="sku" pInputText formControlName="sku" autocomplete="off" [maxlength]="100" class="full-width" />
+              <small class="field-hint">Optional</small>
+              @if (fieldError('sku')) {
+                <small class="field-error">{{ fieldError('sku') }}</small>
+              }
+            </div>
+          }
+
+          <div class="field-group">
+            <label for="brand">Brand</label>
+            <input id="brand" pInputText formControlName="brand" autocomplete="off" [maxlength]="120" class="full-width" />
+            <small class="field-hint">Optional</small>
+            @if (fieldError('brand')) {
+              <small class="field-error">{{ fieldError('brand') }}</small>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="clientType">Client type</label>
+            <p-select
+              inputId="clientType"
+              [options]="clientTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              formControlName="clientType"
+              placeholder="Optional"
+              appendTo="body"
+              styleClass="full-width"
+            />
+          </div>
         </div>
-      }
+      </section>
 
-      @if (primaryImageUploadProgress() !== null) {
-        <div class="upload-progress">
-          <span class="upload-progress-label">Uploading image...</span>
-          <p-progressBar [value]="primaryImageUploadProgress() ?? 0" />
-        </div>
-      }
-
-      <div class="form-actions">
-        <button pButton type="submit" [disabled]="isSubmitting()">
+      <div class="sidebar-actions">
+        <button type="submit" class="btn-primary btn-block" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
             <span>Saving...</span>
           } @else {
-            <span>{{ isEditMode ? 'Save changes' : 'Create product' }}</span>
+            <span>{{ isEditMode ? 'Save changes' : 'Create Product' }}</span>
           }
         </button>
+        <a class="outline-btn btn-block" routerLink="/products">Cancel</a>
       </div>
-    </form>
-  </section>
+    </aside>
+  </form>
 }

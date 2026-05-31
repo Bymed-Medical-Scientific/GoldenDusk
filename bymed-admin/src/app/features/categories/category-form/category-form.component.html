@@ -3,25 +3,29 @@
 } @else if (initError()) {
   <app-global-error [message]="initError() ?? ''" />
   <p class="actions-row">
-    <a pButton routerLink="/categories" label="Back to categories" icon="pi pi-arrow-left" severity="secondary" [outlined]="true"></a>
+    <a class="outline-btn" routerLink="/categories">Back to categories</a>
   </p>
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">{{ isEditMode ? 'Edit category' : 'New category' }}</h1>
       <p class="page-subtitle">
         {{ isEditMode ? 'Update details shown in the storefront catalog.' : 'Add a category for organizing products.' }}
       </p>
     </div>
-    <a pButton routerLink="/categories" label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true"></a>
-  </div>
+  </header>
 
   @if (generalError()) {
     <app-global-error [message]="generalError() ?? ''" />
   }
 
-  <section class="form-card">
-    <form [formGroup]="categoryForm" (ngSubmit)="submit()" novalidate>
+  <form class="entity-form-layout" [formGroup]="categoryForm" (ngSubmit)="submit()" novalidate>
+    <section class="form-panel">
+      <div class="form-panel__head">
+        <h2 class="form-panel__title">Category Information</h2>
+        <p class="form-panel__subtitle">Name, URL slug, and optional description.</p>
+      </div>
+
       <div class="field-group">
         <label for="name">Name</label>
         <input id="name" pInputText formControlName="name" autocomplete="off" maxlength="200" class="full-width" />
@@ -54,27 +58,35 @@
           <small class="field-error">{{ fieldError('description') }}</small>
         }
       </div>
+    </section>
 
-      <div class="field-group order-field">
-        <label for="displayOrder">Display order</label>
-        <p-inputNumber
-          inputId="displayOrder"
-          formControlName="displayOrder"
-          [min]="0"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="0"
-          [useGrouping]="false"
-          mode="decimal"
-          styleClass="full-width"
-        />
-        <small class="field-hint">Lower numbers appear first in category lists.</small>
-        @if (fieldError('displayOrder')) {
-          <small class="field-error">{{ fieldError('displayOrder') }}</small>
-        }
-      </div>
+    <aside class="form-sidebar">
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Display</h2>
+        </div>
 
-      <div class="form-actions">
-        <button pButton type="submit" [disabled]="isSubmitting()">
+        <div class="field-group order-field">
+          <label for="displayOrder">Display order</label>
+          <p-inputNumber
+            inputId="displayOrder"
+            formControlName="displayOrder"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            [useGrouping]="false"
+            mode="decimal"
+            styleClass="full-width"
+          />
+          <small class="field-hint">Lower numbers appear first in category lists.</small>
+          @if (fieldError('displayOrder')) {
+            <small class="field-error">{{ fieldError('displayOrder') }}</small>
+          }
+        </div>
+      </section>
+
+      <div class="sidebar-actions">
+        <button type="submit" class="btn-primary btn-block" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
             <span>Saving...</span>
@@ -82,7 +94,8 @@
             <span>{{ isEditMode ? 'Save changes' : 'Create category' }}</span>
           }
         </button>
+        <a class="outline-btn btn-block" routerLink="/categories">Cancel</a>
       </div>
-    </form>
-  </section>
+    </aside>
+  </form>
 }

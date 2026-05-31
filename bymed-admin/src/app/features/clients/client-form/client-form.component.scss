@@ -1,23 +1,7 @@
-.form-grid {
-  display: grid;
-  gap: 0.9rem;
-}
-
-label {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.section-title {
-  margin: 0.5rem 0 0;
-  font-size: 1.05rem;
-  grid-column: 1 / -1;
-}
-
 .contact-section {
-  display: grid;
-  gap: 0.75rem;
-  grid-column: 1 / -1;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--surface-border);
 }
 
 .contact-section__header {
@@ -25,6 +9,7 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .contact-list {
@@ -34,25 +19,21 @@ label {
 
 .contact-card {
   display: grid;
-  gap: 0.65rem;
+  gap: 0;
   margin: 0;
-  padding: 0.85rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
 }
 
 .contact-card legend {
   font-weight: 600;
+  font-size: 0.875rem;
   padding: 0 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.error {
-  color: #dc2626;
+.contact-card .field-group:last-of-type {
   margin-bottom: 0.75rem;
 }

@@ -9,6 +9,8 @@ import {
   CreateClientRequestDto,
   UpdateClientRequestDto
 } from '@shared/models';
+import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
+import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -16,7 +18,7 @@ import { SelectModule } from 'primeng/select';
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, SelectModule, InputTextModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, SelectModule, InputTextModule, GlobalErrorComponent, PageLoadingComponent],
   templateUrl: './client-form.component.html',
   styleUrl: './client-form.component.scss'
 })

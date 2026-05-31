@@ -16,23 +16,29 @@
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <form class="inline-form" (ngSubmit)="create()">
-    <input
-      type="email"
-      [(ngModel)]="email"
-      name="recipientEmail"
-      placeholder="email@bymed.co.zw"
-      aria-label="Recipient email"
-    />
-    <label>
-      <input type="checkbox" [(ngModel)]="isPrimaryRecipient" name="isPrimaryRecipient" />
-      Primary recipient
-    </label>
-    <button type="submit" class="btn-primary" [disabled]="submitting()">
-      <i class="pi pi-plus" aria-hidden="true"></i>
-      <span>{{ submitting() ? 'Adding…' : 'Add Recipient' }}</span>
-    </button>
-  </form>
+  <section class="add-form-panel">
+    <div class="add-form-panel__head">
+      <h2 class="add-form-panel__title">Add recipient</h2>
+      <p class="add-form-panel__subtitle">Enter an email address to receive contact form submissions.</p>
+    </div>
+    <form class="add-form-panel__fields" (ngSubmit)="create()">
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="recipientEmail"
+        placeholder="email@bymed.co.zw"
+        aria-label="Recipient email"
+      />
+      <label>
+        <input type="checkbox" [(ngModel)]="isPrimaryRecipient" name="isPrimaryRecipient" />
+        Primary recipient
+      </label>
+      <button type="submit" class="btn-primary" [disabled]="submitting()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>{{ submitting() ? 'Adding…' : 'Add Recipient' }}</span>
+      </button>
+    </form>
+  </section>
 
   <div class="table-card">
     @if (isLoading()) {

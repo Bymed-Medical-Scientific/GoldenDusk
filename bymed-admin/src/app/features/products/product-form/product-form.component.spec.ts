@@ -120,6 +120,8 @@ describe('ProductFormComponent', () => {
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
+      brand: undefined,
+      clientType: undefined,
       currency: 'USD',
       specifications: undefined
     });
