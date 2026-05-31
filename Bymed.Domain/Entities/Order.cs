@@ -36,6 +36,7 @@ public class Order : FullAuditedEntity
     public string PaymentMethod { get; private set; } = string.Empty;
     public string? TrackingNumber { get; private set; }
     public string? Notes { get; private set; }
+    public DateTime? ConfirmationEmailSentAt { get; private set; }
 
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
@@ -118,6 +119,16 @@ public class Order : FullAuditedEntity
         PaymentStatus = status;
         if (status == PaymentStatus.Completed && Status == OrderStatus.Pending)
             Status = OrderStatus.Processing;
+    }
+
+    /// <returns>True when this call marks the confirmation email as pending send for the first time.</returns>
+    public bool TryMarkConfirmationEmailSent()
+    {
+        if (ConfirmationEmailSentAt is not null)
+            return false;
+
+        ConfirmationEmailSentAt = DateTime.UtcNow;
+        return true;
     }
 
     public void SetTrackingNumber(string? trackingNumber)

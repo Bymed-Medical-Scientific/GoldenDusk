@@ -16,6 +16,8 @@ import {
   clearCheckoutIdempotencyKey,
   fingerprintCheckoutCart,
   getOrCreateCheckoutIdempotencyKey,
+  getPendingCheckoutOrderId,
+  setPendingCheckoutOrderId,
 } from "@/lib/checkout/checkout-idempotency";
 import {
   validateContact,
@@ -108,6 +110,7 @@ export function CheckoutPageContent() {
   const confirmPaymentWithRetry = useCallback(async (orderId: string): Promise<void> => {
     setPaymentState("confirming");
     setPaymentMessage("Confirming payment status...");
+    setLastOrderId(orderId);
 
     for (let attempt = 1; attempt <= MAX_CONFIRM_ATTEMPTS; attempt++) {
       try {
@@ -115,6 +118,15 @@ export function CheckoutPageContent() {
         if (result.success && result.status === PaymentStatus.Completed) {
           setPaymentState("success");
           setPaymentMessage("Payment confirmed successfully.");
+          try {
+            await clearCart({ forceProxy: isAuthenticated });
+          } catch {
+            /* best-effort */
+          }
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+          }
+          await refresh();
           clearCheckoutIdempotencyKey();
           router.replace(`/checkout/confirmation?orderId=${encodeURIComponent(orderId)}`);
           return;
@@ -146,7 +158,15 @@ export function CheckoutPageContent() {
         }
       }
     }
-  }, [router]);
+  }, [isAuthenticated, refresh, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const pendingOrderId = getPendingCheckoutOrderId();
+    if (pendingOrderId) {
+      setLastOrderId(pendingOrderId);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -224,17 +244,8 @@ export function CheckoutPageContent() {
         shippingCost: 0,
       });
 
-      try {
-        await clearCart({ forceProxy: isAuthenticated });
-      } catch {
-        /* order exists; cart clear is best-effort */
-      }
-
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
-      }
-      await refresh();
       setLastOrderId(order.id);
+      setPendingCheckoutOrderId(order.id);
 
       setPaymentState("initiating");
       setPaymentMessage("Starting secure PayNow checkout...");
@@ -281,6 +292,7 @@ export function CheckoutPageContent() {
     try {
       const payment = await initiatePaymentForOrder(lastOrderId);
       if (payment.success && payment.redirectUrl) {
+        setPendingCheckoutOrderId(lastOrderId);
         window.location.assign(payment.redirectUrl);
         return;
       }

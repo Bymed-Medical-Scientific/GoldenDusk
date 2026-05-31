@@ -3,10 +3,10 @@ using System.Text;
 using Bymed.Application.Carts;
 using Bymed.Application.Common;
 using Bymed.Application.Orders;
+using Bymed.Application.Notifications;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
-using Bymed.Application.Notifications;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
 using Bymed.Infrastructure.Payments;
@@ -178,7 +178,8 @@ public class OrderProcessingPropertyTests
             created.Value!.Items.Should().HaveCount(1);
 
             var paymentService = CreatePaymentService(sp, "test-integration-key");
-            var webhookRaw = BuildWebhookRawBody("Paid", key, "PN-SUCCESS-001", "10.00", "test-integration-key");
+            var orderTotal = created.Value!.Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+            var webhookRaw = BuildWebhookRawBody("Paid", key, "PN-SUCCESS-001", orderTotal, "test-integration-key");
             var fields = ParseFields(webhookRaw);
             var webhookResult = paymentService.HandleWebhookAsync(new PayNowWebhookEvent
             {
@@ -421,6 +422,131 @@ public class OrderProcessingPropertyTests
         });
     }
 
+    [Fact]
+    public void PayNowInitiate_BuildsReturnUrlWithOrderId()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var order = CreateSingleItemOrder(sp, userId, "return-url");
+        string? capturedBody = null;
+
+        var handler = new CapturingHttpMessageHandler(body =>
+        {
+            capturedBody = body;
+            var responseBody = "status=Ok&browserurl=https://paynow.example/pay&pollurl=https://paynow.example/poll";
+            var hash = ComputeInboundHash(responseBody, "test-integration-key");
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent($"{responseBody}&hash={hash}")
+            };
+        });
+
+        var paymentService = new PayNowPaymentService(
+            new HttpClient(handler),
+            NullLogger<PayNowPaymentService>.Instance,
+            new OptionsWrapper<PayNowOptions>(new PayNowOptions
+            {
+                IntegrationId = "123",
+                IntegrationKey = "test-integration-key",
+                InitiateTransactionUrl = "https://example.com/initiate",
+                StorefrontBaseUrl = "http://localhost:3000",
+                ResultUrl = "https://example.com/webhook"
+            }),
+            sp.GetRequiredService<IPaymentTransactionRepository>(),
+            sp.GetRequiredService<IOrderRepository>(),
+            Substitute.For<IOrderNotificationService>(),
+            sp.GetRequiredService<IUnitOfWork>());
+
+        var result = paymentService.InitiatePaymentAsync(
+            new PaymentInitiationRequest(order.Total, order.Currency, order.PaymentReference!, order.Id),
+            CancellationToken.None).GetAwaiter().GetResult();
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        capturedBody.Should().NotBeNull();
+        capturedBody.Should().Contain($"returnurl=http%3A%2F%2Flocalhost%3A3000%2Fcheckout%3ForderId%3D{order.Id}%26payment%3Dreturned");
+    }
+
+    [Fact]
+    public void Webhook_WithMismatchedAmount_KeepsOrderPending()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var order = CreateSingleItemOrder(sp, userId, "amount-mismatch");
+
+        var paymentService = CreatePaymentService(sp, "test-integration-key");
+        var webhookRaw = BuildWebhookRawBody("Paid", order.PaymentReference!, "PN-BAD-AMOUNT", "0.01", "test-integration-key");
+        var webhookResult = paymentService.HandleWebhookAsync(new PayNowWebhookEvent
+        {
+            RawBody = webhookRaw,
+            Fields = ParseFields(webhookRaw)
+        }).GetAwaiter().GetResult();
+
+        webhookResult.Success.Should().BeTrue(webhookResult.ErrorMessage);
+        var reloaded = sp.GetRequiredService<IOrderRepository>()
+            .GetByIdAsync(order.Id, CancellationToken.None).GetAwaiter().GetResult();
+        reloaded!.PaymentStatus.Should().Be(PaymentStatus.Pending);
+        reloaded.Status.Should().Be(OrderStatus.Pending);
+    }
+
+    [Fact]
+    public void Webhook_WithMatchingAmount_SendsConfirmationEmailOnce()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var order = CreateSingleItemOrder(sp, userId, "email-on-paid");
+        var notifications = Substitute.For<IOrderNotificationService>();
+        notifications
+            .SendOrderConfirmationIfNotSentAsync(order.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        var paymentService = new PayNowPaymentService(
+            new HttpClient(),
+            NullLogger<PayNowPaymentService>.Instance,
+            new OptionsWrapper<PayNowOptions>(new PayNowOptions
+            {
+                IntegrationId = "123",
+                IntegrationKey = "test-integration-key",
+                InitiateTransactionUrl = "https://example.com",
+                StorefrontBaseUrl = "http://localhost:3000",
+                ResultUrl = "https://example.com/webhook"
+            }),
+            sp.GetRequiredService<IPaymentTransactionRepository>(),
+            sp.GetRequiredService<IOrderRepository>(),
+            notifications,
+            sp.GetRequiredService<IUnitOfWork>());
+
+        var amount = order.Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        var webhookRaw = BuildWebhookRawBody("Paid", order.PaymentReference!, "PN-EMAIL-001", amount, "test-integration-key");
+        paymentService.HandleWebhookAsync(new PayNowWebhookEvent
+        {
+            RawBody = webhookRaw,
+            Fields = ParseFields(webhookRaw)
+        }).GetAwaiter().GetResult();
+
+        notifications.Received(1).SendOrderConfirmationIfNotSentAsync(order.Id, Arg.Any<CancellationToken>());
+    }
+
+    private sealed class CapturingHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Func<string, HttpResponseMessage> _responder;
+
+        public CapturingHttpMessageHandler(Func<string, HttpResponseMessage> responder)
+        {
+            _responder = responder;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var body = request.Content is null
+                ? string.Empty
+                : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            return _responder(body);
+        }
+    }
+
     private static ProcessOrderCommandHandler CreateProcessOrderHandler(IServiceProvider sp)
         => new(
             sp.GetRequiredService<IOrderRepository>(),
@@ -428,8 +554,7 @@ public class OrderProcessingPropertyTests
             sp.GetRequiredService<IProductRepository>(),
             sp.GetRequiredService<IProductImageRepository>(),
             sp.GetRequiredService<IOrderNumberGenerator>(),
-            sp.GetRequiredService<IUnitOfWork>(),
-            Substitute.For<IEmailService>());
+            sp.GetRequiredService<IUnitOfWork>());
 
     private static void AddItemToUserCart(IServiceProvider sp, Guid userId, decimal price, int quantity)
     {
@@ -546,11 +671,12 @@ public class OrderProcessingPropertyTests
                 IntegrationKey = integrationKey,
                 InitiateTransactionUrl = "https://example.com",
                 TraceUrl = "https://example.com",
-                ReturnUrl = "https://example.com",
-                ResultUrl = "https://example.com"
+                StorefrontBaseUrl = "http://localhost:3000",
+                ResultUrl = "https://example.com/webhook"
             }),
             transactions: sp.GetRequiredService<IPaymentTransactionRepository>(),
             orders: sp.GetRequiredService<IOrderRepository>(),
+            orderNotifications: Substitute.For<IOrderNotificationService>(),
             uow: sp.GetRequiredService<IUnitOfWork>());
 
     private static string BuildWebhookRawBody(string status, string reference, string payNowRef, string amount, string integrationKey)

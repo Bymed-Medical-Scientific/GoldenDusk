@@ -170,8 +170,7 @@ public sealed class OrderCurrencyRecordingPropertyTests
                 sp.GetRequiredService<IProductRepository>(),
                 sp.GetRequiredService<IProductImageRepository>(),
                 sp.GetRequiredService<IOrderNumberGenerator>(),
-                sp.GetRequiredService<IUnitOfWork>(),
-                Substitute.For<IEmailService>());
+                sp.GetRequiredService<IUnitOfWork>());
 
             var request = new CreateOrderRequest
             {

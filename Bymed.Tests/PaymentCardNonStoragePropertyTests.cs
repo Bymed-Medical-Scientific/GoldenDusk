@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using Bymed.Application.Orders;
 using Bymed.Application.Payments;
 using Bymed.Application.Repositories;
 using Bymed.Infrastructure.Payments;
@@ -13,6 +14,7 @@ using FsCheck.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using Xunit;
 using ApplicationDbContext = Bymed.Infrastructure.Persistence.ApplicationDbContext;
 
@@ -88,6 +90,7 @@ public class PaymentCardNonStoragePropertyTests
                 }),
                 transactions: txRepo,
                 orders: orderRepo,
+                orderNotifications: Substitute.For<IOrderNotificationService>(),
                 uow: uow);
 
             var result = paymentService

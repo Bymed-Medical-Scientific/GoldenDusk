@@ -36,7 +36,9 @@ public sealed class InitiatePaymentForOrderCommandHandler
             return Result<PaymentInitiationResult>.Failure(ready);
 
         var result = await _payments
-            .InitiatePaymentAsync(order.Total, order.Currency, order.PaymentReference, cancellationToken)
+            .InitiatePaymentAsync(
+                new PaymentInitiationRequest(order.Total, order.Currency, order.PaymentReference, order.Id),
+                cancellationToken)
             .ConfigureAwait(false);
 
         return Result<PaymentInitiationResult>.Success(result);

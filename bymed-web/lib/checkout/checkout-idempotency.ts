@@ -1,5 +1,6 @@
 const CHECKOUT_IDEMPOTENCY_KEY = "bymed_checkout_idempotency_key";
 const CHECKOUT_CART_FINGERPRINT_KEY = "bymed_checkout_cart_fingerprint";
+const CHECKOUT_PENDING_ORDER_ID_KEY = "bymed_checkout_pending_order_id";
 
 function createIdempotencyKey(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -50,6 +51,22 @@ export function clearCheckoutIdempotencyKey(): void {
   }
   window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_KEY);
   window.sessionStorage.removeItem(CHECKOUT_CART_FINGERPRINT_KEY);
+  window.sessionStorage.removeItem(CHECKOUT_PENDING_ORDER_ID_KEY);
+}
+
+export function setPendingCheckoutOrderId(orderId: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.sessionStorage.setItem(CHECKOUT_PENDING_ORDER_ID_KEY, orderId);
+}
+
+export function getPendingCheckoutOrderId(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const value = window.sessionStorage.getItem(CHECKOUT_PENDING_ORDER_ID_KEY)?.trim();
+  return value || null;
 }
 
 export function peekCheckoutIdempotencyKey(): string | null {

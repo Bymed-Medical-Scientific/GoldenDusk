@@ -121,5 +121,27 @@ describe("CheckoutPageContent", () => {
     await waitFor(() => {
       expect(screen.getByText("Payment gateway unavailable.")).toBeInTheDocument();
     });
+
+    expect(mockClearCart).not.toHaveBeenCalled();
+  });
+
+  it("confirms payment when returning from PayNow with orderId query params", async () => {
+    window.history.replaceState({}, "", "/checkout?orderId=order-1&payment=returned");
+    mockConfirmPaymentForOrder.mockResolvedValue({
+      success: true,
+      status: 1,
+    });
+
+    render(<CheckoutPageContent />);
+
+    await waitFor(() => {
+      expect(mockConfirmPaymentForOrder).toHaveBeenCalledWith("order-1");
+    });
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/checkout/confirmation?orderId=order-1");
+    });
+
+    expect(mockClearCart).toHaveBeenCalled();
   });
 });

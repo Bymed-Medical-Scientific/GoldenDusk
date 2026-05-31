@@ -1,10 +1,8 @@
 using Bymed.Application.Common;
-using Bymed.Application.Notifications;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
-using Bymed.Domain.ValueObjects;
 using MediatR;
 
 namespace Bymed.Application.Orders;
@@ -17,7 +15,6 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
     private readonly IProductImageRepository _productImageRepository;
     private readonly IOrderNumberGenerator _orderNumberGenerator;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IEmailService _emailService;
 
     public ProcessOrderCommandHandler(
         IOrderRepository orderRepository,
@@ -25,8 +22,7 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         IProductRepository productRepository,
         IProductImageRepository productImageRepository,
         IOrderNumberGenerator orderNumberGenerator,
-        IUnitOfWork unitOfWork,
-        IEmailService emailService)
+        IUnitOfWork unitOfWork)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
@@ -34,7 +30,6 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
         _orderNumberGenerator = orderNumberGenerator ?? throw new ArgumentNullException(nameof(orderNumberGenerator));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
     }
 
     public async Task<Result<OrderDto>> Handle(ProcessOrderCommand request, CancellationToken cancellationToken)
@@ -131,12 +126,6 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
 
             return Result<OrderDto>.Success(OrderMappings.ToDto(raced));
         }
-
-        await _emailService.SendOrderConfirmationAsync(
-            order.CustomerEmail,
-            order.CustomerName,
-            order.OrderNumber,
-            cancellationToken).ConfigureAwait(false);
 
         return Result<OrderDto>.Success(OrderMappings.ToDto(order));
     }
