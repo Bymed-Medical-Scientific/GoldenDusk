@@ -110,6 +110,16 @@ public class Order : FullAuditedEntity
         PaymentStatus = status;
     }
 
+    /// <summary>
+    /// Updates payment state and moves paid upfront orders into fulfillment (Processing).
+    /// </summary>
+    public void ApplyPaymentStatus(PaymentStatus status)
+    {
+        PaymentStatus = status;
+        if (status == PaymentStatus.Completed && Status == OrderStatus.Pending)
+            Status = OrderStatus.Processing;
+    }
+
     public void SetTrackingNumber(string? trackingNumber)
     {
         if (string.IsNullOrWhiteSpace(trackingNumber))

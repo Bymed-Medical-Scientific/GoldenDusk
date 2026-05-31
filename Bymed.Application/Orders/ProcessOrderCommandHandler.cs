@@ -15,6 +15,7 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
     private readonly ICartRepository _cartRepository;
     private readonly IProductRepository _productRepository;
     private readonly IProductImageRepository _productImageRepository;
+    private readonly IOrderNumberGenerator _orderNumberGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEmailService _emailService;
 
@@ -23,6 +24,7 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         ICartRepository cartRepository,
         IProductRepository productRepository,
         IProductImageRepository productImageRepository,
+        IOrderNumberGenerator orderNumberGenerator,
         IUnitOfWork unitOfWork,
         IEmailService emailService)
     {
@@ -30,6 +32,7 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
+        _orderNumberGenerator = orderNumberGenerator ?? throw new ArgumentNullException(nameof(orderNumberGenerator));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
     }
@@ -43,10 +46,6 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
 
         var idempotencyKey = req.IdempotencyKey.Trim();
 
-        var existing = await _orderRepository.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken).ConfigureAwait(false);
-        if (existing is not null)
-            return Result<OrderDto>.Success(OrderMappings.ToDto(existing));
-
         if (req.UserId is null && string.IsNullOrWhiteSpace(req.SessionId))
             return Result<OrderDto>.Failure("Either user id or session id must be provided.");
 
@@ -59,13 +58,27 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
         if (cart is null || cart.Items.Count == 0)
             return Result<OrderDto>.Failure("Cart is empty or not found.");
 
+        var existing = await _orderRepository.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken).ConfigureAwait(false);
+        if (existing is not null)
+        {
+            if (!OrderCartMatcher.Matches(existing, cart))
+            {
+                return Result<OrderDto>.Failure(
+                    "Your cart changed since the last checkout attempt. Refresh checkout and try again.");
+            }
+
+            return Result<OrderDto>.Success(OrderMappings.ToDto(existing));
+        }
+
         var productIds = cart.Items.Select(i => i.ProductId).Distinct().ToList();
         var products = await _productRepository.GetByIdsAsync(productIds, cancellationToken).ConfigureAwait(false);
         var productMap = products.ToDictionary(p => p.Id);
         var imageUrls = await _productImageRepository.GetPrimaryImageUrlsByProductIdsAsync(productIds, cancellationToken).ConfigureAwait(false);
 
         var shippingAddress = OrderMappings.ToDomain(req.ShippingAddress);
-        var orderNumber = GenerateOrderNumber();
+        var orderNumber = await _orderNumberGenerator
+            .GenerateAsync(req.CustomerName.Trim(), cancellationToken)
+            .ConfigureAwait(false);
         var paymentReference = idempotencyKey;
 
         var sessionIdForOrder = string.IsNullOrWhiteSpace(req.SessionId) ? null : req.SessionId.Trim();
@@ -89,15 +102,36 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
             if (!productMap.TryGetValue(item.ProductId, out var product))
                 return Result<OrderDto>.Failure($"Product {item.ProductId} not found.");
 
+            if (product.Price <= 0)
+                return Result<OrderDto>.Failure($"{product.Name} is not available for online purchase.");
+
             var imageUrl = imageUrls.TryGetValue(item.ProductId, out var url) ? url : string.Empty;
-            order.AddItem(item.ProductId, product.Name, imageUrl, item.Quantity, item.PriceAtAdd);
+            order.AddItem(item.ProductId, product.Name, imageUrl, item.Quantity, product.Price);
         }
 
         order.SetTaxAndShipping(req.Tax, req.ShippingCost);
         order.RecalculateTotals();
 
+        if (!string.IsNullOrWhiteSpace(req.Notes))
+            order.SetNotes(req.Notes);
+
         _orderRepository.Add(order);
-        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (IdempotencyConflictException)
+        {
+            _unitOfWork.ClearTrackedChanges();
+            var raced = await _orderRepository
+                .GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken)
+                .ConfigureAwait(false);
+            if (raced is null)
+                return Result<OrderDto>.Failure("Could not complete checkout. Please retry.");
+
+            return Result<OrderDto>.Success(OrderMappings.ToDto(raced));
+        }
+
         await _emailService.SendOrderConfirmationAsync(
             order.CustomerEmail,
             order.CustomerName,
@@ -105,10 +139,5 @@ public sealed class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCom
             cancellationToken).ConfigureAwait(false);
 
         return Result<OrderDto>.Success(OrderMappings.ToDto(order));
-    }
-
-    private static string GenerateOrderNumber()
-    {
-        return $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..Math.Min(Order.OrderNumberMaxLength, 50)];
     }
 }

@@ -1,5 +1,6 @@
 using Bymed.Application.CatalogueItems;
 using Bymed.Application.Categories;
+using Bymed.Application.Orders;
 using Bymed.Application.Products;
 using Bymed.Application.Quotations;
 using FluentValidation;
@@ -18,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogueLineItemResolver, CatalogueLineItemResolver>();
         services.AddScoped<ICatalogueItemSlugGenerator, CatalogueItemSlugGenerator>();
         services.AddScoped<IProductSlugGenerator, ProductSlugGenerator>();
+        services.AddScoped<IOrderNumberGenerator, OrderNumberGenerator>();
         return services;
     }
 }

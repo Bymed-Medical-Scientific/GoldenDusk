@@ -11,8 +11,8 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/co
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { OrderDetailDto, UpdateOrderStatusRequestDto } from '@shared/models';
-import { allowedNextOrderStatuses, orderStatusLabel } from '@shared/utils/order-status';
-import { paymentStatusLabel } from '@shared/utils/payment-status';
+import { allowedNextOrderStatuses, normalizeOrderStatus, orderStatusLabel } from '@shared/utils/order-status';
+import { normalizePaymentStatus, paymentStatusLabel } from '@shared/utils/payment-status';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
@@ -92,15 +92,15 @@ export class OrderDetailComponent implements OnInit {
       });
   }
 
-  protected nextStatusOptions(current: number): { label: string; value: number }[] {
+  protected nextStatusOptions(current: number | string): { label: string; value: number }[] {
     return allowedNextOrderStatuses(current).map((s) => ({
       label: orderStatusLabel(s),
       value: s
     }));
   }
 
-  protected statusBadgeClass(status: number): string {
-    switch (status) {
+  protected statusBadgeClass(status: number | string): string {
+    switch (normalizeOrderStatus(status)) {
       case 3:
         return 'status-completed';
       case 1:
@@ -116,8 +116,8 @@ export class OrderDetailComponent implements OnInit {
     }
   }
 
-  protected paymentBadgeClass(status: number): string {
-    switch (status) {
+  protected paymentBadgeClass(status: number | string): string {
+    switch (normalizePaymentStatus(status)) {
       case 1:
         return 'status-completed';
       case 0:

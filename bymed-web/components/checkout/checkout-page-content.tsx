@@ -13,6 +13,11 @@ import { createOrder } from "@/lib/api/orders";
 import { confirmPaymentForOrder, initiatePaymentForOrder } from "@/lib/api/payments";
 import { syncGuestCartToServer } from "@/lib/checkout/sync-guest-cart";
 import {
+  clearCheckoutIdempotencyKey,
+  fingerprintCheckoutCart,
+  getOrCreateCheckoutIdempotencyKey,
+} from "@/lib/checkout/checkout-idempotency";
+import {
   validateContact,
   validateShipping,
   type ContactFormState,
@@ -110,6 +115,7 @@ export function CheckoutPageContent() {
         if (result.success && result.status === PaymentStatus.Completed) {
           setPaymentState("success");
           setPaymentMessage("Payment confirmed successfully.");
+          clearCheckoutIdempotencyKey();
           router.replace(`/checkout/confirmation?orderId=${encodeURIComponent(orderId)}`);
           return;
         }
@@ -190,10 +196,9 @@ export function CheckoutPageContent() {
         return;
       }
 
-      const idempotencyKey =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const idempotencyKey = getOrCreateCheckoutIdempotencyKey(
+        fingerprintCheckoutCart(items),
+      );
 
       if (!isAuthenticated) {
         await syncGuestCartToServer(items);
@@ -246,6 +251,12 @@ export function CheckoutPageContent() {
       );
     } catch (err) {
       if (err instanceof ApiError) {
+        if (
+          err.message.toLowerCase().includes("cart changed") ||
+          err.message.toLowerCase().includes("cart is empty")
+        ) {
+          clearCheckoutIdempotencyKey();
+        }
         if (err.validationIssues?.length) {
           setSubmitError(err.validationIssues.map((i) => i.errorMessage).join(" "));
         } else {

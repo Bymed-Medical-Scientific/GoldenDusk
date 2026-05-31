@@ -8,7 +8,7 @@ import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { OrderSummaryDto } from '@shared/models';
-import { orderStatusLabel } from '@shared/utils/order-status';
+import { normalizeOrderStatus, orderStatusLabel } from '@shared/utils/order-status';
 import { TablePaginationComponent, TablePageChange } from '@shared/components/table-pagination/table-pagination.component';
 import { ProgressBarModule } from 'primeng/progressbar';
 
@@ -53,9 +53,10 @@ export class OrderListComponent implements OnInit {
   protected readonly selectedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly statusTabs: readonly StatusTab[] = [
     { label: 'All', value: 'all' },
-    { label: 'Completed', value: '3' },
-    { label: 'Processing', value: '1' },
     { label: 'Pending', value: '0' },
+    { label: 'Processing', value: '1' },
+    { label: 'Shipped', value: '2' },
+    { label: 'Delivered', value: '3' },
     { label: 'Cancelled', value: '4' }
   ];
   protected readonly allSelected = computed(() => {
@@ -170,8 +171,8 @@ export class OrderListComponent implements OnInit {
     return `${row.items[0].productName} +${row.items.length - 1} more`;
   }
 
-  protected statusBadgeClass(status: number): string {
-    switch (status) {
+  protected statusBadgeClass(status: number | string): string {
+    switch (normalizeOrderStatus(status)) {
       case 3:
         return 'status-completed';
       case 1:
@@ -187,11 +188,12 @@ export class OrderListComponent implements OnInit {
     }
   }
 
-  protected sparklinePath(status: number): string {
+  protected sparklinePath(status: number | string): string {
+    const normalized = normalizeOrderStatus(status);
     const positive = [4, 12, 8, 16, 10, 18, 14, 22];
     const negative = [22, 18, 16, 14, 12, 10, 8, 4];
     const flat = [12, 12, 13, 12, 13, 12, 13, 12];
-    const values = status === 4 ? negative : status === 0 ? flat : positive;
+    const values = normalized === 4 ? negative : normalized === 0 ? flat : positive;
     const width = 64;
     const height = 24;
     const max = Math.max(...values, 1);

@@ -3,6 +3,7 @@
 import { FormattedPrice } from "@/components/price/formatted-price";
 import { ApiError } from "@/lib/api/http";
 import { getOrderById } from "@/lib/api/orders";
+import { clearCheckoutIdempotencyKey } from "@/lib/checkout/checkout-idempotency";
 import type { OrderDto } from "@/types/order";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -27,6 +28,10 @@ export function OrderConfirmationPageContent({ orderId }: OrderConfirmationPageC
   const [order, setOrder] = useState<OrderDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    clearCheckoutIdempotencyKey();
+  }, []);
 
   useEffect(() => {
     if (!orderId) {

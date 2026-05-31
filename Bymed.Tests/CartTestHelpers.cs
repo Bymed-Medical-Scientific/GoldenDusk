@@ -1,3 +1,4 @@
+using Bymed.Application.Orders;
 using Bymed.Domain.Entities;
 using Bymed.Domain.Enums;
 using Bymed.Infrastructure;
@@ -26,6 +27,7 @@ internal static class CartTestHelpers
         services.AddLogging();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddInfrastructureRepositories();
+        services.AddScoped<IOrderNumberGenerator, OrderNumberGenerator>();
 
         var provider = services.BuildServiceProvider();
         var scope = provider.CreateScope();

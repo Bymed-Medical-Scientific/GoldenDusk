@@ -67,6 +67,90 @@ public class OrderProcessingPropertyTests
         });
     }
 
+    [Fact]
+    public void Checkout_UsesCurrentProductPrice_NotStaleCartPrice()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var key = Guid.NewGuid().ToString("N");
+        var db = sp.GetRequiredService<ApplicationDbContext>();
+
+        AddItemToUserCart(sp, userId, 10m, 1);
+        var productId = db.Carts.SelectMany(c => c.Items).Single().ProductId;
+        var product = db.Products.Single(p => p.Id == productId);
+        product.Update(
+            product.Name,
+            product.Slug,
+            product.Description,
+            product.CategoryId,
+            500m,
+            product.Sku,
+            product.Brand,
+            product.ClientType,
+            product.Specifications);
+        db.SaveChanges();
+
+        var process = CreateProcessOrderHandler(sp);
+        var created = process.Handle(
+            new ProcessOrderCommand(CreateOrderRequestForUser(userId, key)),
+            CancellationToken.None).GetAwaiter().GetResult();
+
+        created.IsSuccess.Should().BeTrue(created.Error);
+        created.Value!.Items.Should().ContainSingle(i => i.PricePerUnit == 500m && i.Subtotal == 500m);
+    }
+
+    [Fact]
+    public void DuplicateIdempotencyKey_WithDifferentCart_IsRejected()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var key = Guid.NewGuid().ToString("N");
+
+        AddItemToUserCart(sp, userId, 25m, 2);
+
+        var process = CreateProcessOrderHandler(sp);
+        var request = CreateOrderRequestForUser(userId, key);
+
+        var first = process.Handle(new ProcessOrderCommand(request), CancellationToken.None).GetAwaiter().GetResult();
+        first.IsSuccess.Should().BeTrue(first.Error);
+
+        AddItemToUserCart(sp, userId, 500m, 1);
+
+        var second = process.Handle(new ProcessOrderCommand(request), CancellationToken.None).GetAwaiter().GetResult();
+        second.IsSuccess.Should().BeFalse();
+        second.Error!.Should().Contain("cart changed");
+
+        var db = sp.GetRequiredService<ApplicationDbContext>();
+        db.Orders.Count(o => o.IdempotencyKey == key).Should().Be(1);
+    }
+
+    [Fact]
+    public void DuplicateIdempotencyKey_ReturnsExistingOrderWithoutCreatingSecond()
+    {
+        using var scope = CartTestHelpers.CreateScopeAsync().GetAwaiter().GetResult();
+        var sp = scope.ServiceProvider;
+        var userId = Guid.NewGuid();
+        var key = Guid.NewGuid().ToString("N");
+
+        AddItemToUserCart(sp, userId, 25m, 2);
+
+        var process = CreateProcessOrderHandler(sp);
+        var request = CreateOrderRequestForUser(userId, key);
+
+        var first = process.Handle(new ProcessOrderCommand(request), CancellationToken.None).GetAwaiter().GetResult();
+        first.IsSuccess.Should().BeTrue(first.Error);
+
+        var second = process.Handle(new ProcessOrderCommand(request), CancellationToken.None).GetAwaiter().GetResult();
+        second.IsSuccess.Should().BeTrue(second.Error);
+        second.Value!.Id.Should().Be(first.Value!.Id);
+        second.Value.OrderNumber.Should().Be(first.Value.OrderNumber);
+
+        var db = sp.GetRequiredService<ApplicationDbContext>();
+        db.Orders.Count(o => o.IdempotencyKey == key).Should().Be(1);
+    }
+
     [Property(MaxTest = 25)]
     public Property OrderCreationOnPaymentSuccess_PersistsOrderWithItems()
     {
@@ -108,6 +192,7 @@ public class OrderProcessingPropertyTests
             order.Should().NotBeNull();
             order!.Items.Should().HaveCount(1);
             order.PaymentStatus.Should().Be(PaymentStatus.Completed);
+            order.Status.Should().Be(OrderStatus.Processing);
 
             return true;
         });
@@ -342,6 +427,7 @@ public class OrderProcessingPropertyTests
             sp.GetRequiredService<ICartRepository>(),
             sp.GetRequiredService<IProductRepository>(),
             sp.GetRequiredService<IProductImageRepository>(),
+            sp.GetRequiredService<IOrderNumberGenerator>(),
             sp.GetRequiredService<IUnitOfWork>(),
             Substitute.For<IEmailService>());
 

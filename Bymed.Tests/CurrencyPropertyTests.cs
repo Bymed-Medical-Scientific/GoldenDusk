@@ -169,6 +169,7 @@ public sealed class OrderCurrencyRecordingPropertyTests
                 sp.GetRequiredService<ICartRepository>(),
                 sp.GetRequiredService<IProductRepository>(),
                 sp.GetRequiredService<IProductImageRepository>(),
+                sp.GetRequiredService<IOrderNumberGenerator>(),
                 sp.GetRequiredService<IUnitOfWork>(),
                 Substitute.For<IEmailService>());
 
