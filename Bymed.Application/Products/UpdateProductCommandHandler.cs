@@ -32,19 +32,13 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             return Result<ProductDto>.Failure("Product not found.");
 
         var req = request.Request;
-        var slugExists = await _productRepository
-            .ExistsSlugAsync(req.Slug.Trim(), excludeProductId: request.Id, cancellationToken)
-            .ConfigureAwait(false);
-        if (slugExists)
-            return Result<ProductDto>.Failure("A product with this slug already exists.");
 
         product.Update(
             req.Name,
-            req.Slug,
+            product.Slug,
             req.Description,
             req.CategoryId,
             req.Price,
-            req.LowStockThreshold,
             req.Sku,
             req.Brand,
             req.ClientType,
@@ -64,8 +58,6 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             CategoryName = product.Category.Name,
             Price = product.Price,
             Currency = product.Currency,
-            InventoryCount = product.InventoryCount,
-            LowStockThreshold = product.LowStockThreshold,
             IsAvailable = product.IsAvailable,
             Sku = product.Sku,
             Brand = product.Brand,

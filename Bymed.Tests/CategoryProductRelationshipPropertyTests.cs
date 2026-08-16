@@ -33,9 +33,7 @@ public class CategoryProductRelationshipPropertyTests
                 ValidSlug,
                 ValidDescription,
                 categoryId,
-                price: 10m,
-                inventoryCount: 5,
-                lowStockThreshold: 2);
+                price: 10m);
 
             return product.CategoryId == categoryId;
         });
@@ -49,8 +47,8 @@ public class CategoryProductRelationshipPropertyTests
         var nonEmptyGuid = ArbMap.Default.GeneratorFor<Guid>().Where(id => id != Guid.Empty).ToArbitrary();
         return Prop.ForAll(nonEmptyGuid, categoryId =>
         {
-            var p1 = new Product("A", "slug-a", "Desc", categoryId, 1m, 1, 0);
-            var p2 = new Product("B", "slug-b", "Desc", categoryId, 2m, 1, 0);
+            var p1 = new Product("A", "slug-a", "Desc", categoryId, 1m);
+            var p2 = new Product("B", "slug-b", "Desc", categoryId, 2m);
             return p1.CategoryId == p2.CategoryId && p1.CategoryId == categoryId;
         });
     }
@@ -96,9 +94,7 @@ public class CategoryProductRelationshipPropertyTests
                     $"test-product-{i}",
                     "Desc",
                     categoryId,
-                    (decimal)(i + 1),
-                    10,
-                    2);
+                    (decimal)(i + 1));
                 productIds.Add(product.Id);
                 context.Products.Add(product);
             }

@@ -3,20 +3,23 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
+  CatalogueItemDto,
+  CatalogueItemImageDto,
   CategoryDto,
   ClientDto,
+  CreateCatalogueItemRequestDto,
   ClientTypeDto,
   BulkOperationResultDto,
   BulkDeleteProductsRequestDto,
   BulkSetProductAvailabilityRequestDto,
+  BrandDto,
+  CreateBrandRequestDto,
   CreateCategoryRequestDto,
+  UpdateBrandRequestDto,
   CreateClientRequestDto,
   CreateClientTypeRequestDto,
   CreateProductRequestDto,
-  AdjustInventoryRequestDto,
   ImportProductsResultDto,
-  InventoryItemDto,
-  InventoryLogEntryDto,
   OrderAnalyticsDto,
   OrderDetailDto,
   OrderSummaryDto,
@@ -49,6 +52,7 @@ import {
   UpdateCategoryRequestDto,
   UpdateClientRequestDto,
   UpdateClientTypeRequestDto,
+  UpdateCatalogueItemRequestDto,
   UpdateProductRequestDto,
   UserSummaryDto,
   CreateMarketingCampaignRequestDto,
@@ -83,6 +87,41 @@ export class AdminApiService {
 
   public deleteCategory(categoryId: string): Observable<void> {
     return this.apiService.delete<void>(`categories/${categoryId}`);
+  }
+
+  public getBrands(): Observable<BrandDto[]> {
+    return this.apiService.get<BrandDto[]>('brands');
+  }
+
+  public getBrandById(brandId: string): Observable<BrandDto> {
+    return this.apiService.get<BrandDto>(`brands/${brandId}`);
+  }
+
+  public createBrand(request: CreateBrandRequestDto): Observable<BrandDto> {
+    return this.apiService.post<CreateBrandRequestDto, BrandDto>('brands', request);
+  }
+
+  public updateBrand(brandId: string, request: UpdateBrandRequestDto): Observable<BrandDto> {
+    return this.apiService.put<UpdateBrandRequestDto, BrandDto>(`brands/${brandId}`, request);
+  }
+
+  public uploadBrandLogo(brandId: string, file: File): Observable<BrandDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormData<BrandDto>(`brands/${brandId}/logo`, formData);
+  }
+
+  public uploadBrandLogoWithProgress(
+    brandId: string,
+    file: File
+  ): Observable<HttpEvent<BrandDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.apiService.postFormDataWithProgress<BrandDto>(`brands/${brandId}/logo`, formData);
+  }
+
+  public deleteBrand(brandId: string): Observable<void> {
+    return this.apiService.delete<void>(`brands/${brandId}`);
   }
 
   public getClientTypes(): Observable<ClientTypeDto[]> {
@@ -129,13 +168,91 @@ export class AdminApiService {
     return this.apiService.delete<void>(`clients/${clientId}`);
   }
 
+  public getCatalogueItems(
+    pageNumber: number,
+    pageSize: number,
+    query?: {
+      readonly categoryId?: string | null;
+      readonly search?: string | null;
+      readonly brandId?: string | null;
+      readonly isPublished?: boolean | null;
+    }
+  ): Observable<PagedResultDto<CatalogueItemDto>> {
+    return this.apiService.get<PagedResultDto<CatalogueItemDto>>('catalogue-items', {
+      pageNumber,
+      pageSize,
+      categoryId: query?.categoryId,
+      search: query?.search,
+      brandId: query?.brandId,
+      isPublished: query?.isPublished
+    });
+  }
+
+  public getCatalogueItemById(catalogueItemId: string): Observable<CatalogueItemDto> {
+    return this.apiService.get<CatalogueItemDto>(`catalogue-items/${catalogueItemId}`);
+  }
+
+  public createCatalogueItem(request: CreateCatalogueItemRequestDto): Observable<CatalogueItemDto> {
+    return this.apiService.post<CreateCatalogueItemRequestDto, CatalogueItemDto>('catalogue-items', request);
+  }
+
+  public updateCatalogueItem(
+    catalogueItemId: string,
+    request: UpdateCatalogueItemRequestDto
+  ): Observable<CatalogueItemDto> {
+    return this.apiService.put<UpdateCatalogueItemRequestDto, CatalogueItemDto>(
+      `catalogue-items/${catalogueItemId}`,
+      request
+    );
+  }
+
+  public deleteCatalogueItem(catalogueItemId: string): Observable<void> {
+    return this.apiService.delete<void>(`catalogue-items/${catalogueItemId}`);
+  }
+
+  public uploadCatalogueItemImage(
+    catalogueItemId: string,
+    file: File,
+    altText?: string
+  ): Observable<CatalogueItemImageDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormData<CatalogueItemImageDto>(
+      `catalogue-items/${catalogueItemId}/images`,
+      formData
+    );
+  }
+
+  public uploadCatalogueItemImageWithProgress(
+    catalogueItemId: string,
+    file: File,
+    altText?: string
+  ): Observable<HttpEvent<CatalogueItemImageDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText !== undefined && altText.trim().length > 0) {
+      formData.append('altText', altText.trim());
+    }
+    return this.apiService.postFormDataWithProgress<CatalogueItemImageDto>(
+      `catalogue-items/${catalogueItemId}/images`,
+      formData
+    );
+  }
+
+  public deleteCatalogueItemImage(catalogueItemId: string, imageId: string): Observable<void> {
+    return this.apiService.delete<void>(`catalogue-items/${catalogueItemId}/images/${imageId}`);
+  }
+
   public getProducts(
     pageNumber: number,
     pageSize: number,
     query?: {
       readonly categoryId?: string | null;
       readonly search?: string | null;
-      readonly inStock?: boolean | null;
+      readonly isAvailable?: boolean | null;
       readonly brand?: string | null;
       readonly clientType?: string | null;
       readonly minPrice?: number | null;
@@ -147,7 +264,7 @@ export class AdminApiService {
       pageSize,
       categoryId: query?.categoryId,
       search: query?.search,
-      inStock: query?.inStock,
+      isAvailable: query?.isAvailable,
       brand: query?.brand,
       clientType: query?.clientType,
       minPrice: query?.minPrice,
@@ -281,53 +398,6 @@ export class AdminApiService {
       dateTo: query?.dateTo,
       search: query?.search
     });
-  }
-
-  /** Paged inventory grid (admin). */
-  public getInventory(
-    pageNumber: number,
-    pageSize: number,
-    query?: { readonly lowStockOnly?: boolean; readonly search?: string | null }
-  ): Observable<PagedResultDto<InventoryItemDto>> {
-    return this.apiService.get<PagedResultDto<InventoryItemDto>>('inventory', {
-      pageNumber,
-      pageSize,
-      lowStockOnly: query?.lowStockOnly === true ? true : undefined,
-      search: query?.search?.trim() ? query.search.trim() : undefined
-    });
-  }
-
-  /** All products at or below low-stock threshold (admin). */
-  public getLowStockInventory(): Observable<InventoryItemDto[]> {
-    return this.apiService.get<InventoryItemDto[]>('inventory/low-stock');
-  }
-
-  public adjustInventory(
-    productId: string,
-    request: AdjustInventoryRequestDto
-  ): Observable<InventoryItemDto> {
-    return this.apiService.postWithQuery<AdjustInventoryRequestDto, InventoryItemDto>(
-      'inventory/adjust',
-      request,
-      { productId }
-    );
-  }
-
-  public getInventoryHistory(
-    productId: string,
-    pageNumber: number,
-    pageSize: number,
-    query?: { readonly dateFrom?: string | null; readonly dateTo?: string | null }
-  ): Observable<PagedResultDto<InventoryLogEntryDto>> {
-    return this.apiService.get<PagedResultDto<InventoryLogEntryDto>>(
-      `inventory/history/${productId}`,
-      {
-        pageNumber,
-        pageSize,
-        dateFrom: query?.dateFrom?.trim() ? query.dateFrom.trim() : undefined,
-        dateTo: query?.dateTo?.trim() ? query.dateTo.trim() : undefined
-      }
-    );
   }
 
   public getUsers(pageNumber: number, pageSize: number): Observable<PagedResultDto<UserSummaryDto>> {

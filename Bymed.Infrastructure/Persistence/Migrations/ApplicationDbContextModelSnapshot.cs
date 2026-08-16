@@ -80,6 +80,54 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.ToTable("Addresses");
                 });
 
+            modelBuilder.Entity("Bymed.Domain.Entities.Brand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LastModifierUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Brands");
+                });
+
             modelBuilder.Entity("Bymed.Domain.Entities.Cart", b =>
                 {
                     b.Property<Guid>("Id")
@@ -128,6 +176,103 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("CartItems");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.CatalogueItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BrandId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LastModifierUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("IsPublished");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("CatalogueItems");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.CatalogueItemImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("CatalogueItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogueItemId");
+
+                    b.HasIndex("CatalogueItemId", "DisplayOrder");
+
+                    b.ToTable("CatalogueItemImages");
                 });
 
             modelBuilder.Entity("Bymed.Domain.Entities.Category", b =>
@@ -469,46 +614,6 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.ToTable("CurrencyDefinitions");
                 });
 
-            modelBuilder.Entity("Bymed.Domain.Entities.InventoryLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ChangeAmount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ChangedBy")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("NewCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PreviousCount")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("InventoryLogs");
-                });
-
             modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaign", b =>
                 {
                     b.Property<Guid>("Id")
@@ -666,6 +771,9 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ConfirmationEmailSentAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp with time zone");
@@ -993,9 +1101,6 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("InventoryCount")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
@@ -1007,9 +1112,6 @@ namespace Bymed.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("LastModifierUserId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("LowStockThreshold")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1531,6 +1633,35 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Bymed.Domain.Entities.CatalogueItem", b =>
+                {
+                    b.HasOne("Bymed.Domain.Entities.Brand", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Bymed.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Bymed.Domain.Entities.CatalogueItemImage", b =>
+                {
+                    b.HasOne("Bymed.Domain.Entities.CatalogueItem", "CatalogueItem")
+                        .WithMany()
+                        .HasForeignKey("CatalogueItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogueItem");
+                });
+
             modelBuilder.Entity("Bymed.Domain.Entities.Client", b =>
                 {
                     b.HasOne("Bymed.Domain.Entities.ClientType", "ClientType")
@@ -1562,17 +1693,6 @@ namespace Bymed.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("PageContent");
-                });
-
-            modelBuilder.Entity("Bymed.Domain.Entities.InventoryLog", b =>
-                {
-                    b.HasOne("Bymed.Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Bymed.Domain.Entities.MarketingCampaignAttachment", b =>

@@ -19,8 +19,23 @@ public sealed class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery
         if (order is null)
             return Result<OrderDto>.Failure("Order not found.");
 
-        if (!request.IsAdmin && order.UserId != request.RequestingUserId)
-            return Result<OrderDto>.Failure("You do not have access to this order.");
+        if (!request.IsAdmin)
+        {
+            var hasUserAccess = order.UserId.HasValue
+                && request.RequestingUserId.HasValue
+                && request.RequestingUserId.Value != Guid.Empty
+                && order.UserId.Value == request.RequestingUserId.Value;
+
+            var hasSessionAccess = !string.IsNullOrWhiteSpace(order.SessionId)
+                && !string.IsNullOrWhiteSpace(request.RequestingSessionId)
+                && string.Equals(
+                    order.SessionId.Trim(),
+                    request.RequestingSessionId.Trim(),
+                    StringComparison.Ordinal);
+
+            if (!hasUserAccess && !hasSessionAccess)
+                return Result<OrderDto>.Failure("You do not have access to this order.");
+        }
 
         return Result<OrderDto>.Success(OrderMappings.ToDto(order));
     }

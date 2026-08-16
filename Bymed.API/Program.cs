@@ -1,5 +1,6 @@
 using AspNetCoreRateLimit;
 
+using Bymed.API.Configuration;
 using Bymed.API.Authorization;
 
 using Bymed.API.Hangfire;
@@ -51,6 +52,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 
+
+DevelopmentEnvLoader.LoadIfDevelopment();
 
 var builder = WebApplication.CreateBuilder(args);
 

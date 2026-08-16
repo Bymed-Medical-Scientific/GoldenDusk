@@ -4,7 +4,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { LowStockAlertsService } from '@core/inventory/low-stock-alerts.service';
 import { API_BASE_URL } from '@core/tokens/api-base-url.token';
 import { ApiError } from '@core/api/api-error';
 import { CategoryDto, ProductDto, ProductImageDto } from '@shared/models';
@@ -33,8 +32,6 @@ describe('ProductFormComponent', () => {
     categoryName: category.name,
     price: 10,
     currency: 'USD',
-    inventoryCount: 3,
-    lowStockThreshold: 1,
     isAvailable: true
   };
 
@@ -47,8 +44,6 @@ describe('ProductFormComponent', () => {
   };
 
   async function setup(productId: string | null = null): Promise<void> {
-    const lowStockSpy = jasmine.createSpyObj<LowStockAlertsService>('LowStockAlertsService', ['refresh']);
-
     adminApiSpy = jasmine.createSpyObj<AdminApiService>('AdminApiService', [
       'getCategories',
       'getProductById',
@@ -65,7 +60,6 @@ describe('ProductFormComponent', () => {
       providers: [
         provideRouter([]),
         { provide: AdminApiService, useValue: adminApiSpy },
-        { provide: LowStockAlertsService, useValue: lowStockSpy },
         { provide: API_BASE_URL, useValue: 'http://localhost:5000' },
         {
           provide: ActivatedRoute,
@@ -90,13 +84,10 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: '',
-      slug: 'Bad Slug',
       description: '',
       categoryId: '',
       price: -1,
       currency: 'US',
-      inventoryCount: 0,
-      lowStockThreshold: 0,
       sku: ''
     });
 
@@ -104,7 +95,6 @@ describe('ProductFormComponent', () => {
 
     expect(adminApiSpy.createProduct).not.toHaveBeenCalled();
     expect((component as any).fieldError('name')).toBe('Name is required.');
-    expect((component as any).fieldError('slug')).toContain('URL-safe slug');
     expect((component as any).fieldError('description')).toBe('Description is required.');
     expect((component as any).fieldError('categoryId')).toBe('Category is required.');
     expect((component as any).fieldError('price')).toBe('Price cannot be negative.');
@@ -116,13 +106,10 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: '  New Product  ',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
 
@@ -130,13 +117,11 @@ describe('ProductFormComponent', () => {
 
     expect(adminApiSpy.createProduct).toHaveBeenCalledWith({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
-      inventoryCount: 3,
-      lowStockThreshold: 1,
-      sku: undefined,
+      brand: undefined,
+      clientType: undefined,
       currency: 'USD',
       specifications: undefined
     });
@@ -148,13 +133,10 @@ describe('ProductFormComponent', () => {
 
     (component as any).productForm.patchValue({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>Hello world</p>',
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
 
@@ -175,25 +157,22 @@ describe('ProductFormComponent', () => {
       throwError(
         () =>
           new ApiError(400, 'Validation failed', null, [
-            { propertyName: 'Slug', errorMessage: 'Slug already exists.' }
+            { propertyName: 'Name', errorMessage: 'Product name is required.' }
           ])
       )
     );
 
     (component as any).productForm.patchValue({
       name: 'New Product',
-      slug: 'new-product',
       description: '<p>x</p>',
       categoryId: category.id,
       price: 10,
       currency: 'USD',
-      inventoryCount: 3,
-      lowStockThreshold: 1,
       sku: ''
     });
     (component as any).submit();
 
-    expect((component as any).fieldError('slug')).toBe('Slug already exists.');
+    expect((component as any).fieldError('name')).toBe('Product name is required.');
     expect((component as any).generalError()).toBeNull();
   });
 });

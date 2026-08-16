@@ -5,29 +5,50 @@
 
   <aside class="shell-sidenav" [class.shell-sidenav--open]="sidebarOpen()" [class.shell-sidenav--mobile]="isHandset()">
     <div class="sidenav-brand">
-      <i class="pi pi-shield" aria-hidden="true"></i>
-      <span>ByMed Admin</span>
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M12 2L2 7l10 5 10-5-10-5zm0 7L2 14l10 5 10-5-10-5z" />
+        </svg>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">ByMed</span>
+        <span class="brand-sub">ADMIN</span>
+      </div>
     </div>
 
     <nav class="nav-list" aria-label="Admin navigation">
-      @for (item of navItems; track item.route) {
-        <a
-          class="nav-link"
-          routerLinkActive="active-link"
-          [routerLink]="item.route"
-          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
-          (click)="closeSidebarForHandset()"
-        >
-          <span class="nav-icon-wrap">
-            <i [class]="item.icon" aria-hidden="true"></i>
-            @if (item.route === '/inventory' && lowStockCount() > 0) {
-              <span class="inline-badge">{{ lowStockBadge() }}</span>
-            }
-          </span>
-          <span>{{ item.label }}</span>
-        </a>
+      @for (section of navSections; track section.label) {
+        <section class="nav-section" [attr.aria-label]="section.label">
+          <h2 class="section-title">{{ section.label }}</h2>
+          @for (item of section.items; track item.route) {
+            <a
+              class="nav-link"
+              routerLinkActive="active-link"
+              [routerLink]="item.route"
+              [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+              (click)="closeSidebarForHandset()"
+            >
+              <i [class]="item.icon" aria-hidden="true"></i>
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="nav-badge">{{ item.badge }}</span>
+              }
+            </a>
+          }
+        </section>
       }
     </nav>
+
+    <div class="sidenav-profile">
+      <span class="profile-avatar" aria-hidden="true">{{ userInitials() }}</span>
+      <div class="profile-meta">
+        <strong>{{ userName() }}</strong>
+        <span>Admin</span>
+      </div>
+      <button class="profile-logout" type="button" (click)="logout()" aria-label="Log out">
+        <i class="pi pi-sign-out" aria-hidden="true"></i>
+      </button>
+    </div>
   </aside>
 
   <div class="shell-main">
@@ -38,7 +59,6 @@
             <i class="pi pi-bars" aria-hidden="true"></i>
           </button>
         }
-        <h1 class="toolbar-title">Dashboard</h1>
       </div>
 
       <div class="toolbar-actions">
@@ -50,51 +70,26 @@
         >
           <i class="pi" [class.pi-moon]="!isDarkMode()" [class.pi-sun]="isDarkMode()" aria-hidden="true"></i>
         </button>
-        <div class="user-menu-wrap">
-          <button class="icon-button" type="button" (click)="toggleUserMenu()" aria-label="Open user menu">
-            <i class="pi pi-user" aria-hidden="true"></i>
-          </button>
-          @if (userMenuOpen()) {
-            <div class="user-menu-panel">
-              <button class="menu-item" type="button" (click)="logout()">
-                <i class="pi pi-sign-out" aria-hidden="true"></i>
-                <span>Logout</span>
-              </button>
-            </div>
-          }
-        </div>
+        <button class="icon-button notification-btn" type="button" aria-label="Notifications">
+          <i class="pi pi-bell" aria-hidden="true"></i>
+          <span class="notification-dot" aria-hidden="true"></span>
+        </button>
+        <button class="avatar-button" type="button" (click)="toggleUserMenu()" aria-label="Open user menu">
+          <span class="toolbar-avatar">{{ userInitials() }}</span>
+        </button>
+        @if (userMenuOpen()) {
+          <div class="user-menu-panel">
+            <button class="menu-item" type="button" (click)="logout()">
+              <i class="pi pi-sign-out" aria-hidden="true"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        }
       </div>
     </header>
 
     @if (isNavigating()) {
       <div class="route-loading" role="status" aria-live="polite"></div>
-    }
-
-    @if (showLowStockBanner()) {
-      <div class="low-stock-banner" role="alert">
-        <i class="pi pi-exclamation-triangle banner-icon" aria-hidden="true"></i>
-        <div class="banner-body">
-          <strong class="banner-title">Low stock: {{ lowStockCount() }} product(s)</strong>
-          <p class="banner-detail">
-            @for (row of lowStockPreview(); track row.productId) {
-              <span class="banner-chip">{{ row.productName }} ({{ row.inventoryCount }})</span>
-            }
-            @if (lowStockOverflow() > 0) {
-              <span class="banner-more">+{{ lowStockOverflow() }} more</span>
-            }
-          </p>
-          <p class="banner-hint">
-            Set per-product thresholds on the product edit screen. Stock can be updated from Inventory.
-          </p>
-        </div>
-        <a
-          class="banner-action"
-          routerLink="/inventory"
-          [queryParams]="{ lowStock: '1' }"
-        >
-          View low stock
-        </a>
-      </div>
     }
 
     <main class="shell-content">

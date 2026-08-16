@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Bymed.Application.Orders;
 using Bymed.Application.Payments;
 using Bymed.Application.Persistence;
 using Bymed.Application.Repositories;
@@ -34,6 +35,7 @@ public sealed class PayNowPaymentService : IPaymentService
     private readonly PayNowOptions _options;
     private readonly IPaymentTransactionRepository _transactions;
     private readonly IOrderRepository _orders;
+    private readonly IOrderNotificationService _orderNotifications;
     private readonly IUnitOfWork _uow;
 
     public PayNowPaymentService(
@@ -42,6 +44,7 @@ public sealed class PayNowPaymentService : IPaymentService
         IOptions<PayNowOptions> options,
         IPaymentTransactionRepository transactions,
         IOrderRepository orders,
+        IOrderNotificationService orderNotifications,
         IUnitOfWork uow)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -49,49 +52,79 @@ public sealed class PayNowPaymentService : IPaymentService
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _transactions = transactions ?? throw new ArgumentNullException(nameof(transactions));
         _orders = orders ?? throw new ArgumentNullException(nameof(orders));
+        _orderNotifications = orderNotifications ?? throw new ArgumentNullException(nameof(orderNotifications));
         _uow = uow ?? throw new ArgumentNullException(nameof(uow));
     }
 
-    public async Task<PaymentInitiationResult> InitiatePaymentAsync(decimal amount, string currency, string reference, CancellationToken cancellationToken = default)
+    public async Task<PaymentInitiationResult> InitiatePaymentAsync(
+        PaymentInitiationRequest request,
+        CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(reference))
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (string.IsNullOrWhiteSpace(request.Reference))
             return new PaymentInitiationResult { Success = false, ErrorMessage = "Reference is required." };
 
-        if (amount <= 0)
+        if (request.Amount <= 0)
             return new PaymentInitiationResult { Success = false, ErrorMessage = "Amount must be greater than zero." };
 
-        if (string.IsNullOrWhiteSpace(_options.IntegrationId) ||
-            string.IsNullOrWhiteSpace(_options.IntegrationKey) ||
-            string.IsNullOrWhiteSpace(_options.InitiateTransactionUrl) ||
-            string.IsNullOrWhiteSpace(_options.ReturnUrl) ||
-            string.IsNullOrWhiteSpace(_options.ResultUrl))
-        {
-            return new PaymentInitiationResult { Success = false, ErrorMessage = "PayNow is not configured." };
-        }
+        if (request.OrderId == Guid.Empty)
+            return new PaymentInitiationResult { Success = false, ErrorMessage = "Order id is required." };
 
-        var normalizedReference = reference.Trim();
-        var existing = await _transactions.GetByReferenceAsync(normalizedReference, cancellationToken).ConfigureAwait(false);
-        if (existing is not null && existing.Status == PaymentStatus.Pending && !string.IsNullOrWhiteSpace(existing.RedirectUrl))
+        var returnUrl = BuildReturnUrl(request.OrderId);
+        if (string.IsNullOrWhiteSpace(returnUrl))
         {
             return new PaymentInitiationResult
             {
-                Success = true,
-                PaymentReference = existing.Reference,
-                RedirectUrl = existing.RedirectUrl,
-                PollUrl = existing.PollUrl
+                Success = false,
+                ErrorMessage = PayNowNotConfiguredMessage("PayNow:StorefrontBaseUrl (or PAYNOW_STOREFRONT_BASE_URL in .env)")
             };
         }
 
-        var tx = existing ?? new PaymentTransaction(normalizedReference, amount, currency);
-        if (existing is null)
+        var configError = ValidatePayNowConfiguration();
+        if (configError is not null)
+        {
+            return new PaymentInitiationResult { Success = false, ErrorMessage = configError };
+        }
+
+        var normalizedReference = request.Reference.Trim();
+        var existing = await _transactions.GetByReferenceAsync(normalizedReference, cancellationToken).ConfigureAwait(false);
+        if (existing is not null)
+        {
+            if (existing.Status == PaymentStatus.Completed)
+            {
+                return new PaymentInitiationResult
+                {
+                    Success = true,
+                    PaymentReference = existing.Reference,
+                    RedirectUrl = existing.RedirectUrl,
+                    PollUrl = existing.PollUrl
+                };
+            }
+
+            if (existing.Status == PaymentStatus.Pending && !string.IsNullOrWhiteSpace(existing.RedirectUrl))
+            {
+                return new PaymentInitiationResult
+                {
+                    Success = true,
+                    PaymentReference = existing.Reference,
+                    RedirectUrl = existing.RedirectUrl,
+                    PollUrl = existing.PollUrl
+                };
+            }
+        }
+
+        var tx = existing ?? new PaymentTransaction(normalizedReference, request.Amount, request.Currency);
+        var isNewTransaction = existing is null;
+        if (isNewTransaction)
             _transactions.Add(tx);
 
         var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["id"] = _options.IntegrationId.Trim(),
             ["reference"] = tx.Reference,
-            ["amount"] = amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
-            ["returnurl"] = _options.ReturnUrl.Trim(),
+            ["amount"] = request.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+            ["returnurl"] = returnUrl,
             ["resulturl"] = _options.ResultUrl.Trim(),
             ["status"] = "Message"
         };
@@ -108,7 +141,7 @@ public sealed class PayNowPaymentService : IPaymentService
         {
             _logger.LogWarning("PayNow initiate failed HTTP {StatusCode}. Body: {Body}", (int)response.StatusCode, raw);
             tx.SetInitiationDetails(null, null, null, raw);
-            _transactions.Update(tx);
+            MarkTransactionModified(tx, isNewTransaction);
             await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return new PaymentInitiationResult { Success = false, ErrorMessage = "Failed to initiate payment." };
         }
@@ -119,7 +152,7 @@ public sealed class PayNowPaymentService : IPaymentService
         {
             _logger.LogWarning("PayNow initiate response hash validation failed for reference {Reference}.", tx.Reference);
             tx.SetInitiationDetails(null, null, null, raw);
-            _transactions.Update(tx);
+            MarkTransactionModified(tx, isNewTransaction);
             await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return new PaymentInitiationResult { Success = false, ErrorMessage = "Invalid PayNow response signature." };
         }
@@ -129,7 +162,7 @@ public sealed class PayNowPaymentService : IPaymentService
         {
             var error = Get(parsed, "error");
             tx.SetInitiationDetails(null, null, null, raw);
-            _transactions.Update(tx);
+            MarkTransactionModified(tx, isNewTransaction);
             await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return new PaymentInitiationResult { Success = false, ErrorMessage = error ?? "PayNow returned an error." };
         }
@@ -137,7 +170,7 @@ public sealed class PayNowPaymentService : IPaymentService
         var redirectUrl = Get(parsed, "browserurl");
         var pollUrl = Get(parsed, "pollurl");
         tx.SetInitiationDetails(null, pollUrl, redirectUrl, raw);
-        _transactions.Update(tx);
+        MarkTransactionModified(tx, isNewTransaction);
         await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new PaymentInitiationResult
@@ -160,6 +193,26 @@ public sealed class PayNowPaymentService : IPaymentService
         var tx = await _transactions.GetByReferenceAsync(reference.Trim(), cancellationToken).ConfigureAwait(false);
         if (tx is null)
             return new PaymentResult { Success = false, Status = PaymentStatus.Failed, ErrorMessage = "Payment transaction not found." };
+
+        if (tx.Status == PaymentStatus.Completed)
+        {
+            return new PaymentResult
+            {
+                Success = true,
+                Status = PaymentStatus.Completed,
+                TransactionId = tx.PayNowReference
+            };
+        }
+
+        if (tx.Status == PaymentStatus.Failed)
+        {
+            return new PaymentResult
+            {
+                Success = false,
+                Status = PaymentStatus.Failed,
+                ErrorMessage = "Payment not successful."
+            };
+        }
 
         if (string.IsNullOrWhiteSpace(tx.PollUrl))
             return new PaymentResult { Success = false, Status = PaymentStatus.Failed, ErrorMessage = "Transaction cannot be confirmed (missing poll URL)." };
@@ -187,17 +240,26 @@ public sealed class PayNowPaymentService : IPaymentService
         var pollUrl = Get(parsed, "pollurl");
         var mapped = MapPayNowStatus(statusText);
 
+        var order = await _orders.GetByPaymentReferenceAsync(tx.Reference, cancellationToken).ConfigureAwait(false);
+        mapped = ResolvePaymentStatus(mapped, order, parsed, tx.Reference, "poll");
+
         tx.ApplyStatusUpdate(mapped, payNowRef, pollUrl, raw);
         _transactions.Update(tx);
 
-        var order = await _orders.GetByPaymentReferenceAsync(tx.Reference, cancellationToken).ConfigureAwait(false);
         if (order is not null)
         {
-            order.SetPaymentStatus(mapped);
+            var previousStatus = order.PaymentStatus;
+            order.ApplyPaymentStatus(mapped);
             _orders.Update(order);
-        }
+            await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            if (mapped == PaymentStatus.Completed && previousStatus != PaymentStatus.Completed)
+                await _orderNotifications.SendOrderConfirmationIfNotSentAsync(order.Id, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         return new PaymentResult
         {
@@ -246,6 +308,12 @@ public sealed class PayNowPaymentService : IPaymentService
             }
         }
 
+        Order? order = null;
+        if (!string.IsNullOrWhiteSpace(reference))
+            order = await _orders.GetByPaymentReferenceAsync(reference.Trim(), cancellationToken).ConfigureAwait(false);
+
+        mapped = ResolvePaymentStatus(mapped, order, fields, reference, "webhook");
+
         if (tx is not null)
         {
             tx.ApplyStatusUpdate(mapped, payNowRef, pollUrl, webhookEvent.RawBody);
@@ -253,17 +321,20 @@ public sealed class PayNowPaymentService : IPaymentService
                 _transactions.Update(tx);
         }
 
-        if (!string.IsNullOrWhiteSpace(reference))
+        Guid? completedOrderId = null;
+        if (order is not null)
         {
-            var order = await _orders.GetByPaymentReferenceAsync(reference.Trim(), cancellationToken).ConfigureAwait(false);
-            if (order is not null)
-            {
-                order.SetPaymentStatus(mapped);
-                _orders.Update(order);
-            }
+            var previousStatus = order.PaymentStatus;
+            order.ApplyPaymentStatus(mapped);
+            _orders.Update(order);
+            if (mapped == PaymentStatus.Completed && previousStatus != PaymentStatus.Completed)
+                completedOrderId = order.Id;
         }
 
         await _uow.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (completedOrderId is not null)
+            await _orderNotifications.SendOrderConfirmationIfNotSentAsync(completedOrderId.Value, cancellationToken).ConfigureAwait(false);
 
         return new WebhookResult
         {
@@ -279,6 +350,71 @@ public sealed class PayNowPaymentService : IPaymentService
         _logger.LogWarning("Refund requested for {Reference} but PayNow refund API is not implemented.", reference);
         return Task.FromResult(new RefundResult { Success = false, ErrorMessage = "Refunds are not supported via PayNow API integration." });
     }
+
+    private string? ValidatePayNowConfiguration()
+    {
+        if (string.IsNullOrWhiteSpace(_options.IntegrationId))
+            return PayNowNotConfiguredMessage("PayNow:IntegrationId (PAYNOW_INTEGRATION_ID)");
+        if (string.IsNullOrWhiteSpace(_options.IntegrationKey))
+            return PayNowNotConfiguredMessage("PayNow:IntegrationKey (PAYNOW_INTEGRATION_KEY)");
+        if (string.IsNullOrWhiteSpace(_options.InitiateTransactionUrl))
+            return PayNowNotConfiguredMessage("PayNow:InitiateTransactionUrl");
+        if (string.IsNullOrWhiteSpace(_options.ResultUrl))
+            return PayNowNotConfiguredMessage("PayNow:ResultUrl (PAYNOW_RESULT_URL — public HTTPS webhook URL)");
+
+        return null;
+    }
+
+    private static string PayNowNotConfiguredMessage(string setting)
+        => $"PayNow is not configured. Set {setting} in the repo root .env (copy from .env.example) and restart the API.";
+
+    private void MarkTransactionModified(PaymentTransaction tx, bool isNewTransaction)
+    {
+        if (!isNewTransaction)
+            _transactions.Update(tx);
+    }
+
+    private string? BuildReturnUrl(Guid orderId)
+    {
+        var baseUrl = _options.StorefrontBaseUrl?.Trim().TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            var fallback = _options.ReturnUrl?.Trim();
+            return string.IsNullOrWhiteSpace(fallback) ? null : fallback;
+        }
+
+        return $"{baseUrl}/checkout?orderId={orderId:D}&payment=returned";
+    }
+
+    private PaymentStatus ResolvePaymentStatus(
+        PaymentStatus mapped,
+        Order? order,
+        IReadOnlyDictionary<string, string> fields,
+        string? reference,
+        string source)
+    {
+        if (mapped != PaymentStatus.Completed || order is null)
+            return mapped;
+
+        var payNowAmount = TryGetDecimal(fields, "amount");
+        if (payNowAmount is null)
+            return mapped;
+
+        if (AmountsMatch(order.Total, payNowAmount.Value))
+            return mapped;
+
+        _logger.LogWarning(
+            "Rejected PayNow {Source} completion for reference {Reference}: amount {PayNowAmount} does not match order total {OrderTotal}.",
+            source,
+            reference,
+            payNowAmount.Value,
+            order.Total);
+
+        return PaymentStatus.Pending;
+    }
+
+    private static bool AmountsMatch(decimal orderTotal, decimal payNowAmount)
+        => Math.Abs(orderTotal - payNowAmount) <= 0.01m;
 
     private static Dictionary<string, string> ParsePostStyleBody(string body)
     {
@@ -387,7 +523,6 @@ public sealed class PayNowPaymentService : IPaymentService
 
         var s = status.Trim();
         if (s.Equals("Paid", StringComparison.OrdinalIgnoreCase) ||
-            s.StartsWith("Awaiting", StringComparison.OrdinalIgnoreCase) ||
             s.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
             return PaymentStatus.Completed;
 
@@ -411,8 +546,4 @@ public sealed class PayNowPaymentService : IPaymentService
             ? d
             : null;
     }
-
-    private static string? TryGetString(IReadOnlyDictionary<string, string> fields, string key)
-        => Get(fields, key);
 }
-

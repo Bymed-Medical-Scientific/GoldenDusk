@@ -109,3 +109,21 @@ export function buildProductsHref(opts: {
 export function categoryProductsPath(slug: string): string {
   return `/products/category/${encodeURIComponent(slug)}`;
 }
+
+export function hasActiveCatalogFilters(opts: {
+  q?: string;
+  brand?: string;
+  clientType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  categorySlug?: string;
+}): boolean {
+  return Boolean(
+    opts.q ||
+      opts.brand ||
+      opts.clientType ||
+      opts.minPrice != null ||
+      opts.maxPrice != null ||
+      opts.categorySlug,
+  );
+}

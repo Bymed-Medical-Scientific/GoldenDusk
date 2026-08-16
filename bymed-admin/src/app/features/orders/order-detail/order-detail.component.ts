@@ -2,16 +2,8 @@ import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
@@ -19,8 +11,12 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/co
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { OrderDetailDto, UpdateOrderStatusRequestDto } from '@shared/models';
-import { allowedNextOrderStatuses, orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
-import { paymentStatusLabel } from '@shared/utils/payment-status';
+import { allowedNextOrderStatuses, normalizeOrderStatus, orderStatusLabel } from '@shared/utils/order-status';
+import { normalizePaymentStatus, paymentStatusLabel } from '@shared/utils/payment-status';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 
 /** `OrderStatus.Shipped` */
 const STATUS_SHIPPED = 2;
@@ -35,19 +31,15 @@ const STATUS_CANCELLED = 4;
     DatePipe,
     FormsModule,
     GlobalErrorComponent,
-    MatButtonModule,
-    MatCardModule,
+    InputTextModule,
     MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSelectModule,
     MatSnackBarModule,
-    MatTableModule,
     NgClass,
     PageLoadingComponent,
-    RouterLink
+    ProgressSpinnerModule,
+    RouterLink,
+    SelectModule,
+    TextareaModule
   ],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss'
@@ -70,11 +62,8 @@ export class OrderDetailComponent implements OnInit {
   protected readonly isSavingStatus = signal(false);
 
   protected readonly orderStatusLabel = orderStatusLabel;
-  protected readonly orderStatusChipClass = orderStatusChipClass;
   protected readonly paymentStatusLabel = paymentStatusLabel;
   protected readonly allowedNextOrderStatuses = allowedNextOrderStatuses;
-
-  protected readonly lineColumns: string[] = ['product', 'quantity', 'unitPrice', 'lineTotal'];
 
   public ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -101,6 +90,43 @@ export class OrderDetailComponent implements OnInit {
         this.order.set(o);
         this.syncStatusFormFromOrder(o);
       });
+  }
+
+  protected nextStatusOptions(current: number | string): { label: string; value: number }[] {
+    return allowedNextOrderStatuses(current).map((s) => ({
+      label: orderStatusLabel(s),
+      value: s
+    }));
+  }
+
+  protected statusBadgeClass(status: number | string): string {
+    switch (normalizeOrderStatus(status)) {
+      case 3:
+        return 'status-completed';
+      case 1:
+        return 'status-processing';
+      case 0:
+        return 'status-pending';
+      case 4:
+        return 'status-cancelled';
+      case 2:
+        return 'status-shipped';
+      default:
+        return 'status-default';
+    }
+  }
+
+  protected paymentBadgeClass(status: number | string): string {
+    switch (normalizePaymentStatus(status)) {
+      case 1:
+        return 'status-completed';
+      case 0:
+        return 'status-pending';
+      case 2:
+        return 'status-cancelled';
+      default:
+        return 'status-default';
+    }
   }
 
   protected onNextStatusPick(value: number | string | null | undefined): void {
@@ -217,9 +243,7 @@ export class OrderDetailComponent implements OnInit {
     if (!o.lastModificationTime) {
       return false;
     }
-    return (
-      new Date(o.lastModificationTime).getTime() !== new Date(o.creationTime).getTime()
-    );
+    return new Date(o.lastModificationTime).getTime() !== new Date(o.creationTime).getTime();
   }
 
   protected formatAddress(o: OrderDetailDto): string[] {

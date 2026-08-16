@@ -5,154 +5,227 @@
     <app-global-error [message]="errorMessage() ?? ''" />
   }
 
+  <header class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Welcome back, {{ userName() }}. Here's what's happening with your business today.</p>
+  </header>
+
   <section class="kpi-grid">
     @for (card of kpiCards(); track card.title) {
-      <article class="kpi-card" [class]="'kpi-card kpi-' + card.tone">
-        <div>
-          <p class="kpi-title">{{ card.title }}</p>
-          <p class="kpi-value">{{ card.value }}</p>
-          <p class="kpi-hint">{{ card.hint }}</p>
+      <article class="kpi-card" [class]="'kpi-card--' + card.accent">
+        <div class="kpi-top">
+          <div class="kpi-meta">
+            <p class="kpi-title">{{ card.title }}</p>
+            <p class="kpi-value">{{ card.value }}</p>
+            <p class="kpi-change" [class.positive]="card.changePositive" [class.negative]="!card.changePositive">
+              @if (card.changePositive) {
+                <span class="change-arrow">↑</span>
+              } @else {
+                <span class="change-arrow">↓</span>
+              }
+              {{ card.changeLabel }}
+            </p>
+          </div>
+          <span class="kpi-icon" aria-hidden="true">
+            <i [class]="card.icon"></i>
+          </span>
         </div>
-        <i [class]="card.icon" aria-hidden="true"></i>
+        <svg class="kpi-sparkline" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+          <path
+            [attr.d]="sparklinePath(card.sparkline, 120, 32)"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       </article>
     }
   </section>
 
-  <section class="dashboard-grid">
-    <article class="widget widget-chart">
+  <section class="charts-row">
+    <article class="widget widget-overview">
       <header class="widget-header">
-        <h2>Revenue trend</h2>
-        <p class="widget-subtitle">Last 6 months snapshot from recent order activity.</p>
+        <div>
+          <h2>Overview</h2>
+          <p class="widget-subtitle">Monthly performance for the current year</p>
+        </div>
+        <div class="chart-toggle" role="group" aria-label="Chart metric">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="chartMetric() === 'revenue'"
+            (click)="setChartMetric('revenue')"
+          >
+            Revenue
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="chartMetric() === 'orders'"
+            (click)="setChartMetric('orders')"
+          >
+            Orders
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="chartMetric() === 'fulfillment'"
+            (click)="setChartMetric('fulfillment')"
+          >
+            Fulfillment
+          </button>
+        </div>
       </header>
+
       @if (revenueTrend().length) {
-        <div class="trend-bars">
-          @for (point of revenueTrend(); track point.label) {
-            <div class="trend-point">
-              <span class="trend-bar" [style.height.%]="trendHeight(point.value)"></span>
-              <span class="trend-label">{{ point.label }}</span>
+        <div class="area-chart-wrap">
+          <div class="chart-y-axis">
+            @for (label of chartYLabels(activeChartData()); track label) {
+              <span>{{ label }}</span>
+            }
+          </div>
+          <div class="area-chart">
+            <svg viewBox="0 0 480 200" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent-orange)" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="var(--accent-orange)" stop-opacity="0.02" />
+                </linearGradient>
+              </defs>
+              <path [attr.d]="areaChartPath(activeChartData(), 480, 200)" fill="url(#areaFill)" />
+              <path
+                [attr.d]="areaChartLine(activeChartData(), 480, 200)"
+                fill="none"
+                stroke="var(--accent-orange)"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <div class="chart-x-axis">
+              @for (point of revenueTrend(); track point.label) {
+                <span>{{ point.label }}</span>
+              }
             </div>
-          }
+          </div>
         </div>
       } @else {
         <p class="empty-text">No trend data available.</p>
       }
     </article>
 
-    <article class="widget widget-satisfaction">
+    <article class="widget widget-donut">
       <header class="widget-header">
-        <h2>Customer satisfaction</h2>
+        <div>
+          <h2>Order Status</h2>
+          <p class="widget-subtitle">Breakdown of recent orders</p>
+        </div>
       </header>
-      <p class="satisfaction-value">{{ customerSatisfaction() }}%</p>
-      <div class="satisfaction-meter" aria-hidden="true">
-        <span [style.width.%]="customerSatisfaction()"></span>
-      </div>
-      <p class="list-subtext">Derived from delivered vs. non-delivered recent orders.</p>
-    </article>
 
+      @if (statusSlices().length) {
+        <div class="donut-layout">
+          <div class="donut-chart" [style.background]="donutGradient()">
+            <div class="donut-hole">
+              <strong>{{ totalOrderCount() }}</strong>
+              <span>Orders</span>
+            </div>
+          </div>
+          <ul class="donut-legend">
+            @for (slice of statusSlices(); track slice.label) {
+              <li>
+                <span class="legend-dot" [style.background]="slice.color"></span>
+                <span class="legend-label">{{ slice.label }}</span>
+                <span class="legend-value">{{ slice.percent }}%</span>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <p class="empty-text">No order status data available.</p>
+      }
+    </article>
+  </section>
+
+  <section class="goals-section">
+    <header class="widget-header">
+      <div>
+        <h2>Monthly Goals</h2>
+        <p class="widget-subtitle">Track progress toward targets</p>
+      </div>
+    </header>
+
+    <div class="goals-grid">
+      @for (goal of monthlyGoals(); track goal.label) {
+        <article class="goal-card" [class]="'goal-card--' + goal.accent">
+          <div class="goal-header">
+            <span class="goal-label">{{ goal.label }}</span>
+            <span class="goal-percent">{{ goal.percent }}%</span>
+          </div>
+          <div class="goal-bar" aria-hidden="true">
+            <span [style.width.%]="goal.percent"></span>
+          </div>
+          <div class="goal-values">
+            <span>{{ goal.formattedCurrent }}</span>
+            <span>{{ goal.formattedTarget }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="lists-row">
     <article class="widget">
       <header class="widget-header">
-        <h2>Visit by traffic types</h2>
+        <h2>Recent Orders</h2>
+        <a class="widget-link" routerLink="/orders">View all</a>
       </header>
-      @if (statusBreakdown().length) {
+      @if (recentOrders().length) {
         <ul class="plain-list">
-          @for (entry of statusBreakdown(); track entry.label) {
-            <li class="traffic-row">
-              <span>{{ entry.label }}</span>
-              <span>{{ entry.percent }}%</span>
+          @for (order of recentOrders(); track order.id) {
+            <li class="list-row">
+              <div>
+                <strong>{{ order.orderNumber }}</strong>
+                <p class="list-subtext">{{ order.creationTime | date: 'medium' }}</p>
+              </div>
+              <div class="row-right">
+                <span>{{ order.total | currency: order.currency:'symbol':'1.2-2' }}</span>
+                <span class="chip" [ngClass]="orderStatusChipClass(order.status)">{{
+                  orderStatusLabel(order.status)
+                }}</span>
+              </div>
             </li>
           }
         </ul>
       } @else {
-        <p class="empty-text">No order status data available.</p>
+        <p class="empty-text">No recent orders found.</p>
       }
     </article>
 
     <article class="widget">
       <header class="widget-header">
-        <h2>Recent Orders</h2>
-      </header>
-      <div>
-        @if (recentOrders().length) {
-          <ul class="plain-list">
-            @for (order of recentOrders(); track order.id) {
-              <li class="list-row">
-                <div>
-                  <strong>{{ order.orderNumber }}</strong>
-                  <p class="list-subtext">{{ order.creationTime | date: 'medium' }}</p>
-                </div>
-                <div class="row-right">
-                  <span>{{ order.total | currency: order.currency:'symbol':'1.2-2' }}</span>
-                  <span class="chip" [ngClass]="orderStatusChipClass(order.status)">{{
-                    orderStatusLabel(order.status)
-                  }}</span>
-                </div>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="empty-text">No recent orders found.</p>
-        }
-      </div>
-    </article>
-
-    <article class="widget widget-low-stock" [class.widget-low-stock--active]="lowStockItems().length > 0">
-      <header class="widget-header">
-        <h2>Low stock alerts</h2>
-        <p class="widget-subtitle">
-          Products at or below threshold.
-        </p>
-      </header>
-      <div>
-        @if (lowStockItems().length) {
-          <ul class="plain-list">
-            @for (item of lowStockItems(); track item.productId) {
-              <li class="list-row">
-                <div>
-                  <strong>{{ item.productName }}</strong>
-                  <p class="list-subtext">SKU: {{ item.sku }}</p>
-                </div>
-                <div class="row-right">
-                  <span>{{ item.inventoryCount }} left</span>
-                  <span class="list-subtext">Threshold: {{ item.lowStockThreshold }}</span>
-                </div>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="empty-text">No low stock alerts.</p>
-        }
-      </div>
-      <div class="widget-footer">
-        <a class="text-link" routerLink="/inventory" [queryParams]="{ lowStock: '1' }">
-          View inventory
-        </a>
-      </div>
-    </article>
-
-    <article class="widget">
-      <header class="widget-header">
         <h2>Popular Products</h2>
+        <a class="widget-link" routerLink="/products">View all</a>
       </header>
-      <div>
-        @if (popularProducts().length) {
-          <ul class="plain-list">
-            @for (product of popularProducts(); track product.id) {
-              <li class="list-row">
-                <div>
-                  <strong>{{ product.name }}</strong>
-                  <p class="list-subtext">SKU: {{ product.sku }}</p>
-                </div>
-                <div class="row-right">
-                  <span>{{ product.price | currency: product.currency:'symbol':'1.2-2' }}</span>
-                  <span class="list-subtext">Stock: {{ product.inventoryCount }}</span>
-                </div>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="empty-text">No product data available.</p>
-        }
-      </div>
+      @if (popularProducts().length) {
+        <ul class="plain-list">
+          @for (product of popularProducts(); track product.id) {
+            <li class="list-row">
+              <div>
+                <strong>{{ product.name }}</strong>
+                <p class="list-subtext">SKU: {{ product.sku }}</p>
+              </div>
+              <div class="row-right">
+                <span>{{ product.price | currency: product.currency:'symbol':'1.2-2' }}</span>
+                <span class="list-subtext">{{ product.isAvailable ? 'Available' : 'Unavailable' }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty-text">No product data available.</p>
+      }
     </article>
   </section>
 

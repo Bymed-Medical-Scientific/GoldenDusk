@@ -10,6 +10,7 @@ public interface IOrderRepository
     Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default);
     Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
     Task<Order?> GetByPaymentReferenceAsync(string paymentReference, CancellationToken cancellationToken = default);
+    Task<int> GetDailyOrderCountAsync(DateOnly date, CancellationToken cancellationToken = default);
     Task<PagedResult<Order>> GetPagedAsync(
         PaginationParams pagination,
         Guid? userId = null,

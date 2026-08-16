@@ -18,8 +18,6 @@ export interface ProductDto {
   readonly images?: ProductImageDto[];
   readonly price: number;
   readonly currency: string;
-  readonly inventoryCount: number;
-  readonly lowStockThreshold: number;
   readonly isAvailable: boolean;
   readonly brand?: string;
   readonly clientType?: string;
@@ -27,13 +25,9 @@ export interface ProductDto {
 
 export interface CreateProductRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly price: number;
-  readonly inventoryCount: number;
-  readonly lowStockThreshold: number;
-  readonly sku?: string | null;
   readonly brand?: string | null;
   readonly clientType?: string | null;
   readonly currency?: string | null;
@@ -42,11 +36,9 @@ export interface CreateProductRequestDto {
 
 export interface UpdateProductRequestDto {
   readonly name: string;
-  readonly slug: string;
   readonly description: string;
   readonly categoryId: string;
   readonly price: number;
-  readonly lowStockThreshold: number;
   readonly sku?: string | null;
   readonly brand?: string | null;
   readonly clientType?: string | null;

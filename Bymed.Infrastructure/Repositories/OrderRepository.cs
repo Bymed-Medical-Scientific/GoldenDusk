@@ -59,6 +59,17 @@ public class OrderRepository : IOrderRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<int> GetDailyOrderCountAsync(DateOnly date, CancellationToken cancellationToken = default)
+    {
+        var start = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var endExclusive = start.AddDays(1);
+
+        return await _context.Orders
+            .AsNoTracking()
+            .CountAsync(o => o.CreationTime >= start && o.CreationTime < endExclusive, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<PagedResult<Order>> GetPagedAsync(
         PaginationParams pagination,
         Guid? userId = null,

@@ -1,4 +1,7 @@
+using Bymed.Application.CatalogueItems;
 using Bymed.Application.Categories;
+using Bymed.Application.Orders;
+using Bymed.Application.Products;
 using Bymed.Application.Quotations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +16,10 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(typeof(GetCategoriesQueryHandler).Assembly));
         services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
         services.AddScoped<IPricingCalculator, PricingCalculator>();
+        services.AddScoped<ICatalogueLineItemResolver, CatalogueLineItemResolver>();
+        services.AddScoped<ICatalogueItemSlugGenerator, CatalogueItemSlugGenerator>();
+        services.AddScoped<IProductSlugGenerator, ProductSlugGenerator>();
+        services.AddScoped<IOrderNumberGenerator, OrderNumberGenerator>();
         return services;
     }
 }

@@ -1,20 +1,22 @@
+import { CatalogFilterDrawer } from "@/components/products/catalog-filter-drawer";
 import { CatalogPagination } from "@/components/products/catalog-pagination";
-import { CategoryFilterSidebar } from "@/components/products/category-filter-sidebar";
+import { ProductFilterSidebar } from "@/components/products/product-filter-sidebar";
 import { ProductGrid } from "@/components/products/product-grid";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 import {
   buildProductsHref,
   categoryProductsPath,
+  hasActiveCatalogFilters,
   type CatalogQuery,
 } from "@/lib/catalog/catalog-params";
 import { resolveProductImageUrl } from "@/lib/catalog/resolve-product-image-url";
+import { listCategories } from "@/lib/api/categories";
 import { listProducts } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/http";
-import { BYMED_ACCESS_COOKIE, BYMED_REFRESH_COOKIE } from "@/lib/auth/cookie-names";
+import type { CategoryDto } from "@/types/category";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 
 export type ProductsCatalogProps = {
   query: CatalogQuery;
@@ -22,16 +24,24 @@ export type ProductsCatalogProps = {
   categoryName?: string;
 };
 
+function formatResultsSummary(
+  pageNumber: number,
+  pageSize: number,
+  totalCount: number,
+): string {
+  if (totalCount === 0) return "No products found";
+  const start = (pageNumber - 1) * pageSize + 1;
+  const end = Math.min(pageNumber * pageSize, totalCount);
+  if (totalCount === 1) return "1 product";
+  if (start === end) return `${start} of ${totalCount} products`;
+  return `${start}–${end} of ${totalCount} products`;
+}
+
 export async function ProductsCatalog({
   query,
   categorySlug,
   categoryName,
 }: ProductsCatalogProps) {
-  const cookieStore = cookies();
-  const isAuthenticated =
-    Boolean(cookieStore.get(BYMED_ACCESS_COOKIE)?.value) ||
-    Boolean(cookieStore.get(BYMED_REFRESH_COOKIE)?.value);
-
   const catalogPath = categorySlug
     ? categoryProductsPath(categorySlug)
     : "/products";
@@ -46,6 +56,10 @@ export async function ProductsCatalog({
   };
 
   const pageTitle = categoryName ?? "Products";
+  const filtersActive = hasActiveCatalogFilters({ ...hrefOpts, categorySlug });
+  const clearHref = categorySlug ? categoryProductsPath(categorySlug) : "/products";
+
+  const categories: CategoryDto[] = await listCategories().catch(() => []);
 
   let productResult;
   try {
@@ -96,16 +110,44 @@ export async function ProductsCatalog({
     price: p.price,
     currency: p.currency,
     isAvailable: p.isAvailable,
-    inventoryCount: p.inventoryCount,
     categoryName: p.categoryName,
   }));
 
+  const filterProps = {
+    categories,
+    catalogPath,
+    categorySlug,
+    q: query.q,
+    brand: query.brand,
+    clientType: query.clientType,
+    minPrice: query.minPrice,
+    maxPrice: query.maxPrice,
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="sr-only">{pageTitle}</h1>
-      <header className="mb-7 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          {pageTitle}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {formatResultsSummary(
+            productResult.pageNumber,
+            productResult.pageSize,
+            productResult.totalCount,
+          )}
+        </p>
+      </div>
+
+      <header className="mb-6 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm backdrop-blur-sm sm:p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <form action={catalogPath} method="get" className="min-w-0 flex-1">
+            {query.minPrice != null ? (
+              <input type="hidden" name="minPrice" value={query.minPrice} />
+            ) : null}
+            {query.maxPrice != null ? (
+              <input type="hidden" name="maxPrice" value={query.maxPrice} />
+            ) : null}
             <label htmlFor="catalog-search" className="sr-only">
               Search products
             </label>
@@ -133,35 +175,28 @@ export async function ProductsCatalog({
             </div>
           </form>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href={buildProductsHref(hrefOpts)}
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border/70 px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              Clear search
-            </Link>
+            <CatalogFilterDrawer {...filterProps} />
+            {filtersActive ? (
+              <Link
+                href={clearHref}
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border/70 px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Clear filters
+              </Link>
+            ) : null}
           </div>
         </div>
       </header>
-      <div
-        className={
-          isAuthenticated
-            ? "grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start"
-            : "min-w-0"
-        }
-      >
-        {isAuthenticated ? (
-          <CategoryFilterSidebar
-            catalogPath={catalogPath}
-            q={query.q}
-            minPrice={query.minPrice}
-            maxPrice={query.maxPrice}
-          />
-        ) : null}
+
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+        <div className="hidden lg:block">
+          <ProductFilterSidebar {...filterProps} />
+        </div>
         <div className="min-w-0">
           {productResult.items.length === 0 ? (
             <EmptyState
               message={
-                query.q || query.brand || query.clientType || query.categoryId
+                filtersActive || query.categoryId
                   ? "No products match your filters. Try broadening your criteria."
                   : "No products are available yet."
               }

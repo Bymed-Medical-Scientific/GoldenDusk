@@ -17,8 +17,6 @@ export type ProductDto = {
   images?: ProductImageDto[] | null;
   price: number;
   currency: string;
-  inventoryCount: number;
-  lowStockThreshold: number;
   isAvailable: boolean;
   sku?: string | null;
   brand?: string | null;
@@ -28,13 +26,9 @@ export type ProductDto = {
 
 export type CreateProductRequest = {
   name: string;
-  slug: string;
   description: string;
   categoryId: string;
   price: number;
-  inventoryCount: number;
-  lowStockThreshold: number;
-  sku?: string | null;
   brand?: string | null;
   clientType?: string | null;
   currency?: string | null;
@@ -43,11 +37,9 @@ export type CreateProductRequest = {
 
 export type UpdateProductRequest = {
   name: string;
-  slug: string;
   description: string;
   categoryId: string;
   price: number;
-  lowStockThreshold: number;
   sku?: string | null;
   brand?: string | null;
   clientType?: string | null;

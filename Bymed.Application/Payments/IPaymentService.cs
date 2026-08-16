@@ -4,11 +4,17 @@ namespace Bymed.Application.Payments;
 
 public interface IPaymentService
 {
-    Task<PaymentInitiationResult> InitiatePaymentAsync(decimal amount, string currency, string reference, CancellationToken cancellationToken = default);
+    Task<PaymentInitiationResult> InitiatePaymentAsync(PaymentInitiationRequest request, CancellationToken cancellationToken = default);
     Task<PaymentResult> ConfirmPaymentAsync(string reference, CancellationToken cancellationToken = default);
     Task<WebhookResult> HandleWebhookAsync(PayNowWebhookEvent webhookEvent, CancellationToken cancellationToken = default);
     Task<RefundResult> RefundPaymentAsync(string reference, decimal? amount = null, CancellationToken cancellationToken = default);
 }
+
+public sealed record PaymentInitiationRequest(
+    decimal Amount,
+    string Currency,
+    string Reference,
+    Guid OrderId);
 
 public sealed class PaymentInitiationResult
 {

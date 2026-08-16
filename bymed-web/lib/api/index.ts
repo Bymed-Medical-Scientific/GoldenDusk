@@ -10,7 +10,6 @@ export * from "./contact";
 export * from "./content";
 export * from "./currency";
 export * from "./health";
-export * from "./inventory";
 export * from "./orders";
 export * from "./payments";
 export * from "./products";

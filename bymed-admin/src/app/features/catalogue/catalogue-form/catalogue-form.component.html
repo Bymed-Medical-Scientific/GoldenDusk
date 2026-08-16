@@ -1,0 +1,163 @@
+@if (isInitializing()) {
+  <app-page-loading label="Loading catalogue item..." />
+} @else if (initError()) {
+  <app-global-error [message]="initError() ?? ''" />
+  <p class="actions-row">
+    <a class="outline-btn" routerLink="/catalogue">Back to catalogue</a>
+  </p>
+} @else {
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ isEditMode ? 'Edit catalogue item' : 'New catalogue item' }}</h1>
+      <p class="page-subtitle">
+        {{
+          isEditMode
+            ? 'Update catalogue details and imagery for quote requests.'
+            : 'Create a catalogue item with description and optional primary image.'
+        }}
+      </p>
+    </div>
+  </header>
+
+  @if (generalError()) {
+    <app-global-error [message]="generalError() ?? ''" />
+  }
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
+
+  <form class="entity-form-layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="form-panel">
+      <div class="form-panel__head">
+        <h2 class="form-panel__title">Catalogue Information</h2>
+        <p class="form-panel__subtitle">Enter the name, description, and primary image for this item.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="name">Name</label>
+        <input id="name" pInputText formControlName="name" autocomplete="off" [maxlength]="500" class="full-width" />
+        @if (fieldError('name')) {
+          <small class="field-error">{{ fieldError('name') }}</small>
+        }
+      </div>
+
+      @if (isEditMode && loadedItem()) {
+        <div class="read-only-row">
+          <span class="read-only-label">Public URL</span>
+          <span class="read-only-value">/catalogue/{{ loadedItem()!.slug }}</span>
+          <span class="read-only-hint">Generated automatically when the item was created. Renaming does not change the URL.</span>
+        </div>
+      } @else {
+        <p class="field-hint name-slug-hint">A URL-friendly path is generated automatically from the name when you save.</p>
+      }
+
+      <div class="field-group">
+        <label for="description">Description</label>
+        <p class="section-hint">Use the toolbar for headings, lists, and links.</p>
+        <div class="quill-wrap">
+          <quill-editor formControlName="description" [theme]="'snow'" />
+        </div>
+        @if (fieldError('description')) {
+          <p class="field-error">{{ fieldError('description') }}</p>
+        }
+      </div>
+
+      <div class="field-group">
+        <label>Primary image</label>
+        <p class="section-hint">Upload a JPEG or PNG. Shown as the main image on catalogue listings and detail pages.</p>
+        <div class="image-row">
+          <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+          <button
+            pButton
+            type="button"
+            (click)="fileInput.click()"
+            label="Choose image"
+            icon="pi pi-upload"
+            severity="secondary"
+            [outlined]="true"
+          ></button>
+          @if (imagePreviewUrl()) {
+            <button pButton type="button" label="Clear selection" severity="danger" [text]="true" (click)="clearImageSelection()"></button>
+          }
+        </div>
+        @if (imagePreviewUrl()) {
+          <div class="image-preview">
+            <img [src]="imagePreviewUrl()!" [alt]="form.get('name')?.value || 'Catalogue preview'" />
+          </div>
+        }
+        @if (uploadProgress() !== null) {
+          <div class="upload-progress">
+            <span class="upload-progress-label">Uploading image...</span>
+            <p-progressBar [value]="uploadProgress() ?? 0" />
+          </div>
+        }
+      </div>
+    </section>
+
+    <aside class="form-sidebar">
+      <section class="form-panel">
+        <div class="form-panel__head">
+          <h2 class="form-panel__title">Organization</h2>
+        </div>
+
+        <div class="field-group">
+          <label for="categoryId">Category</label>
+          <p-select
+            inputId="categoryId"
+            [options]="categoryOptions()"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="categoryId"
+            placeholder="Select a category"
+            appendTo="body"
+            styleClass="full-width"
+          />
+          @if (fieldError('categoryId')) {
+            <small class="field-error">{{ fieldError('categoryId') }}</small>
+          }
+        </div>
+
+        <div class="sidebar-section">
+          <h3 class="sidebar-section__title">Details</h3>
+
+          <div class="field-group">
+            <label for="brandId">Brand</label>
+            <p-select
+              inputId="brandId"
+              formControlName="brandId"
+              [options]="brandOptions()"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select a brand (optional)"
+              [showClear]="true"
+              appendTo="body"
+              styleClass="full-width"
+            />
+            <small class="field-hint">
+              Manage brands under
+              <a routerLink="/brands" class="inline-link">Brands</a>.
+            </small>
+          </div>
+
+          <div class="publish-row">
+            <p-checkbox formControlName="isPublished" [binary]="true" inputId="isPublished" />
+            <label for="isPublished" class="publish-label">Published on storefront catalogue</label>
+            <span class="publish-hint">Unpublished items are hidden from the public catalogue but remain in admin.</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="sidebar-actions">
+        <button type="submit" class="btn-primary btn-block" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <p-progressSpinner [style]="{ width: '18px', height: '18px' }" strokeWidth="6"></p-progressSpinner>
+            <span>Saving...</span>
+          } @else {
+            <span>{{ isEditMode ? 'Save changes' : 'Create item' }}</span>
+          }
+        </button>
+        <a class="outline-btn btn-block" routerLink="/catalogue">Cancel</a>
+      </div>
+    </aside>
+  </form>
+}

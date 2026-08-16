@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/components/auth/auth-context";
 import { CartProvider } from "@/components/cart/cart-context";
+import { QuoteCartProvider } from "@/components/cart/quote-cart-context";
 import { CurrencyProvider } from "@/components/currency/currency-context";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -73,6 +74,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <CartProvider>
+              <QuoteCartProvider>
               <CurrencyProvider>
                 <a href="#main-content" className="skip-to-main">
                   Skip to main content
@@ -89,6 +91,7 @@ export default function RootLayout({
                   <SiteFooter />
                 </div>
               </CurrencyProvider>
+              </QuoteCartProvider>
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>

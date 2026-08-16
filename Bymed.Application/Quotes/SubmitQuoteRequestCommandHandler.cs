@@ -1,3 +1,4 @@
+using Bymed.Application.CatalogueItems;
 using Bymed.Application.Common;
 using Bymed.Application.Notifications;
 using Bymed.Application.Persistence;
@@ -9,20 +10,20 @@ namespace Bymed.Application.Quotes;
 
 public sealed class SubmitQuoteRequestCommandHandler : IRequestHandler<SubmitQuoteRequestCommand, Result<QuoteRequestDto>>
 {
-    private readonly IProductRepository _productRepository;
+    private readonly ICatalogueLineItemResolver _lineItemResolver;
     private readonly IQuoteRequestRepository _quoteRequestRepository;
     private readonly IContactNotificationRecipientRepository _contactNotificationRecipientRepository;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
 
     public SubmitQuoteRequestCommandHandler(
-        IProductRepository productRepository,
+        ICatalogueLineItemResolver lineItemResolver,
         IQuoteRequestRepository quoteRequestRepository,
         IContactNotificationRecipientRepository contactNotificationRecipientRepository,
         IEmailService emailService,
         IUnitOfWork unitOfWork)
     {
-        _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _lineItemResolver = lineItemResolver ?? throw new ArgumentNullException(nameof(lineItemResolver));
         _quoteRequestRepository = quoteRequestRepository ?? throw new ArgumentNullException(nameof(quoteRequestRepository));
         _contactNotificationRecipientRepository = contactNotificationRecipientRepository ?? throw new ArgumentNullException(nameof(contactNotificationRecipientRepository));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -43,11 +44,13 @@ public sealed class SubmitQuoteRequestCommandHandler : IRequestHandler<SubmitQuo
 
         foreach (var item in payload.Items)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId, cancellationToken).ConfigureAwait(false);
-            if (product is null || product.IsDeleted)
+            var lineItem = await _lineItemResolver
+                .ResolveAsync(item.ProductId, cancellationToken)
+                .ConfigureAwait(false);
+            if (lineItem is null)
                 return Result<QuoteRequestDto>.Failure($"Product {item.ProductId} was not found.");
 
-            quote.AddItem(item.ProductId, product.Name, product.Sku ?? string.Empty, item.Quantity);
+            quote.AddItem(item.ProductId, lineItem.Name, lineItem.SkuSnapshot, item.Quantity);
         }
 
         _quoteRequestRepository.Add(quote);

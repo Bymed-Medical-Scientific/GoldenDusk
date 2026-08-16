@@ -1,28 +1,46 @@
-<section class="page">
-  <header class="page-header">
-    <div>
-      <h1>Currencies</h1>
-      <p>Manage currency definitions used in quotation pricing.</p>
-    </div>
-    <a pButton routerLink="/quotations" label="Back to quotations" severity="secondary" [outlined]="true"></a>
-  </header>
+<header class="page-header">
+  <div>
+    <h1 class="page-title">Currencies</h1>
+    <p class="page-subtitle">Manage currency definitions used in quotation pricing.</p>
+  </div>
+  <a class="outline-btn" routerLink="/quotations">Back to quotations</a>
+</header>
 
-  @if (errorMessage()) {
-    <p class="error">{{ errorMessage() }}</p>
-  }
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+}
 
-  <div class="create-form">
-    <input pInputText [ngModel]="form().code" (ngModelChange)="updateForm('code', $event)" maxlength="3" placeholder="Code (e.g. USD)" />
-    <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" placeholder="Name" />
-    <input pInputText [ngModel]="form().symbol" (ngModelChange)="updateForm('symbol', $event)" placeholder="Symbol" />
-    <p-inputNumber [ngModel]="form().decimalPlaces" (ngModelChange)="updateForm('decimalPlaces', $event ?? 2)" [min]="0" [max]="6"></p-inputNumber>
+<section class="add-form-panel">
+  <div class="add-form-panel__head">
+    <h2 class="add-form-panel__title">Add currency</h2>
+    <p class="add-form-panel__subtitle">Define a new currency for quotation line items.</p>
+  </div>
+  <div class="add-form-grid">
+    <label>
+      Code
+      <input pInputText [ngModel]="form().code" (ngModelChange)="updateForm('code', $event)" maxlength="3" placeholder="USD" />
+    </label>
+    <label>
+      Name
+      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" placeholder="US Dollar" />
+    </label>
+    <label>
+      Symbol
+      <input pInputText [ngModel]="form().symbol" (ngModelChange)="updateForm('symbol', $event)" placeholder="$" />
+    </label>
+    <label>
+      Decimal places
+      <p-inputNumber [ngModel]="form().decimalPlaces" (ngModelChange)="updateForm('decimalPlaces', $event ?? 2)" [min]="0" [max]="6"></p-inputNumber>
+    </label>
     <label class="checkbox-row">
       <p-checkbox [binary]="true" [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', !!$event)"></p-checkbox>
       <span>Active</span>
     </label>
-    <button pButton type="button" label="Add currency" (click)="create()" [disabled]="isSaving()"></button>
+    <button type="button" class="btn-primary" (click)="create()" [disabled]="isSaving()">Add currency</button>
   </div>
+</section>
 
+<div class="table-card">
   <p-table [value]="rows()" [loading]="isLoading()">
     <ng-template pTemplate="header">
       <tr>
@@ -31,7 +49,7 @@
         <th>Symbol</th>
         <th>Decimals</th>
         <th>Active</th>
-        <th class="actions">Actions</th>
+        <th class="col-actions">Actions</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-row>
@@ -41,12 +59,14 @@
         <td>{{ row.symbol || '—' }}</td>
         <td>{{ row.decimalPlaces }}</td>
         <td>{{ row.isActive ? 'Yes' : 'No' }}</td>
-        <td class="actions">
-          <button pButton type="button" size="small" label="Edit" [outlined]="true" (click)="edit(row)"></button>
-          <button pButton type="button" size="small" [label]="row.isActive ? 'Deactivate' : 'Activate'" [outlined]="true" (click)="toggleActive(row)"></button>
-          <button pButton type="button" size="small" severity="danger" [outlined]="true" label="Delete" (click)="remove(row)"></button>
+        <td class="col-actions">
+          <div class="action-group">
+            <button type="button" class="outline-btn" (click)="edit(row)">Edit</button>
+            <button type="button" class="outline-btn" (click)="toggleActive(row)">{{ row.isActive ? 'Deactivate' : 'Activate' }}</button>
+            <button type="button" class="outline-btn danger" (click)="remove(row)">Delete</button>
+          </div>
         </td>
       </tr>
     </ng-template>
   </p-table>
-</section>
+</div>

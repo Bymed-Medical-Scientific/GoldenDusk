@@ -1,39 +1,68 @@
-<section class="page">
+@if (isInitializing()) {
+  <app-page-loading label="Loading client..." />
+} @else {
   <header class="page-header">
-    <h1>{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h1>
+    <div>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h1>
+      <p class="page-subtitle">
+        {{ isEditMode ? 'Update institution details and contact persons.' : 'Register an institution and its contact persons.' }}
+      </p>
+    </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error">{{ errorMessage() }}</p>
+    <app-global-error [message]="errorMessage() ?? ''" />
   }
 
-  @if (!isInitializing()) {
-    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
-      <h2 class="section-title">Institution</h2>
-      <label>
-        Institution Name
-        <input pInputText formControlName="institutionName" />
-      </label>
-      <label>
-        Address
-        <input pInputText formControlName="address" />
-      </label>
-      <label>
-        Type
+  <form class="entity-form-layout" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="form-panel">
+      <div class="form-panel__head">
+        <h2 class="form-panel__title">Institution</h2>
+        <p class="form-panel__subtitle">Primary institution details and contact information.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="institutionName">Institution Name</label>
+        <input id="institutionName" pInputText formControlName="institutionName" class="full-width" />
+      </div>
+
+      <div class="field-group">
+        <label for="address">Address</label>
+        <input id="address" pInputText formControlName="address" class="full-width" />
+      </div>
+
+      <div class="field-group">
+        <label for="clientTypeId">Type</label>
         <p-select
+          inputId="clientTypeId"
           formControlName="clientTypeId"
           [options]="clientTypes()"
           optionLabel="name"
           optionValue="id"
-          placeholder="Select type"></p-select>
-      </label>
-      <label><span>Email</span><input pInputText formControlName="email" type="email" /></label>
-      <label><span>Phone</span><input pInputText formControlName="phone" /></label>
-      <label><span>Telephone</span><input pInputText formControlName="telephone" /></label>
+          placeholder="Select type"
+          appendTo="body"
+          styleClass="full-width"
+        ></p-select>
+      </div>
+
+      <div class="field-group">
+        <label for="email">Email</label>
+        <input id="email" pInputText formControlName="email" type="email" class="full-width" />
+      </div>
+
+      <div class="field-group">
+        <label for="phone">Phone</label>
+        <input id="phone" pInputText formControlName="phone" class="full-width" />
+      </div>
+
+      <div class="field-group">
+        <label for="telephone">Telephone</label>
+        <input id="telephone" pInputText formControlName="telephone" class="full-width" />
+      </div>
 
       <div class="contact-section">
         <div class="contact-section__header">
-          <h2 class="section-title">Contact persons</h2>
+          <h3 class="sidebar-section__title">Contact persons</h3>
           <button pButton type="button" label="Add contact" size="small" (click)="addContactPerson()"></button>
         </div>
 
@@ -41,26 +70,47 @@
           @for (group of contactPersons.controls; track $index) {
             <fieldset class="contact-card" [formGroupName]="$index">
               <legend>Contact {{ $index + 1 }}</legend>
-              <label><span>Name</span><input pInputText formControlName="name" /></label>
-              <label><span>Email</span><input pInputText formControlName="email" type="email" /></label>
-              <label><span>Phone</span><input pInputText formControlName="phone" /></label>
-              <label><span>Faculty</span><input pInputText formControlName="faculty" /></label>
+              <div class="field-group">
+                <label>Name</label>
+                <input pInputText formControlName="name" class="full-width" />
+              </div>
+              <div class="field-group">
+                <label>Email</label>
+                <input pInputText formControlName="email" type="email" class="full-width" />
+              </div>
+              <div class="field-group">
+                <label>Phone</label>
+                <input pInputText formControlName="phone" class="full-width" />
+              </div>
+              <div class="field-group">
+                <label>Faculty</label>
+                <input pInputText formControlName="faculty" class="full-width" />
+              </div>
               <button
                 pButton
                 type="button"
                 label="Remove"
                 severity="secondary"
                 size="small"
-                (click)="removeContactPerson($index)"></button>
+                (click)="removeContactPerson($index)"
+              ></button>
             </fieldset>
           }
         </div>
       </div>
+    </section>
 
-      <div class="actions">
-        <a pButton routerLink="/clients" severity="secondary" label="Cancel"></a>
-        <button pButton type="submit" label="Save" [loading]="isSubmitting()"></button>
+    <aside class="form-sidebar">
+      <div class="sidebar-actions">
+        <button type="submit" class="btn-primary btn-block" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <span>Saving...</span>
+          } @else {
+            <span>Save</span>
+          }
+        </button>
+        <a class="outline-btn btn-block" routerLink="/clients">Cancel</a>
       </div>
-    </form>
-  }
-</section>
+    </aside>
+  </form>
+}

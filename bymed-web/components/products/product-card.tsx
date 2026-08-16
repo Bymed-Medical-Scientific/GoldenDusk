@@ -15,7 +15,6 @@ export type ProductCardProduct = {
   price: number;
   currency: string;
   isAvailable: boolean;
-  inventoryCount: number;
   categoryName: string;
 };
 

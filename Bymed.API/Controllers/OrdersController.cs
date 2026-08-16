@@ -99,8 +99,9 @@ public sealed class OrdersController : ControllerBase
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var (userId, isAdmin) = ResolveUser();
+        var sessionId = Request.Cookies["cart_session_id"];
         var result = await _mediator
-            .Send(new GetOrderByIdQuery(id, userId ?? Guid.Empty, isAdmin), cancellationToken)
+            .Send(new GetOrderByIdQuery(id, userId, sessionId, isAdmin), cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)

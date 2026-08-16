@@ -60,8 +60,6 @@ public sealed class GetProductBySlugQueryHandler
             Images = imageDtos,
             Price = product.Price,
             Currency = product.Currency,
-            InventoryCount = product.InventoryCount,
-            LowStockThreshold = product.LowStockThreshold,
             IsAvailable = product.IsAvailable,
             Sku = product.Sku,
             Specifications = product.Specifications,

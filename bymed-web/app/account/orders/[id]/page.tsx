@@ -3,6 +3,7 @@
 import { FormattedPrice } from "@/components/price/formatted-price";
 import { ApiError } from "@/lib/api/http";
 import { getOrderById } from "@/lib/api/orders";
+import { initiatePaymentForOrder } from "@/lib/api/payments";
 import { OrderStatus, PaymentStatus } from "@/types/enums";
 import type { OrderDto } from "@/types/order";
 import Link from "next/link";
@@ -73,6 +74,8 @@ export default function AccountOrderDetailPage() {
   const [order, setOrder] = useState<OrderDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [paymentActionError, setPaymentActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -105,6 +108,30 @@ export default function AccountOrderDetailPage() {
       mounted = false;
     };
   }, [id]);
+
+  async function completePayment(): Promise<void> {
+    if (!id) return;
+    setPaymentActionError(null);
+    setIsRetryingPayment(true);
+    try {
+      const payment = await initiatePaymentForOrder(id);
+      if (payment.success && payment.redirectUrl) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
+      setPaymentActionError(
+        payment.errorMessage?.trim() || "Could not start PayNow checkout. Please try again.",
+      );
+    } catch (e) {
+      if (e instanceof ApiError || e instanceof Error) {
+        setPaymentActionError(e.message);
+      } else {
+        setPaymentActionError("Could not start PayNow checkout.");
+      }
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -155,6 +182,48 @@ export default function AccountOrderDetailPage() {
                 Payment status: {getPaymentStatusLabel(order.paymentStatus)}
               </span>
             </div>
+
+            {order.paymentStatus === PaymentStatus.Pending ? (
+              <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  This order is awaiting payment. Complete PayNow checkout to confirm it.
+                </p>
+                {paymentActionError ? (
+                  <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    {paymentActionError}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => void completePayment()}
+                  disabled={isRetryingPayment}
+                  className="mt-3 inline-flex rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover disabled:opacity-60"
+                >
+                  {isRetryingPayment ? "Starting PayNow..." : "Complete payment"}
+                </button>
+              </div>
+            ) : null}
+
+            {order.paymentStatus === PaymentStatus.Failed ? (
+              <div className="mt-4 rounded-md border border-red-300 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/30">
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  Payment failed for this order. You can retry PayNow checkout.
+                </p>
+                {paymentActionError ? (
+                  <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    {paymentActionError}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => void completePayment()}
+                  disabled={isRetryingPayment}
+                  className="mt-3 inline-flex rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover disabled:opacity-60"
+                >
+                  {isRetryingPayment ? "Starting PayNow..." : "Retry payment"}
+                </button>
+              </div>
+            ) : null}
 
             <div className="mt-4 rounded-md border border-border bg-background p-3">
               <p className="text-sm font-medium text-foreground">Tracking</p>

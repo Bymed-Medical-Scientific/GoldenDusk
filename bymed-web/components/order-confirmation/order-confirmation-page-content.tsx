@@ -3,6 +3,9 @@
 import { FormattedPrice } from "@/components/price/formatted-price";
 import { ApiError } from "@/lib/api/http";
 import { getOrderById } from "@/lib/api/orders";
+import { initiatePaymentForOrder } from "@/lib/api/payments";
+import { clearCheckoutIdempotencyKey } from "@/lib/checkout/checkout-idempotency";
+import { PaymentStatus } from "@/types/enums";
 import type { OrderDto } from "@/types/order";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -27,6 +30,12 @@ export function OrderConfirmationPageContent({ orderId }: OrderConfirmationPageC
   const [order, setOrder] = useState<OrderDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [paymentActionError, setPaymentActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    clearCheckoutIdempotencyKey();
+  }, []);
 
   useEffect(() => {
     if (!orderId) {
@@ -65,6 +74,30 @@ export function OrderConfirmationPageContent({ orderId }: OrderConfirmationPageC
 
   const currency = useMemo(() => order?.currency ?? "USD", [order?.currency]);
 
+  async function retryPayment(): Promise<void> {
+    if (!orderId) return;
+    setPaymentActionError(null);
+    setIsRetryingPayment(true);
+    try {
+      const payment = await initiatePaymentForOrder(orderId);
+      if (payment.success && payment.redirectUrl) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
+      setPaymentActionError(
+        payment.errorMessage?.trim() || "Could not start PayNow checkout. Please try again.",
+      );
+    } catch (e) {
+      if (e instanceof ApiError || e instanceof Error) {
+        setPaymentActionError(e.message);
+      } else {
+        setPaymentActionError("Could not start PayNow checkout.");
+      }
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }
+
   if (isLoading) {
     return <div className="mx-auto max-w-5xl px-4 py-10 text-muted-foreground">Loading order confirmation...</div>;
   }
@@ -84,6 +117,65 @@ export function OrderConfirmationPageContent({ orderId }: OrderConfirmationPageC
     );
   }
 
+  if (order.paymentStatus === PaymentStatus.Pending) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10">
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          Payment is still pending for order {order.orderNumber}. Complete PayNow checkout to confirm your order.
+        </div>
+        {paymentActionError ? (
+          <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">
+            {paymentActionError}
+          </p>
+        ) : null}
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => void retryPayment()}
+            disabled={isRetryingPayment}
+            className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover disabled:opacity-60"
+          >
+            {isRetryingPayment ? "Starting PayNow..." : "Complete payment"}
+          </button>
+          <Link
+            href={`/checkout?orderId=${encodeURIComponent(orderId)}&payment=returned`}
+            className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Return to checkout
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (order.paymentStatus === PaymentStatus.Failed) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10">
+        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+          Payment failed for order {order.orderNumber}. You can retry PayNow checkout below.
+        </div>
+        {paymentActionError ? (
+          <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">
+            {paymentActionError}
+          </p>
+        ) : null}
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => void retryPayment()}
+            disabled={isRetryingPayment}
+            className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand-hover disabled:opacity-60"
+          >
+            {isRetryingPayment ? "Starting PayNow..." : "Retry payment"}
+          </button>
+          <Link href="/account/orders" className="text-sm font-medium text-brand hover:underline">
+            View order history
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
       <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-300">
@@ -94,7 +186,8 @@ export function OrderConfirmationPageContent({ orderId }: OrderConfirmationPageC
         <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <h1 className="text-2xl font-semibold text-foreground">Order confirmation</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We have received your order and sent a confirmation to <span className="font-medium text-foreground">{order.customerEmail}</span>.
+            We have received your order and sent a confirmation to{" "}
+            <span className="font-medium text-foreground">{order.customerEmail}</span>.
           </p>
 
           <dl className="mt-5 grid gap-4 sm:grid-cols-2 text-sm">

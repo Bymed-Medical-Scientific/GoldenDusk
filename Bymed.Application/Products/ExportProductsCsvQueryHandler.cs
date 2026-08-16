@@ -32,7 +32,7 @@ public sealed class ExportProductsCsvQueryHandler : IRequestHandler<ExportProduc
     private static string BuildCsv(IReadOnlyList<Bymed.Domain.Entities.Product> products)
     {
         var builder = new StringBuilder();
-        builder.AppendLine("id,name,slug,description,categoryId,categoryName,price,currency,inventoryCount,lowStockThreshold,isAvailable,sku");
+        builder.AppendLine("id,name,slug,description,categoryId,categoryName,price,currency,isAvailable,sku");
 
         foreach (var p in products)
         {
@@ -46,8 +46,6 @@ public sealed class ExportProductsCsvQueryHandler : IRequestHandler<ExportProduc
                     Escape(p.Category?.Name ?? string.Empty),
                     Escape(p.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                     Escape(p.Currency),
-                    Escape(p.InventoryCount.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                    Escape(p.LowStockThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                     Escape(p.IsAvailable ? "true" : "false"),
                     Escape(p.Sku ?? string.Empty)));
         }

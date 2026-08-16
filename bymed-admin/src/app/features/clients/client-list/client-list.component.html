@@ -1,59 +1,148 @@
-<section class="page">
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
   <header class="page-header">
-    <h1>Clients</h1>
-    <a pButton routerLink="/clients/new" label="Add Client"></a>
+    <div>
+      <h1 class="page-title">Clients</h1>
+      <p class="page-subtitle">Manage institutions and contact details.</p>
+    </div>
+    <a class="btn-primary" routerLink="/clients/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Add Client</span>
+    </a>
   </header>
 
-  @if (errorMessage()) {
-    <p class="error">{{ errorMessage() }}</p>
-  }
-
-  <div class="filters">
-    <label class="filter-types">
-      <span class="filter-label">Filter by type</span>
-      <p-multiselect
-        [options]="clientTypes()"
-        [(ngModel)]="selectedClientTypeIds"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="All types"
-        display="chip"
-        [showClear]="true"
-        [filter]="true"
-        appendTo="body"
-        class="type-multiselect"
-        (onChange)="onClientTypesFilterChange()" />
+  <div class="toolbar-row">
+    <label class="search-bar">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search clients..."
+        aria-label="Search clients"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      }
     </label>
+
+    <div class="category-wrap">
+      <button type="button" class="outline-btn" (click)="toggleTypeMenu()">
+        <i class="pi pi-filter" aria-hidden="true"></i>
+        <span>{{ selectedTypeLabel() }}</span>
+      </button>
+      @if (typeMenuOpen()) {
+        <div class="category-menu">
+          <button type="button" (click)="onTypeChange('all')">All types</button>
+          @for (type of clientTypes(); track type.id) {
+            <button type="button" (click)="onTypeChange(type.id)">{{ type.name }}</button>
+          }
+        </div>
+      }
+    </div>
   </div>
 
-  <p-table [value]="rows()" [loading]="isLoading()">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Institution</th>
-        <th>Type</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th class="actions">Actions</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-row>
-      <tr>
-        <td>{{ row.institutionName }}</td>
-        <td>{{ row.clientTypeName }}</td>
-        <td>{{ row.email || '-' }}</td>
-        <td>{{ row.phone || row.telephone || '-' }}</td>
-        <td class="actions">
-          <a pButton [routerLink]="['/clients', row.id, 'edit']" label="Edit" size="small"></a>
-          <button
-            pButton
-            type="button"
-            label="Delete"
-            severity="danger"
-            size="small"
-            [loading]="deletingId() === row.id"
-            (click)="delete(row)"></button>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</section>
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
+  }
+
+  <div class="table-card">
+    @if (isLoading()) {
+      <app-table-skeleton [columnCount]="5" [rowCount]="pageSize()" ariaLabel="Loading clients" />
+    } @else {
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Institution</th>
+              <th>Type</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of paginatedRows(); track row.id) {
+              <tr>
+                <td>
+                  <a class="row-link" [routerLink]="['/clients', row.id, 'edit']">{{ row.institutionName }}</a>
+                </td>
+                <td>
+                  <span class="category-badge">{{ row.clientTypeName }}</span>
+                </td>
+                <td class="muted-cell">{{ row.email || '—' }}</td>
+                <td class="muted-cell">{{ phoneDisplay(row) }}</td>
+                <td class="col-actions">
+                  <div class="action-group">
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/clients', row.id, 'edit']"
+                      [attr.aria-label]="'Edit ' + row.institutionName"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="action-btn"
+                      [attr.aria-label]="'Delete ' + row.institutionName"
+                      [disabled]="deletingId() === row.id"
+                      (click)="delete(row)"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="5">
+                  @if (searchQuery().trim() || selectedClientTypeId() !== 'all') {
+                    No clients match your filters.
+                  } @else {
+                    No clients yet. Add one to get started.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-cards">
+        @for (row of paginatedRows(); track row.id) {
+          <article class="list-card">
+            <div class="list-card__top">
+              <a class="row-link" [routerLink]="['/clients', row.id, 'edit']">{{ row.institutionName }}</a>
+              <span class="category-badge">{{ row.clientTypeName }}</span>
+            </div>
+            <p class="list-card__meta">{{ row.email || 'No email' }} · {{ phoneDisplay(row) }}</p>
+            <div class="list-card__actions">
+              <a class="outline-btn" [routerLink]="['/clients', row.id, 'edit']">Edit</a>
+              <button
+                type="button"
+                class="outline-btn danger"
+                [disabled]="deletingId() === row.id"
+                (click)="delete(row)"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-cell">No clients match your filters.</p>
+        }
+      </div>
+
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="filteredCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
+    }
+  </div>
+}

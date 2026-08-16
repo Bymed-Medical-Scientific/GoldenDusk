@@ -1,109 +1,161 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
-      <h1 class="page-title">Website content</h1>
-      <p class="page-subtitle">Manage published and draft storefront pages.</p>
+      <h1 class="page-title">Content</h1>
+      <p class="page-subtitle">Browse and manage storefront pages.</p>
     </div>
-    <a pButton routerLink="/content/new" class="p-button-sm">
+    <a class="btn-primary" routerLink="/content/new">
       <i class="pi pi-plus" aria-hidden="true"></i>
-      <span>New page</span>
+      <span>Add Page</span>
     </a>
+  </header>
+
+  <div class="status-tabs" role="tablist" aria-label="Filter by status">
+    @for (tab of statusTabs; track tab.value) {
+      <button
+        type="button"
+        class="status-tab"
+        role="tab"
+        [class.active]="publishFilter() === tab.value"
+        [attr.aria-selected]="publishFilter() === tab.value"
+        (click)="onStatusTabChange(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    }
   </div>
 
-  <div class="toolbar-filters">
-    <span class="search-box">
+  <div class="toolbar-row">
+    <label class="search-bar">
       <i class="pi pi-search" aria-hidden="true"></i>
       <input
-        pInputText
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
-        placeholder="Search by title or slug"
+        placeholder="Search pages..."
         aria-label="Search content pages"
       />
       @if (searchQuery()) {
-        <button pButton type="button" [text]="true" (click)="clearSearch()" aria-label="Clear search">
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       }
-    </span>
+    </label>
   </div>
 
   @if (pageMessage()) {
     <p class="page-message">{{ pageMessage() }}</p>
   }
 
-  <div class="table-wrap">
+  <div class="table-card">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="5" [rowCount]="8" ariaLabel="Loading content pages" />
+      <app-table-skeleton [columnCount]="5" [rowCount]="pageSize()" ariaLabel="Loading content pages" />
     } @else {
-      <p-table [value]="filteredPages()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25, 50]" styleClass="content-table">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Title</th>
-            <th>Slug</th>
-            <th>Last updated</th>
-            <th>Status</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td><div class="cell-strong">{{ row.title }}</div></td>
-            <td><code class="slug">{{ row.slug }}</code></td>
-            <td>{{ lastActivityIso(row) | date: 'medium' }}</td>
-            <td>
-              <p-tag [value]="row.isPublished ? 'Published' : 'Draft'" [severity]="row.isPublished ? 'info' : 'secondary'"></p-tag>
-            </td>
-            <td class="col-actions">
-              <a
-                pButton
-                [text]="true"
-                [rounded]="true"
-                [routerLink]="['/content', row.slug, 'edit']"
-                pTooltip="Edit page"
-                [attr.aria-label]="'Edit page ' + row.title"
-              >
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Slug</th>
+              <th>Status</th>
+              <th>Last updated</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of paginatedPages(); track row.id) {
+              <tr>
+                <td>
+                  <a class="row-link" [routerLink]="['/content', row.slug, 'edit']">{{ row.title }}</a>
+                </td>
+                <td><span class="code-chip">{{ row.slug }}</span></td>
+                <td>
+                  <span class="status-badge" [ngClass]="statusBadgeClass(row.isPublished)">
+                    {{ statusLabel(row.isPublished) }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ lastActivityIso(row) | date: 'medium' }}</td>
+                <td class="col-actions">
+                  <div class="action-group">
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/content', row.slug, 'edit']"
+                      [attr.aria-label]="'Edit page ' + row.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </a>
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/content', row.slug, 'history']"
+                      [attr.aria-label]="'Version history for ' + row.title"
+                    >
+                      <i class="pi pi-history" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="action-btn"
+                      [attr.aria-label]="'Delete page ' + row.title"
+                      (click)="confirmDelete(row)"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="5">
+                  @if (searchQuery().trim() || publishFilter() !== 'all') {
+                    No pages match your filters.
+                  } @else {
+                    No pages yet. Create one to manage storefront content.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-cards">
+        @for (row of paginatedPages(); track row.id) {
+          <article class="list-card">
+            <div class="list-card__top">
+              <a class="row-link" [routerLink]="['/content', row.slug, 'edit']">{{ row.title }}</a>
+              <span class="status-badge" [ngClass]="statusBadgeClass(row.isPublished)">
+                {{ statusLabel(row.isPublished) }}
+              </span>
+            </div>
+            <p class="list-card__meta"><span class="code-chip">{{ row.slug }}</span></p>
+            <div class="list-card__bottom">
+              <span class="date-cell">{{ lastActivityIso(row) | date: 'medium' }}</span>
+            </div>
+            <div class="list-card__actions">
+              <a class="action-btn" [routerLink]="['/content', row.slug, 'edit']" aria-label="Edit">
                 <i class="pi pi-pencil" aria-hidden="true"></i>
               </a>
-              <a
-                pButton
-                [text]="true"
-                [rounded]="true"
-                [routerLink]="['/content', row.slug, 'history']"
-                pTooltip="Version history"
-                [attr.aria-label]="'Version history for ' + row.title"
-              >
+              <a class="action-btn" [routerLink]="['/content', row.slug, 'history']" aria-label="History">
                 <i class="pi pi-history" aria-hidden="true"></i>
               </a>
-              <button
-                pButton
-                type="button"
-                [text]="true"
-                [rounded]="true"
-                pTooltip="Delete page"
-                [attr.aria-label]="'Delete page ' + row.title"
-                (click)="confirmDelete(row)"
-              >
+              <button type="button" class="action-btn" (click)="confirmDelete(row)" aria-label="Delete">
                 <i class="pi pi-trash" aria-hidden="true"></i>
               </button>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="5" class="empty-cell">
-              @if (searchQuery().trim()) {
-                No pages match your search.
-              } @else {
-                No pages yet. Create one to manage storefront content.
-              }
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-cell">No pages match your filters.</p>
+        }
+      </div>
+
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="filteredCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 }

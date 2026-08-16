@@ -22,10 +22,12 @@ import { ApiError } from '@core/api/api-error';
 import {
   CategoryDto,
   CurrencyDefinitionDto,
-  ProductDto,
+  CatalogueItemDto,
   QuotationDetailDto,
   UpsertQuotationItemRequestDto
 } from '@shared/models';
+import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
+import { PageLoadingComponent } from '@shared/components/page-loading/page-loading.component';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -71,8 +73,10 @@ interface QuotationDraftForm {
     CheckboxModule,
     CurrencyPipe,
     FormsModule,
+    GlobalErrorComponent,
     InputNumberModule,
     InputTextModule,
+    PageLoadingComponent,
     RouterLink,
     SelectModule,
     TableModule,
@@ -94,9 +98,8 @@ export class QuotationFormPageComponent implements OnInit {
   protected readonly pageMessage = signal<string | null>(null);
   protected readonly categories = signal<CategoryDto[]>([]);
   protected readonly currencies = signal<CurrencyDefinitionDto[]>([]);
-  protected readonly products = signal<ProductDto[]>([]);
+  protected readonly products = signal<CatalogueItemDto[]>([]);
   protected readonly selectedCategoryId = signal<string>('all');
-  protected readonly selectedClientType = signal<string>('all');
   protected readonly productSearch = signal('');
   protected readonly lines = signal<DraftQuotationLine[]>([]);
   protected readonly removedItemIds = signal<string[]>([]);
@@ -128,16 +131,14 @@ export class QuotationFormPageComponent implements OnInit {
   protected readonly productRows = computed(() => {
     const search = this.productSearch().trim().toLowerCase();
     const categoryId = this.selectedCategoryId();
-    const clientType = this.selectedClientType();
-
     return this.products().filter((p) => {
       const matchesSearch =
         !search ||
         p.name.toLowerCase().includes(search) ||
-        (p.sku ?? '').toLowerCase().includes(search);
+        p.slug.toLowerCase().includes(search) ||
+        (p.brandName ?? '').toLowerCase().includes(search);
       const matchesCategory = categoryId === 'all' || p.categoryId === categoryId;
-      const matchesClientType = clientType === 'all' || (p.clientType ?? 'general') === clientType;
-      return matchesSearch && matchesCategory && matchesClientType;
+      return matchesSearch && matchesCategory;
     });
   });
 
@@ -155,7 +156,7 @@ export class QuotationFormPageComponent implements OnInit {
     forkJoin({
       categories: this.adminApi.getCategories(),
       currencies: this.adminApi.getCurrencies(),
-      products: this.adminApi.getProducts(1, 500, {})
+      products: this.adminApi.getCatalogueItems(1, 500, {})
     })
       .pipe(
         switchMap(({ categories, currencies, products }) => {
@@ -186,7 +187,7 @@ export class QuotationFormPageComponent implements OnInit {
     this.form.update((current) => ({ ...current, [key]: value }));
   }
 
-  protected addProduct(product: ProductDto): void {
+  protected addProduct(product: CatalogueItemDto): void {
     const targetCurrency = this.form().targetCurrencyCode;
     this.lines.update((lines) => [
       ...lines,
@@ -194,11 +195,11 @@ export class QuotationFormPageComponent implements OnInit {
         localId: crypto.randomUUID(),
         productId: product.id,
         productName: product.name,
-        productSku: product.sku ?? '',
+        productSku: '',
         productImageUrl: product.primaryImageUrl ?? '',
         quantity: 1,
-        supplierUnitCost: product.price,
-        sourceCurrencyCode: product.currency || targetCurrency,
+        supplierUnitCost: 0,
+        sourceCurrencyCode: targetCurrency,
         exchangeRateToTarget: 1,
         markupMultiplier: 2.0,
         includeImage: Boolean(product.primaryImageUrl)

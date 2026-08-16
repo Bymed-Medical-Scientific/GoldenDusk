@@ -67,7 +67,10 @@ public class CartItemRemovalPropertyTests
                 var productRepo = sp.GetRequiredService<IProductRepository>();
                 var uow = sp.GetRequiredService<IUnitOfWork>();
 
-                var addHandler = new AddToCartCommandHandler(cartRepo, productRepo, uow);
+                var addHandler = new AddToCartCommandHandler(
+                    cartRepo,
+                    TestCatalogueLineItemResolverHelper.ForProductsOnly(productRepo),
+                    uow);
                 var removeHandler = new RemoveCartItemCommandHandler(cartRepo, uow);
                 var getHandler = new GetCartQueryHandler(cartRepo);
 

@@ -56,8 +56,6 @@ describe("Property 31: sitemap completeness", () => {
                 categoryName: "Category",
                 price: 10,
                 currency: "USD",
-                inventoryCount: 10,
-                lowStockThreshold: 2,
                 isAvailable: true,
               })),
               pageNumber,

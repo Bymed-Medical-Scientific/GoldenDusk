@@ -68,7 +68,10 @@ public class CartAdditionPersistencePropertyTests
                 var productRepo = sp.GetRequiredService<IProductRepository>();
                 var uow = sp.GetRequiredService<IUnitOfWork>();
 
-                var handler = new AddToCartCommandHandler(cartRepo, productRepo, uow);
+                var handler = new AddToCartCommandHandler(
+                    cartRepo,
+                    TestCatalogueLineItemResolverHelper.ForProductsOnly(productRepo),
+                    uow);
 
                 var cmd = new AddToCartCommand(
                     UserId: isGuest ? null : userId,

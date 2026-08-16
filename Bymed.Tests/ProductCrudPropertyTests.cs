@@ -32,18 +32,18 @@ public class ProductCrudPropertyTests
         var request = new CreateProductRequest
         {
             Name = "Infusion Pump",
-            Slug = "infusion-pump",
             Description = "High-precision infusion pump",
             CategoryId = Guid.NewGuid(),
             Price = 1000m,
-            InventoryCount = 10,
-            LowStockThreshold = 2,
-            Sku = "SKU-123",
             Currency = "USD",
             Specifications = new Dictionary<string, string> { ["flow-rate"] = "0.1-1200 ml/h" }
         };
 
-        var handler = new CreateProductCommandHandler(repo, unitOfWork, TestCatalogCacheHelper.Create());
+        var handler = new CreateProductCommandHandler(
+            repo,
+            new ProductSlugGenerator(repo),
+            unitOfWork,
+            TestCatalogCacheHelper.Create());
         var result = await handler.Handle(new CreateProductCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -63,9 +63,7 @@ public class ProductCrudPropertyTests
             "old-slug",
             "Old description",
             Guid.NewGuid(),
-            500m,
-            inventoryCount: 5,
-            lowStockThreshold: 1);
+            500m);
 
         // Handlers rely on the Category navigation when constructing DTOs.
         // Tests create Product instances directly, so we wire the navigation via reflection.
@@ -81,11 +79,9 @@ public class ProductCrudPropertyTests
         var request = new UpdateProductRequest
         {
             Name = "Updated Name",
-            Slug = "updated-slug",
             Description = "Updated description",
             CategoryId = Guid.NewGuid(),
             Price = 750m,
-            LowStockThreshold = 3,
             Sku = "SKU-456",
             Specifications = new Dictionary<string, string> { ["updated"] = "true" }
         };
@@ -96,9 +92,9 @@ public class ProductCrudPropertyTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be("Updated Name");
-        result.Value.Slug.Should().Be("updated-slug");
+        result.Value.Slug.Should().Be("old-slug");
         existing.Name.Should().Be("Updated Name");
-        existing.Slug.Should().Be("updated-slug");
+        existing.Slug.Should().Be("old-slug");
         repo.Received(1).Update(existing);
         unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -125,9 +121,7 @@ public class ProductCrudPropertyTests
             "to-delete",
             "Desc",
             Guid.NewGuid(),
-            100m,
-            inventoryCount: 1,
-            lowStockThreshold: 0);
+            100m);
 
         var repo = CreateProductRepository();
         repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(product);

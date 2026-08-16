@@ -2,6 +2,7 @@
 
 import {
   SUPPORTED_CURRENCY_CODES,
+  SUPPORTED_CURRENCY_LABELS,
   type SupportedCurrencyCode,
 } from "@/lib/supported-currencies";
 import { useCurrency } from "./currency-context";
@@ -107,7 +108,9 @@ export function CurrencySelector({
       >
         {SUPPORTED_CURRENCY_CODES.map((code) => (
           <option key={code} value={code}>
-            {code}
+            {variant === "drawer"
+              ? SUPPORTED_CURRENCY_LABELS[code]
+              : code}
           </option>
         ))}
       </select>

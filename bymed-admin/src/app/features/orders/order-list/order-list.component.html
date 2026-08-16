@@ -1,47 +1,60 @@
 @if (errorMessage()) {
   <app-global-error [message]="errorMessage() ?? ''" />
 } @else {
-  <div class="page-header">
+  <header class="page-header">
     <div>
       <h1 class="page-title">Orders</h1>
-      <p class="page-subtitle">Review and filter customer orders.</p>
+      <p class="page-subtitle">Manage and track all customer orders.</p>
     </div>
+  </header>
+
+  <div class="status-tabs" role="tablist" aria-label="Filter by status">
+    @for (tab of statusTabs; track tab.value) {
+      <button
+        type="button"
+        class="status-tab"
+        role="tab"
+        [class.active]="statusFilter() === tab.value"
+        [attr.aria-selected]="statusFilter() === tab.value"
+        (click)="onStatusTabChange(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    }
   </div>
 
-  <div class="toolbar-filters">
-    <span class="search-box">
+  <div class="toolbar-row">
+    <label class="search-bar">
       <i class="pi pi-search" aria-hidden="true"></i>
       <input
-        pInputText
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
-        placeholder="Order number, customer name, or email"
+        placeholder="Search orders..."
         aria-label="Search orders"
       />
       @if (searchQuery()) {
-        <button pButton type="button" [text]="true" (click)="clearSearch()" aria-label="Clear search">
+        <button type="button" class="search-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       }
-    </span>
+    </label>
 
-    <p-select
-      [options]="statusOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="statusFilter()"
-      (ngModelChange)="onStatusChange($event)"
-      placeholder="Status"
-      appendTo="body"
-    />
-
-    <input pInputText type="date" [ngModel]="dateFrom()" (ngModelChange)="onDateFromChange($event)" aria-label="Filter from date" />
-    <input pInputText type="date" [ngModel]="dateTo()" (ngModelChange)="onDateToChange($event)" aria-label="Filter to date" />
-
-    <div class="filter-actions">
-      <button pButton type="button" (click)="exportToCsv()" [disabled]="isExporting()" [label]="isExporting() ? 'Exporting...' : 'Export CSV'" icon="pi pi-download"></button>
-      <button pButton type="button" label="Clear filters" severity="secondary" [outlined]="true" (click)="clearFilters()"></button>
+    <div class="toolbar-actions">
+      <button type="button" class="outline-btn" aria-label="Column settings">
+        <i class="pi pi-list" aria-hidden="true"></i>
+        <span>Columns</span>
+      </button>
+      <button
+        type="button"
+        class="outline-btn"
+        (click)="exportToCsv()"
+        [disabled]="isExporting()"
+        aria-label="Export orders"
+      >
+        <i class="pi pi-download" aria-hidden="true"></i>
+        <span>{{ isExporting() ? 'Exporting...' : 'Export' }}</span>
+      </button>
     </div>
   </div>
 
@@ -53,54 +66,131 @@
     <p-progressBar class="export-progress" mode="indeterminate" aria-label="Export in progress" />
   }
 
-  <div class="table-wrap">
+  <div class="table-card">
     @if (isLoading()) {
-      <app-table-skeleton [columnCount]="6" [rowCount]="pageSize()" ariaLabel="Loading orders" />
+      <app-table-skeleton [columnCount]="8" [rowCount]="pageSize()" ariaLabel="Loading orders" />
     } @else {
-      <p-table [value]="items()" styleClass="order-table desktop-table" [rowHover]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Order</th>
-            <th>Customer</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Placed</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td><a class="order-link cell-strong" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a></td>
-            <td>
-              <div class="cell-strong">{{ row.customerName }}</div>
-              <div class="cell-subtext">{{ row.customerEmail }}</div>
-            </td>
-            <td>{{ row.total | currency: row.currency:'symbol':'1.2-2' }}</td>
-            <td><span class="chip" [ngClass]="orderStatusChipClass(row.status)">{{ orderStatusLabel(row.status) }}</span></td>
-            <td>{{ row.creationTime | date: 'medium' }}</td>
-            <td class="col-actions">
-              <a pButton [routerLink]="['/orders', row.id]" severity="secondary" [outlined]="true" icon="pi pi-eye" label="View"></a>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="empty-cell" [attr.colspan]="6">No orders match your filters.</td>
-          </tr>
-        </ng-template>
-      </p-table>
+      <div class="table-scroll">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input
+                  type="checkbox"
+                  [checked]="allSelected()"
+                  (change)="toggleSelectAll($any($event.target).checked)"
+                  aria-label="Select all orders"
+                />
+              </th>
+              <th>
+                Order
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Customer
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>Product</th>
+              <th>
+                Status
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>
+                Date
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th>Trend</th>
+              <th>
+                Amount
+                <i class="pi pi-sort-alt sort-icon" aria-hidden="true"></i>
+              </th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of items(); track row.id) {
+              <tr>
+                <td class="col-check">
+                  <input
+                    type="checkbox"
+                    [checked]="isRowSelected(row.id)"
+                    (change)="toggleRowSelection(row.id, $any($event.target).checked)"
+                    [attr.aria-label]="'Select order ' + row.orderNumber"
+                  />
+                </td>
+                <td>
+                  <a class="order-link" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a>
+                </td>
+                <td>
+                  <div class="customer-cell">
+                    <span class="customer-avatar" aria-hidden="true">{{ customerInitials(row.customerName) }}</span>
+                    <div>
+                      <div class="customer-name">{{ row.customerName }}</div>
+                      <div class="customer-email">{{ row.customerEmail }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="product-cell">{{ primaryProduct(row) }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="statusBadgeClass(row.status)">
+                    {{ orderStatusLabel(row.status) }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ row.creationTime | date: 'MMM d, y' }}</td>
+                <td>
+                  <svg
+                    class="sparkline"
+                    [ngClass]="sparklineClass(row.status)"
+                    viewBox="0 0 64 24"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      [attr.d]="sparklinePath(row.status)"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </td>
+                <td class="amount-cell">{{ row.total | currency: row.currency:'symbol':'1.2-2' }}</td>
+                <td class="col-actions">
+                  <a class="action-btn" [routerLink]="['/orders', row.id]" [attr.aria-label]="'View order ' + row.orderNumber">
+                    <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                  </a>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="9">No orders match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
       <div class="mobile-cards">
         @for (row of items(); track row.id) {
           <article class="order-card">
-            <h3 class="card-title"><a class="order-link" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a></h3>
-            <p class="card-row"><span>Customer:</span> {{ row.customerName }}</p>
-            <p class="card-row"><span>Email:</span> {{ row.customerEmail }}</p>
-            <p class="card-row"><span>Total:</span> {{ row.total | currency: row.currency:'symbol':'1.2-2' }}</p>
-            <p class="card-row"><span>Status:</span> {{ orderStatusLabel(row.status) }}</p>
-            <p class="card-row"><span>Placed:</span> {{ row.creationTime | date: 'medium' }}</p>
-            <div class="card-actions">
-              <a pButton [routerLink]="['/orders', row.id]" severity="secondary" [outlined]="true" icon="pi pi-eye" label="View"></a>
+            <div class="card-top">
+              <a class="order-link" [routerLink]="['/orders', row.id]">{{ row.orderNumber }}</a>
+              <span class="status-badge" [ngClass]="statusBadgeClass(row.status)">
+                {{ orderStatusLabel(row.status) }}
+              </span>
+            </div>
+            <div class="customer-cell">
+              <span class="customer-avatar" aria-hidden="true">{{ customerInitials(row.customerName) }}</span>
+              <div>
+                <div class="customer-name">{{ row.customerName }}</div>
+                <div class="customer-email">{{ row.customerEmail }}</div>
+              </div>
+            </div>
+            <p class="card-meta">{{ primaryProduct(row) }}</p>
+            <div class="card-bottom">
+              <span>{{ row.creationTime | date: 'MMM d, y' }}</span>
+              <strong>{{ row.total | currency: row.currency:'symbol':'1.2-2' }}</strong>
             </div>
           </article>
         } @empty {
@@ -108,13 +198,13 @@
         }
       </div>
 
-      <p-paginator
-        [first]="(pageNumber() - 1) * pageSize()"
-        [rows]="pageSize()"
-        [totalRecords]="totalCount()"
-        [rowsPerPageOptions]="pageSizeOptions"
-        (onPageChange)="onPageChange($event)"
-      ></p-paginator>
+      <app-table-pagination
+        [pageNumber]="pageNumber()"
+        [pageSize]="pageSize()"
+        [totalCount]="totalCount()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 }

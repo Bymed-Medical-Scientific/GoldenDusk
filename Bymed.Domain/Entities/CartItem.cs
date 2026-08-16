@@ -39,5 +39,12 @@ public class CartItem : BaseEntity
         Quantity = quantity;
     }
 
+    internal void SetPriceAtAdd(decimal priceAtAdd)
+    {
+        if (priceAtAdd < 0)
+            throw new ArgumentException("Price cannot be negative.", nameof(priceAtAdd));
+        PriceAtAdd = priceAtAdd;
+    }
+
     public decimal GetLineTotal() => Quantity * PriceAtAdd;
 }

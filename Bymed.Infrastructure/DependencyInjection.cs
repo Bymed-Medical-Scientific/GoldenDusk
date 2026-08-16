@@ -1,4 +1,6 @@
 using Bymed.Application.Auth;
+using Bymed.Application.Orders;
+using Bymed.Infrastructure.Orders;
 using Bymed.Application.Caching;
 using Bymed.Application.Currency;
 using Bymed.Application.Files;
@@ -50,6 +52,7 @@ public static class DependencyInjection
         services.Configure<PayNowOptions>(configuration.GetSection(PayNowOptions.SectionName));
         services.AddHttpClient<PayNowPaymentService>();
         services.AddScoped<IPaymentService, PayNowPaymentService>();
+        services.AddScoped<IOrderNotificationService, OrderNotificationService>();
 
         services.Configure<CurrencyOptions>(configuration.GetSection(CurrencyOptions.SectionName));
         services.AddHttpClient<CurrencyService>();
@@ -63,11 +66,13 @@ public static class DependencyInjection
     {
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductImageRepository, ProductImageRepository>();
+        services.AddScoped<ICatalogueItemRepository, CatalogueItemRepository>();
+        services.AddScoped<ICatalogueItemImageRepository, CatalogueItemImageRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IBrandRepository, BrandRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IInventoryLogRepository, InventoryLogRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IPageContentRepository, PageContentRepository>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
@@ -86,6 +91,7 @@ public static class DependencyInjection
             services.AddDistributedMemoryCache();
 
         services.AddSingleton<ICatalogReadCache, DistributedCatalogReadCache>();
+        services.AddSingleton<ICatalogueReadCache, DistributedCatalogueReadCache>();
         return services;
     }
 

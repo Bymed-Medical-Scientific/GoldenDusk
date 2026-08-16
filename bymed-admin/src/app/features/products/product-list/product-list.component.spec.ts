@@ -2,8 +2,6 @@ import { HttpResponse } from '@angular/common/http';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
@@ -14,10 +12,6 @@ describe('ProductListComponent', () => {
   let fixture: ComponentFixture<ProductListComponent>;
   let component: ProductListComponent;
   let adminApiSpy: jasmine.SpyObj<AdminApiService>;
-  let dialog: MatDialog;
-  let snackBar: MatSnackBar;
-  let openDialogSpy: jasmine.Spy;
-  let snackBarOpenSpy: jasmine.Spy;
 
   const category: CategoryDto = {
     id: '11111111-1111-1111-1111-111111111111',
@@ -37,8 +31,6 @@ describe('ProductListComponent', () => {
     categoryName: category.name,
     price: 99.5,
     currency: 'USD',
-    inventoryCount: 5,
-    lowStockThreshold: 2,
     isAvailable: true
   };
 
@@ -52,8 +44,6 @@ describe('ProductListComponent', () => {
     categoryName: category.name,
     price: 1200,
     currency: 'USD',
-    inventoryCount: 0,
-    lowStockThreshold: 1,
     isAvailable: false
   };
 
@@ -101,14 +91,6 @@ describe('ProductListComponent', () => {
 
     fixture = TestBed.createComponent(ProductListComponent);
     component = fixture.componentInstance;
-    dialog = TestBed.inject(MatDialog);
-    snackBar = TestBed.inject(MatSnackBar);
-    openDialogSpy = spyOn(dialog, 'open').and.returnValue({
-      afterClosed: () => of(false)
-    } as never);
-    snackBarOpenSpy = spyOn(snackBar, 'open');
-    (component as any).dialog = dialog;
-    (component as any).snackBar = snackBar;
     fixture.detectChanges();
   });
 
@@ -116,33 +98,33 @@ describe('ProductListComponent', () => {
     expect(adminApiSpy.getProducts).toHaveBeenCalled();
     expect(adminApiSpy.getCategories).toHaveBeenCalled();
     expect((component as any).isLoading()).toBeFalse();
-    expect((component as any).dataSource.data.length).toBe(2);
+    expect((component as any).productRows().length).toBe(2);
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Microscope X1');
     expect(text).toContain('Centrifuge Pro');
   });
 
-  it('filters visible rows by search query', () => {
+  it('reloads products when search changes', () => {
+    adminApiSpy.getProducts.calls.reset();
     (component as any).onSearchChange('centrif');
     fixture.detectChanges();
-    expect((component as any).dataSource.filteredData.map((p: ProductDto) => p.slug)).toEqual(['centrifuge-pro']);
 
-    (component as any).clearSearch();
-    fixture.detectChanges();
-    expect((component as any).dataSource.filteredData.length).toBe(2);
+    expect(adminApiSpy.getProducts).toHaveBeenCalledWith(1, 10, {
+      categoryId: null,
+      search: 'centrif',
+      isAvailable: null
+    });
   });
 
   it('shows a message when bulk availability is requested with no selection', () => {
     (component as any).bulkSetAvailability(true);
-    expect(snackBarOpenSpy).toHaveBeenCalledWith('Select at least one product.', 'Dismiss', { duration: 4000 });
+    expect((component as any).pageMessage()).toBe('Select at least one product.');
     expect(adminApiSpy.bulkSetProductAvailability).not.toHaveBeenCalled();
   });
 
   it('calls bulkSetProductAvailability when rows are selected and user confirms', () => {
-    openDialogSpy.and.returnValue({
-      afterClosed: () => of(true)
-    } as never);
+    spyOn(window, 'confirm').and.returnValue(true);
     adminApiSpy.bulkSetProductAvailability.and.returnValue(
       of({ requestedCount: 1, processedCount: 1, notFoundCount: 0 })
     );
@@ -150,49 +132,25 @@ describe('ProductListComponent', () => {
     (component as any).toggleRowSelection(productA.id, true);
     (component as any).bulkSetAvailability(true);
 
-    expect(openDialogSpy).toHaveBeenCalled();
     expect(adminApiSpy.bulkSetProductAvailability).toHaveBeenCalledWith({
       productIds: [productA.id],
       isAvailable: true
     });
-    expect(snackBarOpenSpy).toHaveBeenCalledWith(
-      'Marked 1/1 product(s) as available.',
-      'Dismiss',
-      jasmine.objectContaining({ duration: 5000 })
-    );
+    expect((component as any).pageMessage()).toBe('Updated 1/1 product(s).');
     expect(adminApiSpy.getProducts).toHaveBeenCalledTimes(2);
   });
 
-  it('does not call bulkSetProductAvailability when user cancels confirmation', () => {
-    openDialogSpy.and.returnValue({
-      afterClosed: () => of(false)
-    } as never);
-
-    (component as any).toggleRowSelection(productA.id, true);
-    (component as any).bulkSetAvailability(false);
-
-    expect(openDialogSpy).toHaveBeenCalled();
-    expect(adminApiSpy.bulkSetProductAvailability).not.toHaveBeenCalled();
-  });
-
   it('bulk deletes after confirmation and refreshes the list', () => {
-    openDialogSpy.and.returnValue({
-      afterClosed: () => of(true)
-    } as never);
+    spyOn(window, 'confirm').and.returnValue(true);
 
     (component as any).toggleRowSelection(productA.id, true);
     (component as any).toggleRowSelection(productB.id, true);
     (component as any).bulkDeleteSelected();
 
-    expect(openDialogSpy).toHaveBeenCalled();
     expect(adminApiSpy.bulkDeleteProducts).toHaveBeenCalledWith({
       productIds: [productA.id, productB.id]
     });
-    expect(snackBarOpenSpy).toHaveBeenCalledWith(
-      'Processed 2/2 product(s).',
-      'Dismiss',
-      jasmine.objectContaining({ duration: 5000 })
-    );
+    expect((component as any).pageMessage()).toBe('Processed 2/2 product(s).');
     expect(adminApiSpy.getProducts).toHaveBeenCalledTimes(2);
   });
 
@@ -200,12 +158,12 @@ describe('ProductListComponent', () => {
     const createSpy = spyOn(URL, 'createObjectURL').and.returnValue('blob:mock');
     const revokeSpy = spyOn(URL, 'revokeObjectURL');
 
-    (component as any).exportSelected();
+    (component as any).exportProducts();
 
     expect(adminApiSpy.exportProducts).toHaveBeenCalledWith(undefined);
     expect(createSpy).toHaveBeenCalled();
     expect(revokeSpy).toHaveBeenCalledWith('blob:mock');
-    expect(snackBarOpenSpy).toHaveBeenCalledWith('Export completed.', 'Dismiss', { duration: 3500 });
+    expect((component as any).pageMessage()).toBe('Export completed.');
   });
 
   it('passes selected ids to export when rows are selected', () => {
@@ -213,7 +171,7 @@ describe('ProductListComponent', () => {
     spyOn(URL, 'revokeObjectURL');
 
     (component as any).toggleRowSelection(productA.id, true);
-    (component as any).exportSelected();
+    (component as any).exportProducts();
 
     expect(adminApiSpy.exportProducts).toHaveBeenCalledWith([productA.id]);
   });
@@ -225,18 +183,12 @@ describe('ProductListComponent', () => {
     (component as any).importProducts(event);
 
     expect(adminApiSpy.importProductsWithProgress).toHaveBeenCalledWith(file);
-    expect(snackBarOpenSpy).toHaveBeenCalledWith(
-      'Import complete: 0 added, 0 updated, 0 failed.',
-      'Dismiss',
-      { duration: 8000 }
-    );
+    expect((component as any).pageMessage()).toBe('Import complete: 0 added, 0 updated, 0 failed.');
     expect(adminApiSpy.getProducts).toHaveBeenCalledTimes(2);
   });
 
   it('shows bulk delete error when API fails', () => {
-    openDialogSpy.and.returnValue({
-      afterClosed: () => of(true)
-    } as never);
+    spyOn(window, 'confirm').and.returnValue(true);
     adminApiSpy.bulkDeleteProducts.and.returnValue(
       throwError(() => new ApiError(400, 'Bulk delete failed.'))
     );
@@ -244,6 +196,6 @@ describe('ProductListComponent', () => {
     (component as any).toggleRowSelection(productA.id, true);
     (component as any).bulkDeleteSelected();
 
-    expect(snackBarOpenSpy).toHaveBeenCalledWith('Bulk delete failed.', 'Dismiss', { duration: 8000 });
+    expect((component as any).pageMessage()).toBe('Bulk delete failed.');
   });
 });

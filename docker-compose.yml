@@ -78,6 +78,13 @@ services:
       Email__MarketingSmtpUsername:   ${EMAIL_MARKETING_SMTP_USER:-${Email__MarketingSmtpUsername:-}}
       Email__MarketingSmtpPassword:   ${EMAIL_MARKETING_SMTP_PASSWORD:-${Email__MarketingSmtpPassword:-}}
 
+      # PayNow (from .env — see PAYNOW_* in .env.example)
+      PayNow__IntegrationId:            ${PAYNOW_INTEGRATION_ID:-}
+      PayNow__IntegrationKey:           ${PAYNOW_INTEGRATION_KEY:-}
+      PayNow__InitiateTransactionUrl:   ${PAYNOW_INITIATE_TRANSACTION_URL:-https://www.paynow.co.zw/interface/initiatetransaction}
+      PayNow__StorefrontBaseUrl:        ${PAYNOW_STOREFRONT_BASE_URL:-${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}}
+      PayNow__ResultUrl:                ${PAYNOW_RESULT_URL:-}
+
       Marketing__SendBatchSize:                        ${MARKETING_SEND_BATCH_SIZE:-25}
       Marketing__MaxAttachmentsPerCampaign:            ${MARKETING_MAX_ATTACHMENTS:-5}
       Marketing__MaxAttachmentBytesPerFile:            ${MARKETING_MAX_ATTACHMENT_BYTES:-10485760}

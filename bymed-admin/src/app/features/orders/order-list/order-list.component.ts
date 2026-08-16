@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
@@ -8,31 +8,28 @@ import { ApiError } from '@core/api/api-error';
 import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { TableSkeletonComponent } from '@shared/components/table-skeleton/table-skeleton.component';
 import { OrderSummaryDto } from '@shared/models';
-import { orderStatusChipClass, orderStatusLabel } from '@shared/utils/order-status';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { normalizeOrderStatus, orderStatusLabel } from '@shared/utils/order-status';
+import { TablePaginationComponent, TablePageChange } from '@shared/components/table-pagination/table-pagination.component';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
 
 type StatusFilter = 'all' | '0' | '1' | '2' | '3' | '4';
+
+interface StatusTab {
+  readonly label: string;
+  readonly value: StatusFilter;
+}
 
 @Component({
   selector: 'app-order-list',
   standalone: true,
   imports: [
-    ButtonModule,
     CurrencyPipe,
     DatePipe,
     FormsModule,
     NgClass,
     GlobalErrorComponent,
-    InputTextModule,
-    PaginatorModule,
+    TablePaginationComponent,
     ProgressBarModule,
-    SelectModule,
-    TableModule,
     TableSkeletonComponent,
     RouterLink
   ],
@@ -48,24 +45,26 @@ export class OrderListComponent implements OnInit {
   protected readonly pageMessage = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly dateFrom = signal<string>('');
-  protected readonly dateTo = signal<string>('');
   protected readonly items = signal<OrderSummaryDto[]>([]);
   protected readonly totalCount = signal(0);
   protected readonly pageNumber = signal(1);
   protected readonly pageSize = signal(10);
   protected readonly pageSizeOptions = [10, 25, 50];
-  protected readonly statusOptions: Array<{ label: string; value: StatusFilter }> = [
-    { label: 'All statuses', value: 'all' },
+  protected readonly selectedIds = signal<ReadonlySet<string>>(new Set());
+  protected readonly statusTabs: readonly StatusTab[] = [
+    { label: 'All', value: 'all' },
     { label: 'Pending', value: '0' },
     { label: 'Processing', value: '1' },
     { label: 'Shipped', value: '2' },
     { label: 'Delivered', value: '3' },
     { label: 'Cancelled', value: '4' }
   ];
-
+  protected readonly allSelected = computed(() => {
+    const rows = this.items();
+    const selected = this.selectedIds();
+    return rows.length > 0 && rows.every((row) => selected.has(row.id));
+  });
   protected readonly orderStatusLabel = orderStatusLabel;
-  protected readonly orderStatusChipClass = orderStatusChipClass;
 
   public ngOnInit(): void {
     this.loadPage();
@@ -74,57 +73,55 @@ export class OrderListComponent implements OnInit {
   protected onSearchChange(value: string): void {
     this.searchQuery.set(value);
     this.pageNumber.set(1);
+    this.selectedIds.set(new Set());
     this.loadPage();
   }
 
   protected clearSearch(): void {
-    this.searchQuery.set('');
-    this.pageNumber.set(1);
-    this.loadPage();
+    this.onSearchChange('');
   }
 
-  protected onStatusChange(value: StatusFilter): void {
+  protected onStatusTabChange(value: StatusFilter): void {
     this.statusFilter.set(value);
     this.pageNumber.set(1);
+    this.selectedIds.set(new Set());
     this.loadPage();
   }
 
-  protected onDateFromChange(value: string): void {
-    this.dateFrom.set(value ?? '');
-    this.pageNumber.set(1);
-    this.loadPage();
+  protected toggleSelectAll(checked: boolean): void {
+    if (!checked) {
+      this.selectedIds.set(new Set());
+      return;
+    }
+
+    this.selectedIds.set(new Set(this.items().map((row) => row.id)));
   }
 
-  protected onDateToChange(value: string): void {
-    this.dateTo.set(value ?? '');
-    this.pageNumber.set(1);
-    this.loadPage();
+  protected toggleRowSelection(rowId: string, checked: boolean): void {
+    const next = new Set(this.selectedIds());
+    if (checked) {
+      next.add(rowId);
+    } else {
+      next.delete(rowId);
+    }
+    this.selectedIds.set(next);
   }
 
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.statusFilter.set('all');
-    this.dateFrom.set('');
-    this.dateTo.set('');
-    this.pageNumber.set(1);
-    this.loadPage();
+  protected isRowSelected(rowId: string): boolean {
+    return this.selectedIds().has(rowId);
   }
 
   protected exportToCsv(): void {
-    const parsedStatus =
-      this.statusFilter() === 'all' ? null : Number.parseInt(this.statusFilter(), 10);
-    const statusParam =
-      parsedStatus === null || Number.isNaN(parsedStatus) ? null : parsedStatus;
-    const dateFrom = this.dateFrom().trim() || null;
-    const dateTo = this.dateTo().trim() || null;
+    const parsedStatus = this.statusFilter() === 'all' ? null : Number.parseInt(this.statusFilter(), 10);
+    const statusParam = parsedStatus === null || Number.isNaN(parsedStatus) ? null : parsedStatus;
     const search = this.searchQuery().trim() || null;
 
     this.isExporting.set(true);
     this.adminApi
       .exportOrders({
         status: statusParam,
-        dateFrom,
-        dateTo,
+        dateFrom: null,
+        dateTo: null,
         search
       })
       .pipe(
@@ -146,29 +143,94 @@ export class OrderListComponent implements OnInit {
       });
   }
 
-  protected onPageChange(event: PaginatorState): void {
-    this.pageNumber.set((event.page ?? 0) + 1);
-    this.pageSize.set(event.rows ?? this.pageSize());
+  protected onPageChange(event: TablePageChange): void {
+    this.pageNumber.set(event.pageNumber);
+    this.pageSize.set(event.pageSize);
+    this.selectedIds.set(new Set());
     this.loadPage();
+  }
+
+  protected customerInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  protected primaryProduct(row: OrderSummaryDto): string {
+    if (row.items.length === 0) {
+      return '—';
+    }
+    if (row.items.length === 1) {
+      return row.items[0].productName;
+    }
+    return `${row.items[0].productName} +${row.items.length - 1} more`;
+  }
+
+  protected statusBadgeClass(status: number | string): string {
+    switch (normalizeOrderStatus(status)) {
+      case 3:
+        return 'status-completed';
+      case 1:
+        return 'status-processing';
+      case 0:
+        return 'status-pending';
+      case 4:
+        return 'status-cancelled';
+      case 2:
+        return 'status-shipped';
+      default:
+        return 'status-default';
+    }
+  }
+
+  protected sparklinePath(status: number | string): string {
+    const normalized = normalizeOrderStatus(status);
+    const positive = [4, 12, 8, 16, 10, 18, 14, 22];
+    const negative = [22, 18, 16, 14, 12, 10, 8, 4];
+    const flat = [12, 12, 13, 12, 13, 12, 13, 12];
+    const values = normalized === 4 ? negative : normalized === 0 ? flat : positive;
+    const width = 64;
+    const height = 24;
+    const max = Math.max(...values, 1);
+    const step = width / (values.length - 1);
+
+    return values
+      .map((value, index) => {
+        const x = index * step;
+        const y = height - (value / max) * (height - 4) - 2;
+        return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+  }
+
+  protected sparklineClass(status: number): string {
+    if (status === 4) {
+      return 'sparkline-down';
+    }
+    if (status === 0) {
+      return 'sparkline-flat';
+    }
+    return 'sparkline-up';
   }
 
   private loadPage(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const parsedStatus =
-      this.statusFilter() === 'all' ? null : Number.parseInt(this.statusFilter(), 10);
-    const statusParam =
-      parsedStatus === null || Number.isNaN(parsedStatus) ? null : parsedStatus;
-    const dateFrom = this.dateFrom().trim() || null;
-    const dateTo = this.dateTo().trim() || null;
+    const parsedStatus = this.statusFilter() === 'all' ? null : Number.parseInt(this.statusFilter(), 10);
+    const statusParam = parsedStatus === null || Number.isNaN(parsedStatus) ? null : parsedStatus;
     const search = this.searchQuery().trim() || null;
 
     this.adminApi
       .getOrders(this.pageNumber(), this.pageSize(), {
         status: statusParam,
-        dateFrom,
-        dateTo,
+        dateFrom: null,
+        dateTo: null,
         search
       })
       .pipe(

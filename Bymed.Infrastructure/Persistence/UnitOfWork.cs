@@ -1,3 +1,4 @@
+using Bymed.Application.Common;
 using Bymed.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,16 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateException ex) when (DbUpdateExceptionHelper.IsOrderIdempotencyKeyConflict(ex))
+        {
+            throw new IdempotencyConflictException(
+                "An order with the same idempotency key was created concurrently.",
+                ex);
+        }
     }
 
     public void ClearTrackedChanges()

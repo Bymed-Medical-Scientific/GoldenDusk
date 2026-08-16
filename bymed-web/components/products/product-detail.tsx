@@ -108,21 +108,22 @@ export function ProductDetail({
             </p>
           ) : (
             <p className="mt-4 break-words text-base font-medium text-muted-foreground sm:text-lg">
-              Login with an approved account to view pricing.
+              Price on request
             </p>
           )}
 
-          <div className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
-            <AddToCartButton
-              productId={product.id}
-              productName={product.name}
-              productPrice={product.price}
-              productCurrency={product.currency}
-              productImageUrl={product.primaryImageUrl}
-              disabled={!product.isAvailable}
-              maxQuantity={product.inventoryCount}
-            />
-          </div>
+          {product.price > 0 ? (
+            <div className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-8">
+              <AddToCartButton
+                productId={product.id}
+                productName={product.name}
+                productPrice={product.price}
+                productCurrency={product.currency}
+                productImageUrl={product.primaryImageUrl}
+                disabled={!product.isAvailable}
+              />
+            </div>
+          ) : null}
 
           {specEntries.length > 0 ? (
             <div className="mt-8 sm:mt-10">

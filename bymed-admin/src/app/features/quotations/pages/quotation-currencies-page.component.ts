@@ -5,6 +5,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ApiError } from '@core/api/api-error';
 import { CurrencyDefinitionDto } from '@shared/models';
+import { GlobalErrorComponent } from '@shared/components/global-error/global-error.component';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -18,6 +19,7 @@ import { TableModule } from 'primeng/table';
     ButtonModule,
     CheckboxModule,
     FormsModule,
+    GlobalErrorComponent,
     InputNumberModule,
     InputTextModule,
     RouterLink,

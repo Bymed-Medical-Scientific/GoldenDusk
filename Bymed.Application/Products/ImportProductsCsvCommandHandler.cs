@@ -46,9 +46,9 @@ public sealed class ImportProductsCsvCommandHandler : IRequestHandler<ImportProd
         {
             var lineNumber = i + 1;
             var columns = ParseCsvLine(lines[i]);
-            if (columns.Count < 10)
+            if (columns.Count < 8)
             {
-                errors.Add($"Line {lineNumber}: Expected at least 10 columns.");
+                errors.Add($"Line {lineNumber}: Expected at least 8 columns.");
                 continue;
             }
 
@@ -60,10 +60,8 @@ public sealed class ImportProductsCsvCommandHandler : IRequestHandler<ImportProd
                 var categoryId = Guid.Parse(columns[3]);
                 var price = decimal.Parse(columns[4], CultureInfo.InvariantCulture);
                 var currency = columns[5];
-                var inventoryCount = int.Parse(columns[6], CultureInfo.InvariantCulture);
-                var lowStockThreshold = int.Parse(columns[7], CultureInfo.InvariantCulture);
-                var isAvailable = bool.Parse(columns[8]);
-                var sku = string.IsNullOrWhiteSpace(columns[9]) ? null : columns[9];
+                var isAvailable = bool.Parse(columns[6]);
+                var sku = string.IsNullOrWhiteSpace(columns[7]) ? null : columns[7];
 
                 var existing = await _productRepository.GetBySlugAsync(slug, cancellationToken).ConfigureAwait(false);
                 if (existing is null)
@@ -74,10 +72,8 @@ public sealed class ImportProductsCsvCommandHandler : IRequestHandler<ImportProd
                         description,
                         categoryId,
                         price,
-                        inventoryCount,
-                        lowStockThreshold,
                         sku,
-                        currency);
+                        currency: currency);
 
                     product.SetAvailability(isAvailable);
                     _productRepository.Add(product);
@@ -91,10 +87,7 @@ public sealed class ImportProductsCsvCommandHandler : IRequestHandler<ImportProd
                         description,
                         categoryId,
                         price,
-                        lowStockThreshold,
                         sku);
-
-                    existing.UpdateInventory(inventoryCount, "CSV import", "admin-import");
                     existing.SetAvailability(isAvailable);
                     _productRepository.Update(existing);
                     updated++;

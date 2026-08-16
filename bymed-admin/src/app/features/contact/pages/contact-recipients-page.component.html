@@ -1,68 +1,95 @@
-<section class="contact-page">
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
   <header class="page-header">
     <div>
-      <h2>Contact notification recipients</h2>
-      <p>Manage who receives contact-us emails (primary recipients and CC).</p>
+      <h1 class="page-title">Contact Recipients</h1>
+      <p class="page-subtitle">Manage who receives contact-us emails.</p>
     </div>
-    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+    <button type="button" class="outline-btn" (click)="refresh()" aria-label="Refresh recipients">
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+      <span>Refresh</span>
+    </button>
   </header>
 
-  <div class="create-box">
-    <input type="email" [(ngModel)]="email" placeholder="email@bymed.co.zw" />
-    <label>
-      <input type="checkbox" [(ngModel)]="isPrimaryRecipient" />
-      Primary recipient (unchecked means CC)
-    </label>
-    <button pButton type="button" label="Add recipient" [loading]="submitting()" (click)="create()"></button>
-  </div>
-
-  @if (isLoading()) {
-    <div class="state-box">
-      <p-progressSpinner ariaLabel="Loading recipients" strokeWidth="4"></p-progressSpinner>
-    </div>
-  } @else if (errorMessage()) {
-    <div class="state-box error">{{ errorMessage() }}</div>
-  } @else if (rows().length === 0) {
-    <div class="state-box">No recipients configured yet.</div>
-  } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of rows(); track row.id) {
-            <tr>
-              <td>{{ row.email }}</td>
-              <td>{{ row.isPrimaryRecipient ? 'Primary' : 'CC' }}</td>
-              <td>
-                <span class="chip" [class.ok]="row.isActive" [class.warn]="!row.isActive">
-                  {{ row.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td>{{ row.createdAtUtc | date: 'medium' }}</td>
-              <td>
-                <button
-                  pButton
-                  type="button"
-                  class="p-button-text"
-                  [class.p-button-danger]="row.isActive"
-                  [class.p-button-success]="!row.isActive"
-                  [label]="row.isActive ? 'Deactivate' : 'Activate'"
-                  [loading]="isToggling(row.id)"
-                  (click)="toggleRecipientStatus(row.id, row.isActive)"
-                ></button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
   }
-</section>
+
+  <section class="add-form-panel">
+    <div class="add-form-panel__head">
+      <h2 class="add-form-panel__title">Add recipient</h2>
+      <p class="add-form-panel__subtitle">Enter an email address to receive contact form submissions.</p>
+    </div>
+    <form class="add-form-panel__fields" (ngSubmit)="create()">
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="recipientEmail"
+        placeholder="email@bymed.co.zw"
+        aria-label="Recipient email"
+      />
+      <label>
+        <input type="checkbox" [(ngModel)]="isPrimaryRecipient" name="isPrimaryRecipient" />
+        Primary recipient
+      </label>
+      <button type="submit" class="btn-primary" [disabled]="submitting()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>{{ submitting() ? 'Adding…' : 'Add Recipient' }}</span>
+      </button>
+    </form>
+  </section>
+
+  <div class="table-card">
+    @if (isLoading()) {
+      <app-table-skeleton [columnCount]="5" [rowCount]="5" ariaLabel="Loading recipients" />
+    } @else {
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.id) {
+              <tr>
+                <td>{{ row.email }}</td>
+                <td>
+                  <span class="category-badge">{{ row.isPrimaryRecipient ? 'Primary' : 'CC' }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class.status-active]="row.isActive" [class.status-inactive]="!row.isActive">
+                    {{ row.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ row.createdAtUtc | date: 'medium' }}</td>
+                <td class="col-actions">
+                  <div class="action-group">
+                    <button
+                      type="button"
+                      class="outline-btn"
+                      [class.danger]="row.isActive"
+                      [disabled]="isToggling(row.id)"
+                      (click)="toggleRecipientStatus(row.id, row.isActive)"
+                    >
+                      {{ isToggling(row.id) ? 'Updating…' : row.isActive ? 'Deactivate' : 'Activate' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="5">No recipients configured yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

@@ -1,64 +1,117 @@
 import { Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-dashboard-skeleton',
   standalone: true,
-  imports: [MatCardModule],
   template: `
-    <div class="skel-grid" role="status" aria-label="Loading dashboard">
-      @for (card of cards; track card) {
-        <mat-card class="skel-card">
-          <mat-card-header>
-            <div class="skel-title"></div>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="skel-line skel-line--wide"></div>
-            <div class="skel-line"></div>
-            <div class="skel-line skel-line--short"></div>
-          </mat-card-content>
-        </mat-card>
-      }
+    <div class="skel-page" role="status" aria-label="Loading dashboard">
+      <div class="skel-header">
+        <div class="skel-line skel-line--title"></div>
+        <div class="skel-line skel-line--subtitle"></div>
+      </div>
+
+      <div class="skel-kpi-grid">
+        @for (card of kpiCards; track card) {
+          <div class="skel-kpi">
+            <div class="skel-line skel-line--label"></div>
+            <div class="skel-line skel-line--value"></div>
+            <div class="skel-line skel-line--hint"></div>
+            <div class="skel-sparkline"></div>
+          </div>
+        }
+      </div>
+
+      <div class="skel-charts">
+        <div class="skel-chart-large"></div>
+        <div class="skel-chart-small"></div>
+      </div>
     </div>
   `,
   styles: [
     `
-      .skel-grid {
+      .skel-page {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .skel-header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .skel-kpi-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
-        margin-top: 1rem;
       }
 
-      .skel-card {
-        min-height: 140px;
+      .skel-kpi,
+      .skel-chart-large,
+      .skel-chart-small {
+        background: var(--surface-card);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
       }
 
-      .skel-title {
-        height: 1.1rem;
-        width: 55%;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #e8eaf0 0%, #f4f5f8 40%, #e8eaf0 80%);
+      .skel-kpi {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+
+      .skel-charts {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 1rem;
+      }
+
+      .skel-chart-large {
+        min-height: 18rem;
+      }
+
+      .skel-chart-small {
+        min-height: 18rem;
+      }
+
+      .skel-line,
+      .skel-sparkline {
+        border-radius: 6px;
+        background: linear-gradient(90deg, var(--surface-hover) 0%, var(--surface-border) 40%, var(--surface-hover) 80%);
         background-size: 200% 100%;
         animation: dash-skel 1.2s ease-in-out infinite;
       }
 
-      .skel-line {
+      .skel-line--title {
+        height: 1.75rem;
+        width: 40%;
+      }
+
+      .skel-line--subtitle {
+        height: 0.9375rem;
+        width: 60%;
+      }
+
+      .skel-line--label {
+        height: 0.8125rem;
+        width: 50%;
+      }
+
+      .skel-line--value {
+        height: 1.625rem;
+        width: 65%;
+      }
+
+      .skel-line--hint {
         height: 0.75rem;
-        margin-top: 0.65rem;
-        border-radius: 4px;
-        width: 80%;
-        background: linear-gradient(90deg, #e8eaf0 0%, #f4f5f8 40%, #e8eaf0 80%);
-        background-size: 200% 100%;
-        animation: dash-skel 1.2s ease-in-out infinite;
-      }
-
-      .skel-line--wide {
-        width: 95%;
-      }
-
-      .skel-line--short {
         width: 45%;
+      }
+
+      .skel-sparkline {
+        height: 2rem;
+        margin-top: 0.25rem;
       }
 
       @keyframes dash-skel {
@@ -69,9 +122,15 @@ import { MatCardModule } from '@angular/material/card';
           background-position: -100% 0;
         }
       }
+
+      @media (max-width: 768px) {
+        .skel-charts {
+          grid-template-columns: 1fr;
+        }
+      }
     `
   ]
 })
 export class DashboardSkeletonComponent {
-  protected readonly cards = [0, 1, 2, 3];
+  protected readonly kpiCards = [0, 1, 2, 3];
 }

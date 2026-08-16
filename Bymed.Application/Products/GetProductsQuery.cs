@@ -8,7 +8,6 @@ public sealed record GetProductsQuery(
     int PageSize,
     Guid? CategoryId,
     string? Search,
-    bool? InStock,
     string? Brand = null,
     string? ClientType = null,
     decimal? MinPrice = null,

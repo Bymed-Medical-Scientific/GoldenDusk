@@ -1,120 +1,148 @@
-<section class="approvals-page">
-  <header class="approvals-header">
+@if (errorMessage()) {
+  <app-global-error [message]="errorMessage() ?? ''" />
+} @else {
+  <header class="page-header">
     <div>
-      <h2>Admin approvals</h2>
-      <p>Review new admin registrations and activate verified accounts.</p>
+      <h1 class="page-title">Admin Approvals</h1>
+      <p class="page-subtitle">Review pending registration requests.</p>
     </div>
-    <button pButton type="button" class="p-button-outlined" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+    <button type="button" class="outline-btn" (click)="refresh()" aria-label="Refresh approvals">
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+      <span>Refresh</span>
+    </button>
   </header>
 
-  @if (isLoading()) {
-    <div class="state-box">
-      <p-progressSpinner ariaLabel="Loading pending approvals" strokeWidth="4"></p-progressSpinner>
-    </div>
-  } @else if (errorMessage()) {
-    <div class="state-box error">{{ errorMessage() }}</div>
-  } @else {
-    <h3>Pending admin approvals</h3>
-    @if (rows().length === 0) {
-      <div class="state-box">No pending admin approvals right now.</div>
-    } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Email verified</th>
-            <th>Requested</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of rows(); track row.id) {
-            <tr>
-              <td>{{ row.name }}</td>
-              <td>{{ row.email }}</td>
-              <td>
-                <span class="chip" [class.ok]="row.emailConfirmed" [class.warn]="!row.emailConfirmed">
-                  {{ row.emailConfirmed ? 'Yes' : 'No' }}
-                </span>
-              </td>
-              <td>{{ row.creationTime | date: 'medium' }}</td>
-              <td class="actions">
-                <button
-                  pButton
-                  type="button"
-                  label="Approve"
-                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
-                  [loading]="isApproving(row.id)"
-                  (click)="approve(row.id)"
-                ></button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    }
-
-    <h3 class="mt-4">Pending customer approvals</h3>
-    @if (customerRows().length === 0) {
-      <div class="state-box">No pending customer approvals right now.</div>
-    } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Email verified</th>
-            <th>Requested</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of customerRows(); track row.id) {
-            <tr>
-              <td>{{ row.name }}</td>
-              <td>{{ row.email }}</td>
-              <td>
-                <span class="chip" [class.ok]="row.emailConfirmed" [class.warn]="!row.emailConfirmed">
-                  {{ row.emailConfirmed ? 'Yes' : 'No' }}
-                </span>
-              </td>
-              <td>{{ row.creationTime | date: 'medium' }}</td>
-              <td class="actions">
-                <button
-                  pButton
-                  type="button"
-                  label="Approve + Show prices"
-                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
-                  [loading]="isApproving(row.id)"
-                  (click)="approveCustomer(row.id, true)"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  label="Approve (hide prices)"
-                  class="p-button-secondary"
-                  [disabled]="!row.emailConfirmed || isApproving(row.id)"
-                  (click)="approveCustomer(row.id, false)"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  label="Decline"
-                  class="p-button-danger"
-                  [disabled]="isDeclining(row.id)"
-                  [loading]="isDeclining(row.id)"
-                  (click)="declineCustomer(row.id)"
-                ></button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    }
+  @if (pageMessage()) {
+    <p class="page-message">{{ pageMessage() }}</p>
   }
-</section>
+
+  <section class="section-block">
+    <h2 class="section-block__title">Pending Admin Approvals</h2>
+    <div class="table-card">
+      @if (isLoading()) {
+        <app-table-skeleton [columnCount]="5" [rowCount]="4" ariaLabel="Loading pending admin approvals" />
+      } @else {
+        <div class="table-scroll">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Email verified</th>
+                <th>Requested</th>
+                <th class="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.id) {
+                <tr>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.email }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.status-yes]="row.emailConfirmed"
+                      [class.status-no]="!row.emailConfirmed"
+                    >
+                      {{ row.emailConfirmed ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="date-cell">{{ row.creationTime | date: 'medium' }}</td>
+                  <td class="col-actions">
+                    <div class="action-group">
+                      <button
+                        type="button"
+                        class="outline-btn"
+                        [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                        (click)="approve(row.id)"
+                      >
+                        {{ isApproving(row.id) ? 'Approving…' : 'Approve' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td class="empty-cell" colspan="5">No pending admin approvals right now.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2 class="section-block__title">Pending Customer Approvals</h2>
+    <div class="table-card">
+      @if (isLoading()) {
+        <app-table-skeleton [columnCount]="5" [rowCount]="4" ariaLabel="Loading pending customer approvals" />
+      } @else {
+        <div class="table-scroll">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Email verified</th>
+                <th>Requested</th>
+                <th class="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of customerRows(); track row.id) {
+                <tr>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.email }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.status-yes]="row.emailConfirmed"
+                      [class.status-no]="!row.emailConfirmed"
+                    >
+                      {{ row.emailConfirmed ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="date-cell">{{ row.creationTime | date: 'medium' }}</td>
+                  <td class="col-actions">
+                    <div class="action-group">
+                      <button
+                        type="button"
+                        class="outline-btn"
+                        [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                        (click)="approveCustomer(row.id, true)"
+                      >
+                        Approve + Show prices
+                      </button>
+                      <button
+                        type="button"
+                        class="outline-btn"
+                        [disabled]="!row.emailConfirmed || isApproving(row.id)"
+                        (click)="approveCustomer(row.id, false)"
+                      >
+                        Approve (hide prices)
+                      </button>
+                      <button
+                        type="button"
+                        class="outline-btn danger"
+                        [disabled]="isDeclining(row.id)"
+                        (click)="declineCustomer(row.id)"
+                      >
+                        {{ isDeclining(row.id) ? 'Declining…' : 'Decline' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td class="empty-cell" colspan="5">No pending customer approvals right now.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+}

@@ -9,7 +9,7 @@ import { GlobalErrorComponent } from '@shared/components/global-error/global-err
 import { PagedResultDto, QuotationSummaryDto } from '@shared/models';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { TablePaginationComponent, TablePageChange } from '@shared/components/table-pagination/table-pagination.component';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
@@ -26,7 +26,7 @@ type PoOutcomeFilter = 'all' | 'yes' | 'no';
     FormsModule,
     GlobalErrorComponent,
     InputTextModule,
-    PaginatorModule,
+    TablePaginationComponent,
     RouterLink,
     SelectModule,
     TableModule
@@ -92,9 +92,9 @@ export class QuotationsPageComponent implements OnInit {
     this.loadPage();
   }
 
-  protected onPageChange(event: PaginatorState): void {
-    this.pageNumber.set((event.page ?? 0) + 1);
-    this.pageSize.set(event.rows ?? this.pageSize());
+  protected onPageChange(event: TablePageChange): void {
+    this.pageNumber.set(event.pageNumber);
+    this.pageSize.set(event.pageSize);
     this.loadPage();
   }
 

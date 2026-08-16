@@ -2,8 +2,8 @@ import { CheckoutPageContent } from "@/components/checkout/checkout-page-content
 import { absoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
-const title = "Request a Quote";
-const description = "Submit your selected products and contact details for a quotation.";
+const title = "Checkout";
+const description = "Complete your purchase securely with Bymed Medical & Scientific.";
 const canonical = absoluteUrl("/checkout");
 
 export const metadata: Metadata = {
@@ -22,9 +22,9 @@ export const metadata: Metadata = {
 export default function CheckoutPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Request a Quote</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Checkout</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Submit your selected products and details so our team can prepare your quotation.
+        Enter shipping and payment details to complete your order.
       </p>
       <div className="mt-8">
         <CheckoutPageContent />

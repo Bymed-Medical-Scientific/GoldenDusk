@@ -15,8 +15,11 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<CatalogueItem> CatalogueItems => Set<CatalogueItem>();
+    public DbSet<CatalogueItemImage> CatalogueItemImages => Set<CatalogueItemImage>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
@@ -25,7 +28,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<PageContent> PageContents => Set<PageContent>();
     public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
-    public DbSet<InventoryLog> InventoryLogs => Set<InventoryLog>();
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<ContactNotificationRecipient> ContactNotificationRecipients => Set<ContactNotificationRecipient>();
@@ -52,8 +54,11 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Ignore<Account>();
 
         ApplyCategoryConfiguration(modelBuilder);
+        ApplyBrandConfiguration(modelBuilder);
         ApplyProductConfiguration(modelBuilder);
         ApplyProductImageConfiguration(modelBuilder);
+        ApplyCatalogueItemConfiguration(modelBuilder);
+        ApplyCatalogueItemImageConfiguration(modelBuilder);
         ApplyUserConfiguration(modelBuilder);
         ApplyCartConfiguration(modelBuilder);
         ApplyCartItemConfiguration(modelBuilder);
@@ -63,7 +68,6 @@ public class ApplicationDbContext : DbContext
         ApplyAddressConfiguration(modelBuilder);
         ApplyPageContentConfiguration(modelBuilder);
         ApplyContentVersionConfiguration(modelBuilder);
-        ApplyInventoryLogConfiguration(modelBuilder);
         ApplyRefreshTokenConfiguration(modelBuilder);
         ApplyContactMessageConfiguration(modelBuilder);
         ApplyContactNotificationRecipientConfiguration(modelBuilder);
@@ -136,6 +140,62 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ApplyBrandConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Brand>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(Brand.NameMaxLength);
+            entity.Property(e => e.LogoUrl).HasMaxLength(Brand.LogoUrlMaxLength);
+            entity.Property(e => e.WebsiteUrl).HasMaxLength(Brand.WebsiteUrlMaxLength);
+        });
+    }
+
+    private static void ApplyCatalogueItemConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CatalogueItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Slug).IsUnique();
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.BrandId);
+            entity.HasIndex(e => e.IsPublished);
+            entity.HasIndex(e => e.Name);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(CatalogueItem.NameMaxLength);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(CatalogueItem.SlugMaxLength);
+            entity.Property(e => e.Description);
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Brand)
+                .WithMany()
+                .HasForeignKey(e => e.BrandId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+    }
+
+    private static void ApplyCatalogueItemImageConfiguration(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CatalogueItemImage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.CatalogueItemId);
+            entity.HasIndex(e => new { e.CatalogueItemId, e.DisplayOrder });
+
+            entity.Property(e => e.Url).IsRequired().HasMaxLength(CatalogueItemImage.UrlMaxLength);
+            entity.Property(e => e.AltText).IsRequired().HasMaxLength(CatalogueItemImage.AltTextMaxLength);
+
+            entity.HasOne(e => e.CatalogueItem)
+                .WithMany()
+                .HasForeignKey(e => e.CatalogueItemId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
@@ -350,24 +410,6 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.PageContent)
                 .WithMany(p => p.Versions)
                 .HasForeignKey(e => e.PageContentId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-    }
-
-    private static void ApplyInventoryLogConfiguration(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<InventoryLog>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.ProductId);
-            entity.HasIndex(e => e.CreatedAt);
-
-            entity.Property(e => e.Reason).IsRequired().HasMaxLength(InventoryLog.ReasonMaxLength);
-            entity.Property(e => e.ChangedBy).IsRequired().HasMaxLength(InventoryLog.ChangedByMaxLength);
-
-            entity.HasOne(e => e.Product)
-                .WithMany()
-                .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

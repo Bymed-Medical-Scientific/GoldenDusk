@@ -45,7 +45,10 @@ public class Cart : BaseEntity
 
         var existing = _items.Find(i => i.ProductId == productId);
         if (existing is not null)
+        {
             existing.SetQuantity(quantity);
+            existing.SetPriceAtAdd(pricePerUnit);
+        }
         else
             _items.Add(new CartItem(Id, productId, quantity, pricePerUnit));
     }
